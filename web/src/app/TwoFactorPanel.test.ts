@@ -98,7 +98,7 @@ describe('TwoFactorPanelView', () => {
 describe('EnrolmentStepView', () => {
   const enrollment = {
     secret: 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP',
-    uri: 'otpauth://totp/OpenTodo:a%40example.com?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=OpenTodo',
+    uri: 'otpauth://totp/OpenTaskKit:a%40example.com?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=OpenTaskKit',
     expiresAt: now + 600_000,
   }
   it('shows a locally rendered QR code, the manual key and a code field', () => {

@@ -231,13 +231,13 @@
   "A new link is on its way; the earlier one no longer works.": [
     "web/src/app/AuthScreen.tsx"
   ],
-  "A new version of OpenTodo is ready.": [
+  "A new version of OpenTaskKit is ready.": [
     "web/src/app/UpdateBanner.tsx"
   ],
-  "A newer version of OpenTodo is open in another tab. Reload this tab to keep working.": [
+  "A newer version of OpenTaskKit is open in another tab. Reload this tab to keep working.": [
     "web/src/app/UpdateBanner.tsx"
   ],
-  "A newer version of OpenTodo is required to read your data.": [
+  "A newer version of OpenTaskKit is required to read your data.": [
     "web/src/app/App.tsx"
   ],
   "A notice on any screen after a long stretch of work without a break.": [
@@ -374,7 +374,7 @@
   "About": [
     "web/src/app/settingsSections.ts"
   ],
-  "About OpenTodo": [
+  "About OpenTaskKit": [
     "web/src/lib/settingsCopy.ts"
   ],
   "About this demo": [
@@ -643,7 +643,7 @@
   "Add time": [
     "web/src/app/task-detail/TimeTab.tsx"
   ],
-  "Add to OpenTodo": [
+  "Add to OpenTaskKit": [
     "web/src/app/CaptureSettings.tsx",
     "web/src/app/ShareCapture.tsx"
   ],
@@ -764,7 +764,7 @@
   "Allow plain http (the password is sent unencrypted; only on a trusted network)": [
     "web/src/app/BackupsPanel.tsx"
   ],
-  "Allow pop-ups for this site to capture it to OpenTodo.": [
+  "Allow pop-ups for this site to capture it to OpenTaskKit.": [
     "web/src/lib/share.ts"
   ],
   "Allow private endpoints": [
@@ -802,7 +802,7 @@
     "web/src/app/Sections.tsx",
     "web/src/app/ViewsView.tsx"
   ],
-  "An OpenTodo export, a CSV file or another app’s JSON export; open it with {kbd}.": [
+  "An OpenTaskKit export, a CSV file or another app’s JSON export; open it with {kbd}.": [
     "web/src/lib/settingsCopy.ts"
   ],
   "An account with this email already exists.": [
@@ -814,7 +814,7 @@
   "An admin token can turn off two-factor authentication, create more tokens and app passwords, manage accounts and change single sign-on and other secret settings, without your password or a code. Create one only for a script that needs it, keep it like a password and revoke it when you are done.": [
     "web/src/app/TokensSection.tsx"
   ],
-  "An archive made by OpenTodo ({name}, optionally {suffix}), for example from another server.": [
+  "An archive made by OpenTaskKit ({name}, optionally {suffix}), for example from another server.": [
     "web/src/app/RestoreSection.tsx"
   ],
   "An assistant with a token for changes can edit your tasks; you can undo each one.": [
@@ -1014,7 +1014,7 @@
     "web/src/lib/shortcuts.ts",
     "web/src/ui/patterns/AskComposer.tsx"
   ],
-  "Ask OpenTodo": [
+  "Ask OpenTaskKit": [
     "web/src/app/assistant/AskEntry.tsx",
     "web/src/ui/patterns/AskComposer.tsx"
   ],
@@ -1364,7 +1364,7 @@
   "Bring in tasks from a file or another app": [
     "web/src/app/settingsIndex.ts"
   ],
-  "Bring in tasks from an OpenTodo export, a CSV file or another task manager's JSON export. You see a preview first; nothing is written until you confirm, and every import can be undone. Import runs on your server, so it needs a connection. Help explains the formats and options.": [
+  "Bring in tasks from an OpenTaskKit export, a CSV file or another task manager's JSON export. You see a preview first; nothing is written until you confirm, and every import can be undone. Import runs on your server, so it needs a connection. Help explains the formats and options.": [
     "web/src/app/ImportScreen.tsx"
   ],
   "Browser": [
@@ -2893,7 +2893,7 @@
   "Do|method": [
     "web/src/lib/method/vocabulary.json"
   ],
-  "Drag <strong>Add to OpenTodo</strong> to your bookmarks bar, then click it on any page.": [
+  "Drag <strong>Add to OpenTaskKit</strong> to your bookmarks bar, then click it on any page.": [
     "web/src/lib/settingsCopy.ts"
   ],
   "Drag a bar to move its dates, or its ends to set the start and deadline. ← → move the selected task, Shift+← → its deadline.": [
@@ -3756,7 +3756,7 @@
   "For Gmail and similar services, an app password.": [
     "web/src/app/OutgoingEmailPanel.tsx"
   ],
-  "For example: OpenTodo <todo@example.com>. Your mail provider may require an address it owns.": [
+  "For example: OpenTaskKit <todo@example.com>. Your mail provider may require an address it owns.": [
     "web/src/app/OutgoingEmailPanel.tsx"
   ],
   "For example: “{example}”": [
@@ -4432,7 +4432,7 @@
   "Install the app and use your phone's share menu.": [
     "web/src/lib/settingsCopy.ts"
   ],
-  "Installed, OpenTodo opens in its own window and works offline on your phone, tablet or computer.": [
+  "Installed, OpenTaskKit opens in its own window and works offline on your phone, tablet or computer.": [
     "web/src/app/FirstRun.tsx"
   ],
   "Integrations": [
@@ -6343,7 +6343,7 @@
   "On drop: {rule}": [
     "web/src/app/DashboardView.tsx"
   ],
-  "On iPhone and iPad, push works only in the app installed to the Home Screen: check Settings → Notifications → OpenTodo, and Focus.": [
+  "On iPhone and iPad, push works only in the app installed to the Home Screen: check Settings → Notifications → OpenTaskKit, and Focus.": [
     "web/src/lib/push.ts"
   ],
   "On macOS, check System Settings → Notifications → your browser (allow notifications, banners or alerts), and Focus.": [
@@ -6581,7 +6581,7 @@
   "Open {title}": [
     "web/src/app/palette/registry.ts"
   ],
-  "OpenTodo": [
+  "OpenTaskKit": [
     "web/src/app/AuthScreen.tsx",
     "web/src/app/EmailScreens.tsx",
     "web/src/app/InviteScreen.tsx",
@@ -6589,43 +6589,43 @@
     "web/src/app/ResetScreen.tsx",
     "web/src/app/Sidebar.tsx"
   ],
-  "OpenTodo as a plain task app, with no method words.": [
+  "OpenTaskKit as a plain task app, with no method words.": [
     "web/src/lib/settingsCopy.ts"
   ],
-  "OpenTodo asks the browser to recognise speech on this device when it offers that choice.": [
+  "OpenTaskKit asks the browser to recognise speech on this device when it offers that choice.": [
     "web/src/app/VoiceSettings.tsx"
   ],
-  "OpenTodo can't reach the server.": [
+  "OpenTaskKit can't reach the server.": [
     "web/src/app/App.tsx"
   ],
-  "OpenTodo export (JSON)": [
+  "OpenTaskKit export (JSON)": [
     "web/src/app/ImportScreen.tsx"
   ],
-  "OpenTodo is free and open source, made by one person in the open. It is yours now: your server, your data, no subscription.": [
+  "OpenTaskKit is free and open source, made by one person in the open. It is yours now: your server, your data, no subscription.": [
     "web/src/app/WelcomeDialog.tsx"
   ],
-  "OpenTodo is free software (AGPL-3.0). No telemetry, no tracking, no subscription.": [
+  "OpenTaskKit is free software (AGPL-3.0). No telemetry, no tracking, no subscription.": [
     "web/src/app/SettingsView.tsx"
   ],
-  "OpenTodo reads {path}.": [
+  "OpenTaskKit reads {path}.": [
     "web/src/app/SsoPanel.tsx"
   ],
-  "OpenTodo recovery codes ({host})": [
+  "OpenTaskKit recovery codes ({host})": [
     "web/src/app/TwoFactorPanel.tsx"
   ],
-  "OpenTodo recovery key": [
+  "OpenTaskKit recovery key": [
     "web/src/app/EncryptionPanel.tsx"
   ],
-  "OpenTodo {appVersion}": [
+  "OpenTaskKit {appVersion}": [
     "web/src/app/RestoreSection.tsx"
   ],
-  "OpenTodo {version} · AGPL-3.0 · no tracking, no telemetry": [
+  "OpenTaskKit {version} · AGPL-3.0 · no tracking, no telemetry": [
     "web/src/app/AuthScreen.tsx"
   ],
-  "OpenTodo {version} · free and open source · no tracking, no telemetry.": [
+  "OpenTaskKit {version} · free and open source · no tracking, no telemetry.": [
     "web/src/lib/settingsCopy.ts"
   ],
-  "OpenTodo {version} · works offline": [
+  "OpenTaskKit {version} · works offline": [
     "web/src/app/help/HelpView.tsx"
   ],
   "Opening the shared files…": [
@@ -7340,7 +7340,7 @@
   "QR code to scan with your authenticator app": [
     "web/src/app/TwoFactorPanel.tsx"
   ],
-  "Questions, ideas and other people who use OpenTodo, on Discord.": [
+  "Questions, ideas and other people who use OpenTaskKit, on Discord.": [
     "web/src/app/settingsIndex.ts",
     "web/src/lib/settingsCopy.ts"
   ],
@@ -8521,7 +8521,7 @@
   "Shared project": [
     "web/src/app/Sidebar.tsx"
   ],
-  "Shared with OpenTodo. Notes, labels and names of the people on this project are not shown.": [
+  "Shared with OpenTaskKit. Notes, labels and names of the people on this project are not shown.": [
     "web/src/app/PublicListScreen.tsx"
   ],
   "Sharing changes: {note}": [
@@ -8645,7 +8645,7 @@
   "Sign in to add links.": [
     "web/src/lib/attachments.ts"
   ],
-  "Sign in to add the shared page to OpenTodo. It is kept on this screen until then.": [
+  "Sign in to add the shared page to OpenTaskKit. It is kept on this screen until then.": [
     "web/src/app/App.tsx"
   ],
   "Sign in to comment.": [
@@ -8966,7 +8966,7 @@
   "Speak a task instead of typing it, on this device.": [
     "web/src/lib/settingsCopy.ts"
   ],
-  "Speech is recognised by your browser, not by OpenTodo.": [
+  "Speech is recognised by your browser, not by OpenTaskKit.": [
     "web/src/app/VoiceSettings.tsx"
   ],
   "Spent {duration}": [
@@ -8976,7 +8976,7 @@
     "web/src/app/review/MonthlyLook.tsx",
     "web/src/app/review/ProjectWalk.tsx"
   ],
-  "Star OpenTodo on GitHub": [
+  "Star OpenTaskKit on GitHub": [
     "web/src/app/WelcomeDialog.tsx"
   ],
   "Start": [
@@ -9034,7 +9034,7 @@
     "web/src/app/bulk/BulkActions.tsx",
     "web/src/app/task-detail/TimeTab.tsx"
   ],
-  "Start using OpenTodo": [
+  "Start using OpenTaskKit": [
     "web/src/app/WelcomeDialog.tsx"
   ],
   "Start view": [
@@ -9175,7 +9175,7 @@
   "Sunday": [
     "web/src/app/DateTimeSettings.tsx"
   ],
-  "Support OpenTodo": [
+  "Support OpenTaskKit": [
     "web/src/app/settingsIndex.ts",
     "web/src/lib/settingsCopy.ts"
   ],
@@ -9375,7 +9375,7 @@
     "web/src/app/task-detail/AttachmentsRow.tsx",
     "web/src/lib/fields.ts"
   ],
-  "Thanks for installing OpenTodo": [
+  "Thanks for installing OpenTaskKit": [
     "web/src/app/WelcomeDialog.tsx"
   ],
   "That address is on a private network (LAN, localhost or similar). The server owner can allow private network targets below.": [
@@ -9965,10 +9965,10 @@
   "The weekly digest is set on the server, so changing it needs a connection.": [
     "web/src/lib/settingsCopy.ts"
   ],
-  "The whole server as one archive, to restore into your own OpenTodo server.": [
+  "The whole server as one archive, to restore into your own OpenTaskKit server.": [
     "web/src/lib/settingsCopy.ts"
   ],
-  "The whole server as one backup archive, to move to your own OpenTodo server": [
+  "The whole server as one backup archive, to move to your own OpenTaskKit server": [
     "web/src/app/settingsIndex.ts"
   ],
   "The {role} link for {email} will stop working.": [
@@ -10059,10 +10059,10 @@
   "This address is on a private network. The server owner can allow private targets.": [
     "web/src/lib/i18n/errors.ts"
   ],
-  "This archive comes from a newer version of OpenTodo. Update this server first. ({detail})": [
+  "This archive comes from a newer version of OpenTaskKit. Update this server first. ({detail})": [
     "web/src/lib/restore.ts"
   ],
-  "This archive comes from a newer version of OpenTodo. Upgrade the server first.": [
+  "This archive comes from a newer version of OpenTaskKit. Upgrade the server first.": [
     "web/src/lib/i18n/errors.ts"
   ],
   "This archive is encrypted. Enter its passphrase.": [
@@ -10245,7 +10245,7 @@
   "This invite link was issued for a different email address.": [
     "web/src/lib/i18n/errors.ts"
   ],
-  "This is a public demo of OpenTodo.": [
+  "This is a public demo of OpenTaskKit.": [
     "web/src/app/AuthScreen.tsx"
   ],
   "This is disabled on the demo instance.": [
@@ -10254,10 +10254,10 @@
   "This is managed by the operator of this hosted service.": [
     "web/src/lib/i18n/errors.ts"
   ],
-  "This is not a usable OpenTodo backup: {detail}": [
+  "This is not a usable OpenTaskKit backup: {detail}": [
     "web/src/lib/restore.ts"
   ],
-  "This is not an OpenTodo template.": [
+  "This is not an OpenTaskKit template.": [
     "web/src/app/TemplateDialogs.tsx",
     "web/src/lib/templates.ts"
   ],
@@ -11692,7 +11692,7 @@
   "Your Inbox is empty.": [
     "web/src/app/task-list/ListChrome.tsx"
   ],
-  "Your OpenTodo server never receives audio or transcripts. Only the task you save with Enter is stored and synced, like a typed one.": [
+  "Your OpenTaskKit server never receives audio or transcripts. Only the task you save with Enter is stored and synced, like a typed one.": [
     "web/src/app/VoiceSettings.tsx"
   ],
   "Your account uses end-to-end encryption, so the server holds no key to your tasks and cannot pass them to a model. The rest of the app works as usual.": [
@@ -13602,7 +13602,7 @@
   "{offset} the deadline": [
     "web/src/lib/reminderTime.ts"
   ],
-  "{page} – OpenTodo": [
+  "{page} – OpenTaskKit": [
     "web/src/app/pageFocus.tsx"
   ],
   "{pct}% left the Inbox": [

@@ -52,7 +52,7 @@ export function AskScreen({ role }: { role?: AccountRole }) {
   const skills = useAssistantSkills(mode === 'composer')
   return (
     <PageBody width="list" data-ask-screen>
-      <PageHeader title={t('Ask OpenTodo')} help="ask" />
+      <PageHeader title={t('Ask OpenTaskKit')} help="ask" />
       <p className="mb-4 text-meta text-muted">{t('Ask about your tasks, or let a skill do a common job. Changes are proposed for you to review; nothing changes until you apply them.')}</p>
       {mode === 'composer' && (
         <>

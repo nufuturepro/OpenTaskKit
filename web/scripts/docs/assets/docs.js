@@ -1,4 +1,4 @@
-// OpenTodo docs: search, copy buttons and the "/" shortcut. Pages work without
+// OpenTaskKit docs: search, copy buttons and the "/" shortcut. Pages work without
 // it; this only adds to them. Search runs in the browser over search.json and
 // never sends what you type anywhere (analytics may count that search was used).
 (() => {

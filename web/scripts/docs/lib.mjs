@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, posix, relative, resolve } from 'node:path'
 import { Marked } from 'marked'
 
-export const REPO_URL = 'https://github.com/pixari/opentodo'
+export const REPO_URL = 'https://github.com/nufuturepro/OpenTaskKit'
 export const SITE_URL = 'https://open-todo.app'
 export const AUDIENCES = ['user', 'admin', 'developer']
 const KEYS = new Set(['title', 'summary', 'audience', 'specs', 'screens', 'order', 'section', 'card', 'layout'])
@@ -90,7 +90,7 @@ export function groupOf(fm) {
   return fm.section || 'Integrations'
 }
 export const GROUP_ORDER = ['Get started', 'Open Loops', 'Switch from another app', 'Guides', 'Reference', 'Self-hosting', 'Integrations', 'Internals']
-export const AUDIENCE_LABEL = { user: 'Using OpenTodo', admin: 'Self-hosting', developer: 'Integrations and internals' }
+export const AUDIENCE_LABEL = { user: 'Using OpenTaskKit', admin: 'Self-hosting', developer: 'Integrations and internals' }
 
 /**
  * Loads every page: { rel, slug, fm, body, errors }. The landing page (README.md)

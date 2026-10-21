@@ -94,7 +94,7 @@ describe('unhandled rejections', () => {
     logUnhandledRejections(win as unknown as Window)
     const ev = Object.assign(new Event('unhandledrejection'), { reason: new Error('lost write') })
     win.dispatchEvent(ev)
-    expect(log).toHaveBeenCalledWith('OpenTodo: unhandled rejection', ev.reason)
+    expect(log).toHaveBeenCalledWith('OpenTaskKit: unhandled rejection', ev.reason)
     log.mockRestore()
   })
 })

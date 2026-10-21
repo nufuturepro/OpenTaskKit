@@ -9,8 +9,8 @@ export function restoreErrorMessage(err: unknown): string {
   switch (err.code) {
     case 'passphrase_required': return t('This archive is encrypted. Enter the passphrase it was made with.')
     case 'passphrase_invalid': return t('That passphrase does not open this archive.')
-    case 'newer_schema': return t('This archive comes from a newer version of OpenTodo. Update this server first. ({detail})', { detail: err.serverMessage })
-    case 'integrity': return t('This is not a usable OpenTodo backup: {detail}', { detail: err.serverMessage })
+    case 'newer_schema': return t('This archive comes from a newer version of OpenTaskKit. Update this server first. ({detail})', { detail: err.serverMessage })
+    case 'integrity': return t('This is not a usable OpenTaskKit backup: {detail}', { detail: err.serverMessage })
     case 'insufficient_storage': return t('Not enough free disk space on the server: {detail}', { detail: err.serverMessage })
     case 'not_found': return t('This restore is no longer prepared. Choose the archive again.')
     case 'conflict': return t('A backup is running. Try again when it has finished.')

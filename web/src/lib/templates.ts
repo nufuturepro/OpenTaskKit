@@ -21,7 +21,7 @@ export class TemplateTooLargeError extends Error {
   }
 }
 
-/** The file is not an OpenTodo template (design D1). */
+/** The file is not an OpenTaskKit template (design D1). */
 export class TemplateFileError extends Error {}
 
 export interface TTask {
@@ -323,7 +323,7 @@ export function summarise(tree: TemplateTree): { projects: number; sections: num
 export function treeFromFile(doc: unknown): TemplateTree {
   const d = doc as Partial<TemplateFile> | null
   if (!d || typeof d !== 'object' || d.format !== 'opentodo-export' || typeof d.version !== 'number' || d.version < 1) {
-    throw new TemplateFileError(t('This is not an OpenTodo template.'))
+    throw new TemplateFileError(t('This is not an OpenTaskKit template.'))
   }
   const rows = (k: keyof TemplateFile) => (Array.isArray(d[k]) ? (d[k] as FileRow[]) : [])
   const live = (r: FileRow) => !r.deleted_at

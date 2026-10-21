@@ -106,7 +106,7 @@ export function RestoreSectionView(p: RestoreSectionViewProps) {
 
       {p.tab === 'upload' && (
         <div className="space-y-2" data-testid="restore-upload">
-          <p className="text-meta text-muted">{t.rich('An archive made by OpenTodo ({name}, optionally {suffix}), for example from another server.', { name: <code className="font-mono">opentodo-….tar.gz</code>, suffix: <code className="font-mono">.enc</code> })}</p>
+          <p className="text-meta text-muted">{t.rich('An archive made by OpenTaskKit ({name}, optionally {suffix}), for example from another server.', { name: <code className="font-mono">opentodo-….tar.gz</code>, suffix: <code className="font-mono">.enc</code> })}</p>
           <input ref={fileInput} type="file" className="sr-only" accept=".tar,.gz,.enc,application/gzip,application/x-tar,application/octet-stream" aria-label={t('Archive file')} tabIndex={-1}
             onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) p.onUpload(f) }} />
           <Button variant="secondary" icon="upload" disabled={disabled} onClick={() => fileInput.current?.click()}>{t('Choose an archive…')}</Button>
@@ -181,7 +181,7 @@ export function RestoreDialog(p: RestoreDialogProps) {
           <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); if (word === 'RESTORE') p.onConfirm() }}>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1" data-testid="restore-preview">
               <dt className="text-muted">{p.undo ? t('Database from') : t('Backup from')}</dt><dd>{created ? dt.formatInstant(created, 'datetime') : t('unknown')}</dd>
-              {s.manifest?.appVersion && <><dt className="text-muted">{t('Made by')}</dt><dd>{t('OpenTodo {appVersion}', { appVersion: s.manifest.appVersion })}</dd></>}
+              {s.manifest?.appVersion && <><dt className="text-muted">{t('Made by')}</dt><dd>{t('OpenTaskKit {appVersion}', { appVersion: s.manifest.appVersion })}</dd></>}
               <dt className="text-muted">{t('Schema version')}</dt><dd>{s.manifest?.schemaVersion}</dd>
               <dt className="text-muted">{t('Size')}</dt><dd>{formatBytes(s.size)}{s.encrypted ? ` · ${t('encrypted')}` : ''}</dd>
               {s.counts && <><dt className="text-muted">{t('Contains')}</dt><dd>{t('{accounts, plural, one {# account} other {# accounts}}, {projects, plural, one {# project} other {# projects}}, {tasks, plural, one {# task} other {# tasks}}', { accounts: s.counts.accounts, projects: s.counts.projects, tasks: s.counts.tasks })}</dd></>}

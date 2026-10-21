@@ -175,7 +175,7 @@ export function SettingsList({ user, current, compact = false }: { user: User; c
         ))}
       </nav>
       <p className={`text-meta text-faint ${compact ? 'px-2.5' : ''}`}>
-        {t('OpenTodo is free software (AGPL-3.0). No telemetry, no tracking, no subscription.')}<a className="ml-1 underline" href="https://github.com/pixari/opentodo" target="_blank" rel="noreferrer">{t('Source code')}</a>
+        {t('OpenTaskKit is free software (AGPL-3.0). No telemetry, no tracking, no subscription.')}<a className="ml-1 underline" href="https://github.com/nufuturepro/OpenTaskKit" target="_blank" rel="noreferrer">{t('Source code')}</a>
       </p>
     </div>
   )

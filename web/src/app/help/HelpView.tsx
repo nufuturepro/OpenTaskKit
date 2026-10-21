@@ -73,7 +73,7 @@ export function HelpView({ page: slug, q }: { page?: string; q?: string }) {
     )
   }
 
-  const version = <span className="whitespace-nowrap">{t('OpenTodo {version} · works offline', { version: data.bundle.version })}</span>
+  const version = <span className="whitespace-nowrap">{t('OpenTaskKit {version} · works offline', { version: data.bundle.version })}</span>
 
   return (
     <PageBody width={page ? 'full' : 'list'} className={page ? 'max-w-5xl' : ''} data-help-scroll data-help-view>

@@ -251,8 +251,8 @@ export async function localTestNotification(): Promise<void> {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') throw new PushPermissionError(t('Notifications are not allowed.'))
   const reg = await swRegistration(1000)
   const options = { body: t('Local notification: this browser may show notifications.'), tag: `opentodo-local-test:${Date.now()}`, icon: '/pwa-192.png' }
-  if (reg) await reg.showNotification('OpenTodo', options)
-  else new Notification('OpenTodo', options)
+  if (reg) await reg.showNotification('OpenTaskKit', options)
+  else new Notification('OpenTaskKit', options)
 }
 
 /** Best effort before signing out (the server also drops it with the session). */
@@ -275,7 +275,7 @@ export interface ChecklistStep {
 
 /** Where to turn notifications back on, by platform (best effort from the user agent). */
 export function osNotificationHint(ua: string): string {
-  if (/iPhone|iPad|iPod/.test(ua)) return t('On iPhone and iPad, push works only in the app installed to the Home Screen: check Settings → Notifications → OpenTodo, and Focus.')
+  if (/iPhone|iPad|iPod/.test(ua)) return t('On iPhone and iPad, push works only in the app installed to the Home Screen: check Settings → Notifications → OpenTaskKit, and Focus.')
   if (/Android/.test(ua)) return t('On Android, check Settings → Apps → your browser → Notifications, and Do Not Disturb.')
   if (/Mac OS X|Macintosh/.test(ua)) return t('On macOS, check System Settings → Notifications → your browser (allow notifications, banners or alerts), and Focus.')
   if (/Windows/.test(ua)) return t('On Windows, check Settings → System → Notifications → your browser, and Do Not Disturb.')

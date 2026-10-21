@@ -1,4 +1,4 @@
-// The "Ask OpenTodo" composer (OpenSpec change assistant-skills, design D4): a
+// The "Ask OpenTaskKit" composer (OpenSpec change assistant-skills, design D4): a
 // text area, a Skills menu and up to three example cards. It only collects the
 // request; the caller opens the assistant panel with it. A long or multi-line
 // paste becomes separate material (sent as untrusted text, design D3).
@@ -72,7 +72,7 @@ export function AskComposer({ skills, onAsk, examples = true, autoFocus, disable
     <div className="space-y-3" data-ask-composer>
       <form className="rounded-card border border-input bg-surface p-2 focus-within:outline-2 focus-within:outline-focus"
         onSubmit={(e) => { e.preventDefault(); send() }}>
-        <label htmlFor={inputId} className="sr-only">{t('Ask OpenTodo')}</label>
+        <label htmlFor={inputId} className="sr-only">{t('Ask OpenTaskKit')}</label>
         <textarea id={inputId} className="block max-h-48 min-h-12 w-full resize-none bg-transparent px-1 py-1 text-body text-default outline-none placeholder:text-faint"
           rows={2} value={text} disabled={disabled} autoFocus={autoFocus} placeholder={placeholder} data-ask-input
           onChange={(e) => setText(e.target.value)} onKeyDown={onKeyDown} onPaste={onPaste} />

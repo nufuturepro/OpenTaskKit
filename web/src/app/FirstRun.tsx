@@ -126,7 +126,7 @@ export function StartGuide({ self, userId, onClose, initialStep = 0 }: { self: b
         {current.id === 'task' && <TaskStep userId={userId} onAdded={() => setStep(1)} />}
         {current.id === 'work' && <WorkStep method={method} onMethod={setMethod} />}
         {current.id === 'install' && (
-          <p className="mt-1 text-body text-muted">{t('Installed, OpenTodo opens in its own window and works offline on your phone, tablet or computer.')}</p>
+          <p className="mt-1 text-body text-muted">{t('Installed, OpenTaskKit opens in its own window and works offline on your phone, tablet or computer.')}</p>
         )}
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {current.id === 'install' && <InstallButton next={next} />}

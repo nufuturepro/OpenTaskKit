@@ -22,7 +22,7 @@ export class PanelBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('OpenTodo: a part of the app failed to render', error, info.componentStack)
+    console.error('OpenTaskKit: a part of the app failed to render', error, info.componentStack)
   }
 
   componentDidUpdate(prev: Props): void {

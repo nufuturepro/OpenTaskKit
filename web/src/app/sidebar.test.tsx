@@ -305,7 +305,7 @@ describe('resize and collapse (ux-overhaul 4.9)', () => {
     expect(r.container.querySelector('[data-sidebar-collapse]')?.getAttribute('aria-pressed')).toBe('true')
     expect(r.container.querySelector('[data-sidebar-collapse]')?.getAttribute('aria-label')).toBe('Expand sidebar')
     expect(r.container.textContent).not.toContain('Projects')
-    expect(r.container.textContent).not.toContain('OpenTodo')
+    expect(r.container.textContent).not.toContain('OpenTaskKit')
     await r.unmount()
   })
 

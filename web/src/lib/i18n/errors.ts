@@ -77,7 +77,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   mfa_enrolment_required: msg('Set up two-factor authentication to continue: the server owner requires it for this account.'),
   mfa_not_enrolled: msg('Two-factor authentication is not turned on for this account.'),
   mfa_required_by_policy: msg('The server owner requires two-factor authentication for this account.'),
-  newer_schema: msg('This archive comes from a newer version of OpenTodo. Upgrade the server first.'),
+  newer_schema: msg('This archive comes from a newer version of OpenTaskKit. Upgrade the server first.'),
   no_key: msg('No API key is configured for this assistant.'),
   not_a_member: msg('You are not a member of this project.'),
   not_acceptable: msg('The server cannot answer in the requested format.'),

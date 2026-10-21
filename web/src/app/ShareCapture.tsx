@@ -166,7 +166,7 @@ export function ShareCapture() {
       <div className="w-full max-w-lg rounded-card border border-default bg-surface p-5 shadow-1">
         <div className="mb-4 flex items-center gap-2">
           <img src="/favicon.svg" alt="" className="h-6 w-6" />
-          <h1 className="text-body font-semibold">{t('Add to OpenTodo')}</h1>
+          <h1 className="text-body font-semibold">{t('Add to OpenTaskKit')}</h1>
         </div>
         {ready && isEmptyShare(payload) && shared.length === 0 && files.mode !== 'extension' && (
           <p className="mb-3 text-body text-muted">{t('Nothing was shared. Type a task to add it anyway.')}</p>

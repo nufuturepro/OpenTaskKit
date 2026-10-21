@@ -40,7 +40,7 @@ export const SETTINGS_COPY = {
     title: msg('How you work'),
     description: msg('How much the app shows its method, Open Loops. Synced; never changes a task.'),
     options: {
-      lists: { label: msg('Lists only'), description: msg('OpenTodo as a plain task app, with no method words.') },
+      lists: { label: msg('Lists only'), description: msg('OpenTaskKit as a plain task app, with no method words.') },
       companion: { label: msg('Companion'), description: msg('Your sidebar as it is; screens name the move they serve.') },
       first: { label: msg('Open Loops first'), description: msg('The Loop home first, a sidebar by the Places, a daily check.') },
     },
@@ -267,7 +267,7 @@ export const SETTINGS_COPY = {
     description: msg('Save pages and selected text from your browser as tasks.'),
     learnMore: 'settings/capture',
     rows: {
-      bookmarklet: { label: msg('Bookmarklet'), description: msg('Drag <strong>Add to OpenTodo</strong> to your bookmarks bar, then click it on any page.') },
+      bookmarklet: { label: msg('Bookmarklet'), description: msg('Drag <strong>Add to OpenTaskKit</strong> to your bookmarks bar, then click it on any page.') },
       extension: { label: msg('Browser extension'), description: msg('For Chromium and Firefox, in the repository under {path}.') },
       phone: { label: msg('On a phone'), description: msg("Install the app and use your phone's share menu.") },
     },
@@ -290,9 +290,9 @@ export const SETTINGS_COPY = {
 
   // Settings → About
   about: {
-    title: msg('About OpenTodo'),
+    title: msg('About OpenTaskKit'),
     description: {
-      version: msg('OpenTodo {version} · free and open source · no tracking, no telemetry.'),
+      version: msg('OpenTaskKit {version} · free and open source · no tracking, no telemetry.'),
       plain: msg('Free and open source · no tracking, no telemetry.'),
     },
     rows: {
@@ -300,13 +300,13 @@ export const SETTINGS_COPY = {
       docs: { label: msg('Documentation'), description: msg('The same guides on the website, with setup and self-hosting.') },
       website: { label: msg('Website'), description: msg('News, guides, comparisons and what is new in each release.') },
       feedback: { label: msg('Feedback and problems'), description: msg('Open an issue on GitHub. Every report is read.') },
-      community: { label: msg('Community'), description: msg('Questions, ideas and other people who use OpenTodo, on Discord.') },
+      community: { label: msg('Community'), description: msg('Questions, ideas and other people who use OpenTaskKit, on Discord.') },
       source: { label: msg('Source code'), description: msg('A star on GitHub helps other people find it.') },
       welcome: { label: msg('Welcome note'), description: msg('The thank-you shown the first time you opened this server.') },
     },
   },
   'about-support': {
-    title: msg('Support OpenTodo'),
+    title: msg('Support OpenTaskKit'),
     description: msg('No paid plan: if it saves you a subscription, a coffee helps.'),
   },
 
@@ -452,7 +452,7 @@ export const SETTINGS_COPY = {
         label: msg('Attachments'),
         description: { on: msg('Files may be up to {bytes} each.'), off: msg('Adding files is turned off on this server.') },
       },
-      import: { label: msg('Import'), description: msg('An OpenTodo export, a CSV file or another app’s JSON export; open it with {kbd}.') },
+      import: { label: msg('Import'), description: msg('An OpenTaskKit export, a CSV file or another app’s JSON export; open it with {kbd}.') },
       sync: { label: msg('Sync') },
       backups: { label: msg('Backups') },
     },
@@ -543,7 +543,7 @@ export const SETTINGS_COPY = {
   },
   'server-archive': {
     title: msg('Download your data'),
-    description: msg('The whole server as one archive, to restore into your own OpenTodo server.'),
+    description: msg('The whole server as one archive, to restore into your own OpenTaskKit server.'),
     learnMore: 'settings/server',
     rows: { archive: { label: msg('Server archive'), description: msg('Keep it private: it holds every account’s sign-in data.') } },
     notices: { offline: msg('You are offline. The download needs a connection to the server.') },

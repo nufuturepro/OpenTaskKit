@@ -12,8 +12,8 @@ export function UpdateBanner() {
   return (
     <div role="alert" data-update-banner className="border-b border-warning bg-warning-soft px-4 py-2 text-body text-on-warning-soft">
       {reason === 'database'
-        ? t('A newer version of OpenTodo is open in another tab. Reload this tab to keep working.')
-        : t('A new version of OpenTodo is ready.')}{' '}
+        ? t('A newer version of OpenTaskKit is open in another tab. Reload this tab to keep working.')
+        : t('A new version of OpenTaskKit is ready.')}{' '}
       <button type="button" className="underline" onClick={() => window.location.reload()}>{t('Reload to update')}</button>
     </div>
   )

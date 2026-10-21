@@ -60,8 +60,8 @@ export const SETTINGS_INDEX: readonly SettingsEntry[] = translatedList<SettingsE
   // About (welcome-note)
   { section: 'about', label: msg('Documentation'), description: msg('The same guides on the website, with setup and self-hosting.'), anchor: 'about-docs', keywords: 'docs help manual guide website version' },
   { section: 'about', label: msg('Share feedback or report a problem'), description: msg('Open an issue on GitHub. Every report is read.'), anchor: 'about-feedback', keywords: 'bug issue github feedback support contact' },
-  { section: 'about', label: msg('Community'), description: msg('Questions, ideas and other people who use OpenTodo, on Discord.'), anchor: 'about-community', keywords: 'discord community chat forum people' },
-  { section: 'about', label: msg('Buy me a coffee'), description: msg('Support OpenTodo'), anchor: 'about-support-heading', keywords: 'donate sponsor support coffee' },
+  { section: 'about', label: msg('Community'), description: msg('Questions, ideas and other people who use OpenTaskKit, on Discord.'), anchor: 'about-community', keywords: 'discord community chat forum people' },
+  { section: 'about', label: msg('Buy me a coffee'), description: msg('Support OpenTaskKit'), anchor: 'about-support-heading', keywords: 'donate sponsor support coffee' },
   { section: 'about', label: msg('Welcome note'), description: msg('The thank-you shown the first time you opened this server.'), anchor: 'about-welcome', visible: owner, keywords: 'thanks welcome' },
   // Capture
   { section: 'capture', label: msg('Quick add'), description: msg('Natural-language parsing, its languages and the date order'), anchor: 'quick-add-heading', keywords: 'natural language parsing' },
@@ -90,7 +90,7 @@ export const SETTINGS_INDEX: readonly SettingsEntry[] = translatedList<SettingsE
   { section: 'server', label: msg('Backups'), description: msg('Scheduled backups, destinations, recent runs and restore'), anchor: 'backups-heading', keywords: 's3 webdav restore', hosted: 'managed' },
   { section: 'server', label: msg('Attachments'), description: msg('Turn attachments on or off and set their size limits'), anchor: 'attachments-settings-heading', keywords: 'files upload limit quota', hosted: 'managed' },
   { section: 'server', label: msg('Outgoing email'), description: msg('The SMTP server this server mails password resets, sign-up confirmations and invitations through, and a test message'), anchor: 'outgoing-email-heading', keywords: 'smtp mail sender send test email forgot password', hosted: 'managed' },
-  { section: 'server', label: msg('Download your data'), description: msg('The whole server as one backup archive, to move to your own OpenTodo server'), anchor: 'server-archive-heading', keywords: 'archive export backup leave move self-host', hosted: 'only' },
+  { section: 'server', label: msg('Download your data'), description: msg('The whole server as one backup archive, to move to your own OpenTaskKit server'), anchor: 'server-archive-heading', keywords: 'archive export backup leave move self-host', hosted: 'only' },
   { section: 'server', label: msg('Audit log'), description: msg('What changed on the server and who did it'), anchor: 'audit-heading', keywords: 'audit' },
 ], 'label', 'description')
 

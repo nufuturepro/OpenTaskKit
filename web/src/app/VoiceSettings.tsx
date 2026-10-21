@@ -19,10 +19,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
 export function VoicePrivacyStatement() {
   return (
     <ul className="list-disc space-y-1 pl-5 text-body text-default">
-      <li>{t('Speech is recognised by your browser, not by OpenTodo.')}</li>
+      <li>{t('Speech is recognised by your browser, not by OpenTaskKit.')}</li>
       <li>{t('Depending on the browser, your audio may be sent to the browser vendor’s speech service (for example Google for Chrome, Apple for Safari) and handled under their privacy policy.')}</li>
-      <li>{t('OpenTodo asks the browser to recognise speech on this device when it offers that choice.')}</li>
-      <li>{t('Your OpenTodo server never receives audio or transcripts. Only the task you save with Enter is stored and synced, like a typed one.')}</li>
+      <li>{t('OpenTaskKit asks the browser to recognise speech on this device when it offers that choice.')}</li>
+      <li>{t('Your OpenTaskKit server never receives audio or transcripts. Only the task you save with Enter is stored and synced, like a typed one.')}</li>
       <li>{t('The microphone is used only while you dictate; the browser asks for permission the first time.')}</li>
     </ul>
   )

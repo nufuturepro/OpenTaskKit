@@ -253,7 +253,7 @@ export function App() {
     if (phase.kind === 'offline-unknown') {
       return (
         <Centered>
-          <p className="font-medium">{t('OpenTodo can\'t reach the server.')}</p>
+          <p className="font-medium">{t('OpenTaskKit can\'t reach the server.')}</p>
           <p className="text-body text-muted">{t('Sign in once while online; after that the app works offline.')}</p>
           <button className="ui-btn ui-btn--primary ui-btn--md mt-4" onClick={() => void refresh()}>{t('Retry')}</button>
         </Centered>
@@ -264,7 +264,7 @@ export function App() {
     }
     if (phase.kind === 'anonymous') {
       // On /share the payload waits in memory; after sign-in the route is still /share.
-      const notice = route.view === 'share' ? t('Sign in to add the shared page to OpenTodo. It is kept on this screen until then.') : signInNotice
+      const notice = route.view === 'share' ? t('Sign in to add the shared page to OpenTaskKit. It is kept on this screen until then.') : signInNotice
       return <AuthScreen status={phase.status} notice={notice} onAuthenticated={() => void refresh()} />
     }
     // The server lost the key record of an encrypted account (encryption-state-integrity).
@@ -287,7 +287,7 @@ export function App() {
       <>
         {enc.updateRequired && (
           <div role="alert" className="border-b border-warning bg-warning-soft px-4 py-2 text-body text-on-warning-soft">
-            {t('A newer version of OpenTodo is required to read your data.')}{' '}<button className="underline" onClick={() => window.location.reload()}>{t('Reload to update')}</button>
+            {t('A newer version of OpenTaskKit is required to read your data.')}{' '}<button className="underline" onClick={() => window.location.reload()}>{t('Reload to update')}</button>
           </div>
         )}
         {demo ? (

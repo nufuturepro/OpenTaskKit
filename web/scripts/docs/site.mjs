@@ -18,7 +18,7 @@ function head({ title, description, url }) {
   <link rel="canonical" href="${SITE_URL}${url}">
   <meta property="og:type" content="article">
   <meta property="og:url" content="${SITE_URL}${url}">
-  <meta property="og:site_name" content="OpenTodo">
+  <meta property="og:site_name" content="OpenTaskKit">
   <meta property="og:title" content="${e(title)}">
   <meta property="og:description" content="${e(description)}">
   <meta property="og:image" content="${SITE_URL}/assets/og.png">
@@ -41,14 +41,14 @@ function header() {
   return `<a class="skip" href="#content">Skip to content</a>
 <header class="site-header">
   <div class="site-header-inner">
-    <a class="brand" href="/" aria-label="OpenTodo home"><img src="/assets/favicon.svg" width="26" height="26" alt=""><span>OpenTodo</span></a>
+    <a class="brand" href="/" aria-label="OpenTaskKit home"><img src="/assets/favicon.svg" width="26" height="26" alt=""><span>OpenTaskKit</span></a>
     <nav class="site-nav" aria-label="Website">
       <a href="/#features">Features</a>
       <a href="/#self-host">Self-host</a>
       <a href="/#tour">Tour</a>
       <a href="/docs/" aria-current="true">Docs</a>
     </nav>
-    <a class="gh" href="${REPO_URL}" rel="noopener" aria-label="OpenTodo on GitHub">${GITHUB_ICON}<span>GitHub</span></a>
+    <a class="gh" href="${REPO_URL}" rel="noopener" aria-label="OpenTaskKit on GitHub">${GITHUB_ICON}<span>GitHub</span></a>
   </div>
 </header>`
 }
@@ -56,7 +56,7 @@ function header() {
 function footer(version) {
   return `<footer class="site-footer">
   <div class="site-footer-inner">
-    <p>OpenTodo is free software under the <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">AGPL-3.0</a>. These docs describe version ${e(version.release)}${version.unreleased ? ' and the changes on <code>main</code> since then' : ''}.</p>
+    <p>OpenTaskKit is free software under the <a href="${REPO_URL}/blob/main/LICENSE" rel="noopener">AGPL-3.0</a>. These docs describe version ${e(version.release)}${version.unreleased ? ' and the changes on <code>main</code> since then' : ''}.</p>
     <nav aria-label="Footer">
       <a href="/docs/">Docs home</a>
       <a href="${REPO_URL}" rel="noopener">GitHub</a>
@@ -131,7 +131,7 @@ export function pageHtml({ page, html, headings, sorted, version }) {
   const group = groupOf(page.fm)
   const crumbs = group === AUDIENCE_LABEL[page.fm.audience] ? e(group) : `${e(AUDIENCE_LABEL[page.fm.audience])} <span aria-hidden="true">›</span> ${e(group)}`
   const nav = sidebar(sorted, page.slug)
-  return `${head({ title: `${page.fm.title} · OpenTodo docs`, description: page.fm.summary, url })}
+  return `${head({ title: `${page.fm.title} · OpenTaskKit docs`, description: page.fm.summary, url })}
 <body class="docs">
 ${header()}
 <div class="docs-bar">
@@ -175,7 +175,7 @@ export function landingHtml({ index, sorted, version, cardSize }) {
 </li>`
   const by = (g) => sorted.filter((p) => groupOf(p.fm) === g)
   const compact = (list) => `<ul class="link-list">${list.map((p) => `<li><a href="${pageUrl(p.slug)}">${e(p.fm.title)}</a><span>${e(p.fm.summary)}</span></li>`).join('')}</ul>`
-  return `${head({ title: 'OpenTodo docs', description: index.fm.summary ?? 'Guides for using OpenTodo, running your own server and building on it.', url: '/docs/' })}
+  return `${head({ title: 'OpenTaskKit docs', description: index.fm.summary ?? 'Guides for using OpenTaskKit, running your own server and building on it.', url: '/docs/' })}
 <body class="docs docs-home">
 ${header()}
 <main id="content" tabindex="-1">
@@ -223,7 +223,7 @@ ${header()}
         ${compact(by('Self-hosting'))}
       </div>
       <div>
-        <h2 id="h-dev">Build on OpenTodo</h2>
+        <h2 id="h-dev">Build on OpenTaskKit</h2>
         <p class="section-lede">The API, the command-line client, webhooks and how sync works.</p>
         ${compact([...by('Integrations'), ...by('Internals')])}
       </div>

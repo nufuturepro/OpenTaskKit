@@ -131,7 +131,7 @@ export function bookmarklet(origin: string): string {
   const code =
     `(function(){var e=encodeURIComponent,s=String(window.getSelection?getSelection():'').slice(0,16384),` +
     `u=${base}+'?url='+e(location.href)+'&title='+e(document.title)+(s?'&text='+e(s):'');` +
-    `if(!window.open(u,'opentodo-capture','popup,width=480,height=640'))alert(${JSON.stringify(t('Allow pop-ups for this site to capture it to OpenTodo.'))})})()`
+    `if(!window.open(u,'opentodo-capture','popup,width=480,height=640'))alert(${JSON.stringify(t('Allow pop-ups for this site to capture it to OpenTaskKit.'))})})()`
   return `javascript:${code}`
 }
 

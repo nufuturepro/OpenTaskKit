@@ -18,7 +18,7 @@ const noop = () => {}
 const off: SmtpSettings = { configured: false, host: '', port: 0, security: '', username: '', passwordSet: false, from: '', managedBy: {}, lastTest: null }
 const on: SmtpSettings = {
   configured: true, host: 'smtp.example.com', port: 587, security: 'starttls', username: 'todo@example.com', passwordSet: true,
-  from: 'OpenTodo <todo@example.com>', managedBy: { host: 'env', port: 'env' }, lastTest: null,
+  from: 'OpenTaskKit <todo@example.com>', managedBy: { host: 'env', port: 'env' }, lastTest: null,
 }
 const owner: User = { id: 'o', email: 'owner@example.com', name: 'Robin', role: 'owner', createdAt: 1 }
 const admin: User = { ...owner, id: 'a', role: 'admin' }
@@ -63,7 +63,7 @@ describe('Outgoing email panel', () => {
   it('leads with host, From and a failed auth test with the reply, never "sent"', () => {
     const html = view({ test: { outcome: 'failed', to: 'owner@example.com', stage: 'auth', reply: '535 5.7.8 Username and Password not accepted' } })
     expect(html).toContain('smtp.example.com:587')
-    expect(html).toContain('OpenTodo &lt;todo@example.com&gt;')
+    expect(html).toContain('OpenTaskKit &lt;todo@example.com&gt;')
     expect(html).toContain('Authentication failed')
     expect(html).toContain('535 5.7.8')
     expect(html).not.toContain('Test sent')

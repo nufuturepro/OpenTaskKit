@@ -386,7 +386,7 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
       <div className={`shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))] ${collapsed ? 'px-1.5' : 'px-3'}`}>
         <div className={`mb-4 flex items-center gap-2 pointer-fine:mb-3 ${collapsed ? 'justify-center' : 'px-1'}`}>
           <img src="/favicon.svg" alt="" className="h-7 w-7" />
-          {!collapsed && <span className="flex-1 font-semibold">{t('OpenTodo')}</span>}
+          {!collapsed && <span className="flex-1 font-semibold">{t('OpenTaskKit')}</span>}
           {/* Search and commands beside the name (sidebar-compact-desktop); the icon rail keeps it in the footer. */}
           {!collapsed && onSearch && (
             <IconButton icon="search" label={t('Search and commands')} shortcut={keysOf('global.palette')} size="sm" onClick={onSearch}

@@ -188,7 +188,7 @@ export function SsoPanelView(p: SsoPanelViewProps & { configuring?: boolean }) {
             : t('Derived from the address you are using now. Providers reject mismatches: set OPENTODO_BASE_URL so it never changes.')}>
             <Input className="font-mono text-meta" readOnly value={s.redirectUri} onFocus={(e) => e.currentTarget.select()} />
           </Field>
-          {text('issuer', t('Issuer URL'), { placeholder: 'https://sso.example.com/realms/home', hint: t('OpenTodo reads {path}.', { path: '<issuer>/.well-known/openid-configuration' }), inputRef: first })}
+          {text('issuer', t('Issuer URL'), { placeholder: 'https://sso.example.com/realms/home', hint: t('OpenTaskKit reads {path}.', { path: '<issuer>/.well-known/openid-configuration' }), inputRef: first })}
           {text('clientId', t('Client ID'))}
           <div className="space-y-1">
             {text('clientSecret', t('Client secret'), {

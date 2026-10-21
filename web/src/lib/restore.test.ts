@@ -12,7 +12,7 @@ describe('restore error copy (5.1)', () => {
     expect(msg('passphrase_required')).toContain('Enter the passphrase')
     expect(msg('passphrase_invalid')).toContain('does not open')
     expect(msg('newer_schema', 'archive schema 40, this binary 31')).toContain('archive schema 40')
-    expect(msg('integrity', 'checksum')).toContain('not a usable OpenTodo backup')
+    expect(msg('integrity', 'checksum')).toContain('not a usable OpenTaskKit backup')
     expect(msg('insufficient_storage', '2 GiB needed')).toContain('2 GiB needed')
     expect(msg('not_found')).toContain('Choose the archive again')
     expect(msg('conflict')).toContain('backup is running')

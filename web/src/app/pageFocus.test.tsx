@@ -42,16 +42,16 @@ const settle = () => flush(40)
 
 describe('page focus and title', () => {
   it('formats the tab title', () => {
-    expect(pageTitle('Today')).toBe('Today – OpenTodo')
-    expect(pageTitle('  ')).toBe('OpenTodo')
-    expect(pageTitle(null)).toBe('OpenTodo')
+    expect(pageTitle('Today')).toBe('Today – OpenTaskKit')
+    expect(pageTitle('  ')).toBe('OpenTaskKit')
+    expect(pageTitle(null)).toBe('OpenTaskKit')
   })
 
   it('names the page in the tab title, also when the heading text arrives later', async () => {
     const r = await render(<Harness page="inbox" heading="Inbox" />)
-    await waitFor(() => document.title === 'Inbox – OpenTodo', 'title from the heading')
+    await waitFor(() => document.title === 'Inbox – OpenTaskKit', 'title from the heading')
     await r.rerender(<Harness page="inbox" heading="Groceries" />)
-    await waitFor(() => document.title === 'Groceries – OpenTodo', 'title follows the heading')
+    await waitFor(() => document.title === 'Groceries – OpenTaskKit', 'title follows the heading')
     await r.unmount()
   })
 

@@ -3,7 +3,7 @@ import { qrMatrix, qrPath } from './qr'
 
 describe('qrMatrix', () => {
   it('encodes a provisioning URI into a square matrix with finder patterns', () => {
-    const m = qrMatrix('otpauth://totp/OpenTodo:a%40example.com?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=OpenTodo&algorithm=SHA1&digits=6&period=30')
+    const m = qrMatrix('otpauth://totp/OpenTaskKit:a%40example.com?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=OpenTaskKit&algorithm=SHA1&digits=6&period=30')
     const n = m.length
     expect(n).toBeGreaterThanOrEqual(21)
     expect((n - 17) % 4).toBe(0) // versions are 21, 25, 29, … modules wide

@@ -162,7 +162,7 @@ export function OutgoingEmailView(p: OutgoingEmailViewProps) {
                   {t('Remove the saved password')}
                 </label>
               )}
-              <Field label={t('From address')} description={lockNote('from') ?? t('For example: OpenTodo <todo@example.com>. Your mail provider may require an address it owns.')}>
+              <Field label={t('From address')} description={lockNote('from') ?? t('For example: OpenTaskKit <todo@example.com>. Your mail provider may require an address it owns.')}>
                 <Input aria-label={t('From address')} value={d.from} readOnly={locked('from')} required onChange={(e) => p.onDraft({ ...d, from: e.target.value })} />
               </Field>
               {p.error && <Notice tone="danger">{p.error}</Notice>}

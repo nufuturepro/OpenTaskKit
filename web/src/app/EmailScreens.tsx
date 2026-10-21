@@ -19,7 +19,7 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
       <div className="w-full max-w-sm space-y-3 rounded-card border border-default bg-surface p-6 shadow-1">
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" className="h-9 w-9" />
-          <p className="text-h3 font-semibold">{t('OpenTodo')}</p>
+          <p className="text-h3 font-semibold">{t('OpenTaskKit')}</p>
         </div>
         <h1 className="text-body font-medium text-strong">{title}</h1>
         {children}

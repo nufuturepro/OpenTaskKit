@@ -23,7 +23,7 @@ const POLL_MS = 800
 const TABLE_LIMIT = 500
 
 const FORMAT_LABELS = translatedMap<ImportFormat>({
-  opentodo: msg('OpenTodo export (JSON)'),
+  opentodo: msg('OpenTaskKit export (JSON)'),
   'todoist-backup': msg('Todoist backup (ZIP)'),
   'todoist-csv': msg('Todoist project (CSV)'),
   'things-db': msg('Things 3 database'),
@@ -131,7 +131,7 @@ export function ImportView(p: ImportViewProps) {
       <PageHeader title={t('Import data')} help="import" back={{ label: t('Data'), href: '/settings/data', onClick: () => navigate({ view: 'settings', section: 'data' }) }} />
       <section>
         <p className="text-body text-muted">
-          {t('Bring in tasks from an OpenTodo export, a CSV file or another task manager\'s JSON export. You see a preview first; nothing is written until you confirm, and every import can be undone. Import runs on your server, so it needs a connection. Help explains the formats and options.')}
+          {t('Bring in tasks from an OpenTaskKit export, a CSV file or another task manager\'s JSON export. You see a preview first; nothing is written until you confirm, and every import can be undone. Import runs on your server, so it needs a connection. Help explains the formats and options.')}
         </p>
       </section>
 

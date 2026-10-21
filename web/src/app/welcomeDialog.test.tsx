@@ -41,7 +41,7 @@ describe('welcome note', () => {
   it('thanks the owner of a fresh account with the issue, Discord, star and coffee links, all opening a new tab', async () => {
     const r = await render(<WelcomeDialog user={owner} />)
     await waitFor(() => dialog() !== null)
-    expect(dialog()!.textContent).toContain('Thanks for installing OpenTodo')
+    expect(dialog()!.textContent).toContain('Thanks for installing OpenTaskKit')
     const hrefs = [...dialog()!.querySelectorAll('a')].map((a) => a.getAttribute('href'))
     expect(hrefs).toEqual([ISSUES_URL, DISCORD_URL, REPO_URL, COFFEE_URL])
     for (const a of dialog()!.querySelectorAll('a')) {
@@ -126,7 +126,7 @@ describe('Settings → About', () => {
     expect(document.querySelector('[data-welcome-coffee]')!.getAttribute('href')).toBe(COFFEE_URL)
     expect(document.querySelector('[data-about-help]')).not.toBeNull()
     expect(document.querySelector('[data-about-welcome]')).toBeNull()
-    await waitFor(() => document.body.textContent!.includes('OpenTodo v0.7.2'))
+    await waitFor(() => document.body.textContent!.includes('OpenTaskKit v0.7.2'))
     await r.unmount()
   })
 

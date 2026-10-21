@@ -174,7 +174,7 @@ export function PublicListScreen({ token }: { token: string }) {
               ))}
             </div>
             <p className="mt-4 text-meta text-faint" role="status" data-public-updated>{updatedLine}</p>
-            <p className="mt-6 text-hint text-faint">{t('Shared with OpenTodo. Notes, labels and names of the people on this project are not shown.')}</p>
+            <p className="mt-6 text-hint text-faint">{t('Shared with OpenTaskKit. Notes, labels and names of the people on this project are not shown.')}</p>
           </>
         )}
       </div>

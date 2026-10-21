@@ -14,7 +14,7 @@ export function actionErrorMessage(err: unknown): string {
 
 /** Shows a failed action's message in the toast (and keeps it in the console). */
 export function reportActionError(err: unknown): void {
-  console.error('OpenTodo: an action failed', err)
+  console.error('OpenTaskKit: an action failed', err)
   showBulkToast(actionErrorMessage(err), null)
 }
 

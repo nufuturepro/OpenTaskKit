@@ -110,7 +110,7 @@ async function upload<T>(path: string, file: Blob, filename: string, options: Im
 /**
  * Streams a backup archive to the server as the raw body. XMLHttpRequest, not
  * fetch, because only it reports upload progress everywhere. A 413 comes from a
- * reverse proxy in front of OpenTodo (our own limit is a 507).
+ * reverse proxy in front of OpenTaskKit (our own limit is a 507).
  */
 function uploadArchive(file: Blob, onProgress?: (fraction: number) => void): Promise<StagedRestore> {
   return new Promise((resolve, reject) => {

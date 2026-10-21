@@ -336,7 +336,7 @@ export function DemoPanel({ hours, busy, error, onTry }: { hours?: { idle: numbe
   const max = hours?.max ?? 24
   return (
     <div className="mb-4 rounded-control bg-info-soft p-3 text-body text-on-info-soft" data-testid="demo-panel">
-      <p className="font-medium">{t('This is a public demo of OpenTodo.')}</p>
+      <p className="font-medium">{t('This is a public demo of OpenTaskKit.')}</p>
       <p className="mt-1 text-meta">
         {t('You get a private sandbox with sample data that only you can see. It is deleted after {idle} hours of inactivity, after {max} hours at most, and every night. No sign-up; don\'t store anything personal.', { idle, max })}
       </p>
@@ -372,12 +372,12 @@ export function AuthCard({ version, children }: { version: string; children: Rea
         <div className="mb-6 flex items-center gap-3">
           <img src="/favicon.svg" alt="" className="h-9 w-9" />
           <div>
-            <h1 className="text-h3 font-semibold">{t('OpenTodo')}</h1>
+            <h1 className="text-h3 font-semibold">{t('OpenTaskKit')}</h1>
             <p className="text-meta text-muted">{t('Your tasks, your server.')}</p>
           </div>
         </div>
         {children}
-        <p className="mt-6 text-center text-meta text-faint">{t('OpenTodo {version} · AGPL-3.0 · no tracking, no telemetry', { version })}</p>
+        <p className="mt-6 text-center text-meta text-faint">{t('OpenTaskKit {version} · AGPL-3.0 · no tracking, no telemetry', { version })}</p>
       </div>
     </div>
   )

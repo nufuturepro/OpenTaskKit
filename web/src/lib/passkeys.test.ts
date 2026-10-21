@@ -85,7 +85,7 @@ describe('feature detection', () => {
 describe('ceremony wrappers', () => {
   const creation = {
     challenge: toBase64Url(bytes(1, 2, 3)),
-    rp: { id: 'todo.example.com', name: 'OpenTodo' },
+    rp: { id: 'todo.example.com', name: 'OpenTaskKit' },
     user: { id: toBase64Url(new TextEncoder().encode('user-1')), name: 'o@example.com', displayName: 'Owner' },
     pubKeyCredParams: [{ type: 'public-key' as const, alg: -7 }],
     authenticatorSelection: { residentKey: 'required' as const, userVerification: 'preferred' as const },
@@ -158,7 +158,7 @@ describe('passkey domain', () => {
     expect(err.message).toContain('open at abc123.sslip.io')
     expect(err.message).toContain('OPENTODO_BASE_URL')
     expect(isCancellation(err)).toBe(false)
-    await expect(createPasskey({ challenge: 'AA', rp: { id: 'todo.example.com', name: 'OpenTodo' }, user: { id: 'AA', name: 'a', displayName: 'a' }, pubKeyCredParams: [] }))
+    await expect(createPasskey({ challenge: 'AA', rp: { id: 'todo.example.com', name: 'OpenTaskKit' }, user: { id: 'AA', name: 'a', displayName: 'a' }, pubKeyCredParams: [] }))
       .rejects.toBeInstanceOf(PasskeyDomainError)
     expect(get).not.toHaveBeenCalled()
     expect(create).not.toHaveBeenCalled()

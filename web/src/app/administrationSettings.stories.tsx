@@ -54,7 +54,7 @@ export const ConfigWarning: StoryObj = {
 
 const smtpOn: SmtpSettings = {
   configured: true, host: 'smtp.example.com', port: 587, security: 'starttls', username: 'todo@example.com', passwordSet: true,
-  from: 'OpenTodo <todo@example.com>', managedBy: { host: 'env', port: 'env' }, lastTest: { at: now - 3_600_000, outcome: 'sent' },
+  from: 'OpenTaskKit <todo@example.com>', managedBy: { host: 'env', port: 'env' }, lastTest: { at: now - 3_600_000, outcome: 'sent' },
 }
 const smtpBase: OutgoingEmailViewProps = {
   settings: smtpOn, offline: false, busy: false, error: null, draft: null, test: null, onConfigure: noop, onDraft: noop, onSave: noop, onTest: noop,

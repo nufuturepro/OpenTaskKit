@@ -22,7 +22,7 @@ export const Structure: StoryObj = {
     return (
       <Frame>
         <div className="shrink-0 px-3 pt-3">
-          <div className="mb-4 flex items-center gap-2 px-1 font-semibold"><Icon name="circle-check-big" className="text-accent" />OpenTodo</div>
+          <div className="mb-4 flex items-center gap-2 px-1 font-semibold"><Icon name="circle-check-big" className="text-accent" />OpenTaskKit</div>
           <nav className="space-y-0.5" aria-label="Primary">
             <SidebarItem icon="inbox" label="Inbox" count={6} active />
             <SidebarItem icon="calendar-check" label="Today" count={10} />

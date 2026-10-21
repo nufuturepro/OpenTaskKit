@@ -92,7 +92,7 @@ export function watchAppUpdates(win: UpdateTarget = window, sw: Pick<ServiceWork
 /** Logs promise rejections nobody handled, so a lost write leaves a trace in the console. */
 export function logUnhandledRejections(win: Pick<Window, 'addEventListener'> = window): void {
   win.addEventListener('unhandledrejection', (ev) => {
-    console.error('OpenTodo: unhandled rejection', (ev as PromiseRejectionEvent).reason)
+    console.error('OpenTaskKit: unhandled rejection', (ev as PromiseRejectionEvent).reason)
   })
 }
 
