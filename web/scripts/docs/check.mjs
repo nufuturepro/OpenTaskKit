@@ -23,15 +23,17 @@ export function appScreenIds(repoRoot) {
       if (statSync(p).isDirectory()) { if (name !== 'generated') walk(p); continue }
       if (!/\.(tsx?|jsx?)$/.test(name) || /\.test\./.test(name)) continue
       const src = readFileSync(p, 'utf8')
-      for (const m of src.matchAll(/(?:data-help-screen|helpScreen|openHelp)\s*[=:(]\s*\{?\s*["'`]([^"'`]+)["'`]/g)) ids.set(m[1], p.slice(repoRoot.length + 1))
-      for (const m of src.matchAll(/<Help(?:Link|Heading)\b[^>]*?\bscreen=["']([^"']+)["']/g)) ids.set(m[1], p.slice(repoRoot.length + 1))
+      // Reported paths always use forward slashes (the checks run on Windows too).
+      const rel = p.slice(repoRoot.length + 1).split('\\').join('/')
+      for (const m of src.matchAll(/(?:data-help-screen|helpScreen|openHelp)\s*[=:(]\s*\{?\s*["'`]([^"'`]+)["'`]/g)) ids.set(m[1], rel)
+      for (const m of src.matchAll(/<Help(?:Link|Heading)\b[^>]*?\bscreen=["']([^"']+)["']/g)) ids.set(m[1], rel)
       // The page template's Help action (ux-overhaul): <PageHeader … help="id" />, or help={`settings/${id}`} resolved by HELP_SCREENS.
-      for (const m of src.matchAll(/\shelp=["']([^"']+)["']/g)) ids.set(m[1], p.slice(repoRoot.length + 1))
+      for (const m of src.matchAll(/\shelp=["']([^"']+)["']/g)) ids.set(m[1], rel)
       // A settings card's Learn more (settings-copy D4): `learnMore: 'id'` in the settings copy table.
-      for (const m of src.matchAll(/\blearnMore:\s*["'`]([^"'`]+)["'`]/g)) ids.set(m[1], p.slice(repoRoot.length + 1))
-      for (const m of src.matchAll(/HELP_SCREENS[^]*?\{([^}]*)\}/g)) for (const id of m[1].matchAll(/['"]([a-z0-9/#-]+)['"]/g)) ids.set(id[1], p.slice(repoRoot.length + 1))
+      for (const m of src.matchAll(/\blearnMore:\s*["'`]([^"'`]+)["'`]/g)) ids.set(m[1], rel)
+      for (const m of src.matchAll(/HELP_SCREENS[^]*?\{([^}]*)\}/g)) for (const id of m[1].matchAll(/['"]([a-z0-9/#-]+)['"]/g)) ids.set(id[1], rel)
       // Stories render panels with fixture data; only the app's own components count.
-      if (!/\.stories\./.test(name)) for (const m of src.matchAll(/\bhelpId=["']([^"']+)["']/g)) ids.set(m[1], p.slice(repoRoot.length + 1))
+      if (!/\.stories\./.test(name)) for (const m of src.matchAll(/\bhelpId=["']([^"']+)["']/g)) ids.set(m[1], rel)
     }
   }
   walk(join(repoRoot, 'web/src'))

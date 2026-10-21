@@ -51,7 +51,7 @@ describe('no direct crypto.randomUUID calls', () => {
 
   it('every id comes from uuid()', () => {
     const offenders = files
-      .map((f) => f.slice(root.length + 1))
+      .map((f) => f.slice(root.length + 1).split('\\').join('/'))
       .filter((rel) => !allowed.has(rel) && /crypto\.randomUUID\s*\(/.test(readFileSync(join(root, rel), 'utf8')))
     expect(offenders).toEqual([])
   })

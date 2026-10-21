@@ -3,9 +3,10 @@
 // eslint.config.js (run by `npm run lint` and `make check`); this test pins what
 // they refuse and allow, so loosening one fails here too.
 import { ESLint } from 'eslint'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-const eslint = new ESLint({ cwd: new URL('..', import.meta.url).pathname })
+const eslint = new ESLint({ cwd: fileURLToPath(new URL('..', import.meta.url)) })
 
 async function rules(filePath: string, code: string): Promise<string[]> {
   const [result] = await eslint.lintText(code, { filePath })
