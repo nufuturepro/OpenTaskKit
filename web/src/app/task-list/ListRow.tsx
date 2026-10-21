@@ -14,6 +14,8 @@ export interface RowActions {
   open: (id: string, e?: React.MouseEvent) => void
   tick: (id: string, range: boolean) => void
   drag: (e: React.PointerEvent, task: Task) => void
+  /** A right-click on this row: the actions menu at the pointer (task-row-context-menu). */
+  context: (e: React.MouseEvent, task: Task) => void
 }
 
 type ListRowProps = Omit<TaskRowProps, 'labels' | 'onToggle' | 'onOpen' | 'onTick' | 'onToggleCollapse' | 'onPointerDown' | 'dropKey'> & {
@@ -40,6 +42,7 @@ export const ListRow = memo(function ListRow({ task, labelMap, draggable, reorde
       task={task}
       labels={labels}
       onPointerDown={draggable ? (e) => actions.drag(e, task) : undefined}
+      onContextMenu={(e) => actions.context(e, task)}
       dropKey={reorderable ? `task:${task.id}` : undefined}
       onToggle={() => actions.toggle(task)}
       onToggleCollapse={collapsible ? () => actions.toggleCollapse(task.id) : undefined}

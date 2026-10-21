@@ -40,6 +40,10 @@ export interface BindingContext {
   projectReadOnly: boolean
   /** A click on a row's title edits it in place when it applies (inline-task-editing D1); true when it did. */
   startInline?: (id: string, e?: React.MouseEvent) => boolean
+  /** Opens the actions menu anchored at a pointer position (task-row-context-menu); stable. */
+  openContextMenu: (ids: string[], x: number, y: number) => void
+  /** While a row drag is lifted the right-click is ignored (the drag wins, ux-feedback-2 D4). */
+  draggingId: string | null
 }
 
 export function useListBindings(c: BindingContext): RowActions {
@@ -152,5 +156,13 @@ export function useListBindings(c: BindingContext): RowActions {
       setSelectedId(id)
     },
     drag: (e, task) => live.current.startDrag(e, task),
+    context: (e, task) => {
+      // Right-click: the same actions menu the keyboard opens, at the pointer,
+      // for the ticked selection when the row is one of them, else just the row.
+      e.preventDefault()
+      if (live.current.draggingId) return
+      const c = live.current
+      c.openContextMenu(c.selection.ticked.has(task.id) ? c.ticked : [task.id], e.clientX, e.clientY)
+    },
   }), [setSelectedId])
 }
