@@ -318,14 +318,14 @@ func (s *Server) dispatch(ctx context.Context, c agenttools.Caller, method strin
 }
 
 // Instructions is the short orientation initialize hands to a read-only caller.
-const Instructions = "Read-only access to this user's OpenTodo projects and tasks. " +
+const Instructions = "Read-only access to this user's OpenTaskKit projects and tasks. " +
 	"Due dates are floating calendar dates (and optional wall-clock times) unless they name a time zone; " +
 	"pass the user's IANA time zone as `timezone` to tools that evaluate today or upcoming dates (default UTC). " +
 	"Results carry server_time; changes made offline on a device appear only after it syncs. Nothing can be modified through this server. " +
 	agenttools.Notice
 
 // WriteInstructions is the orientation for a caller allowed to use write tools.
-const WriteInstructions = "Access to this user's OpenTodo projects and tasks, with write tools the user allowed. " +
+const WriteInstructions = "Access to this user's OpenTaskKit projects and tasks, with write tools the user allowed. " +
 	"Due dates are floating calendar dates (and optional wall-clock times) unless they name a time zone; " +
 	"pass the user's IANA time zone as `timezone` (default UTC). Results carry server_time; changes made offline on a device appear only after it syncs. " +
 	"Every change goes into the task's history, labelled as made by an AI assistant, and can be undone by the user; nothing is ever deleted permanently. " +
@@ -349,7 +349,7 @@ func (s *Server) initialize(c agenttools.Caller, params json.RawMessage) (any, e
 			"resources": map[string]any{"subscribe": false, "listChanged": false},
 			"prompts":   map[string]any{"listChanged": false},
 		},
-		"serverInfo":   map[string]any{"name": "opentodo", "title": "OpenTodo", "version": s.version},
+		"serverInfo":   map[string]any{"name": "opentodo", "title": "OpenTaskKit", "version": s.version},
 		"instructions": instructions(c),
 	}, nil
 }

@@ -1,4 +1,4 @@
-// Package cli implements the `ot` command-line client for the OpenTodo REST API.
+// Package cli implements the `ot` command-line client for the OpenTaskKit REST API.
 // It is an online client: it keeps no local copy of tasks and every command is one
 // or a few HTTP calls. Output is a compact table for people and, with --json, the
 // API's own entity shapes for scripts.
@@ -313,7 +313,7 @@ func (a *App) helpOr(name string, err error) error {
 
 func (a *App) printUsage() {
 	w := a.Stdout
-	fmt.Fprintln(w, "ot: command-line client for OpenTodo")
+	fmt.Fprintln(w, "ot: command-line client for OpenTaskKit")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Usage: ot [--profile <name>] [--server <url>] [--json] [--dry-run] [--read-only] <command> [arguments]")
 	fmt.Fprintln(w)

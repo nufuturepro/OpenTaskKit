@@ -28,7 +28,7 @@ type EmailConfig struct {
 	Mailbox      string
 	PollInterval time.Duration
 	// Processed is what happens to a handled message: "move" to
-	// ProcessedFolder (the default, OpenTodo/Processed) or "delete".
+	// ProcessedFolder (the default, OpenTaskKit/Processed) or "delete".
 	Processed       string
 	ProcessedFolder string
 }
@@ -38,7 +38,7 @@ const (
 	DefaultEmailMailbox         = "INBOX"
 	DefaultEmailPollSeconds     = 60
 	MinEmailPollSeconds         = 15
-	DefaultEmailProcessedFolder = "OpenTodo/Processed"
+	DefaultEmailProcessedFolder = "OpenTaskKit/Processed"
 )
 
 // Enabled reports whether the operator configured email capture.

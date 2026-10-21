@@ -162,7 +162,7 @@ func TestOpenHoldsTheDirectory(t *testing.T) {
 func TestStartJobsRunsDigest(t *testing.T) {
 	sink := smtptest.New(t, smtptest.Options{NoSTARTTLS: true, NoAuth: true})
 	cfg := testConfig(t.TempDir())
-	cfg.SMTP = config.SMTPConfig{Host: sink.Host, Port: sink.Port, Security: "none", From: "OpenTodo <todo@example.com>"}
+	cfg.SMTP = config.SMTPConfig{Host: sink.Host, Port: sink.Port, Security: "none", From: "OpenTaskKit <todo@example.com>"}
 	// Friday 2026-10-23 08:00 UTC: an hour after a Friday 07:00 digest is due.
 	friday := time.Date(2026, 10, 23, 8, 0, 0, 0, time.UTC)
 	tn, err := Open(context.Background(), cfg, Options{Version: "test", Web: http.NotFoundHandler(), Now: func() time.Time { return friday }})

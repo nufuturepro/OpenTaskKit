@@ -166,7 +166,7 @@ func TestPollerWithIMAP(t *testing.T) {
 		t.Fatalf("tasks = %d", n)
 	}
 	for uid, m := range f.snapshot() {
-		if m.folder != "OpenTodo.Processed" || !m.seen {
+		if m.folder != "OpenTaskKit.Processed" || !m.seen {
 			t.Fatalf("message %d not processed: %+v", uid, m)
 		}
 	}

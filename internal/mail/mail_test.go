@@ -42,7 +42,7 @@ func TestSaveAndConfig(t *testing.T) {
 		t.Fatal("enabled without configuration")
 	}
 	changes, err := s.Save(ctx, Update{Host: ptr("smtp.example.com"), Port: ptr(587), Security: ptr("starttls"),
-		User: ptr("todo"), Password: ptr("hunter2"), From: ptr("OpenTodo <todo@example.com>")})
+		User: ptr("todo"), Password: ptr("hunter2"), From: ptr("OpenTaskKit <todo@example.com>")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestTransportStages(t *testing.T) {
 	ctx := context.Background()
 	msg := []byte("Subject: hi\r\n\r\nbody\r\n")
 	cfg := func(srv *smtptest.Server, sec, user, pass string) Config {
-		return Config{Host: srv.Host, Port: srv.Port, Security: sec, User: user, Password: pass, From: "OpenTodo <todo@example.com>"}
+		return Config{Host: srv.Host, Port: srv.Port, Security: sec, User: user, Password: pass, From: "OpenTaskKit <todo@example.com>"}
 	}
 	t.Run("starttls with PLAIN", func(t *testing.T) {
 		srv := smtptest.New(t, smtptest.Options{User: "u", Pass: "p"})
@@ -309,7 +309,7 @@ func TestTemplateVariablesCarryNoContent(t *testing.T) {
 }
 
 func TestAssemble(t *testing.T) {
-	data, err := Assemble("OpenTodo <todo@example.com>", "bob@example.com", "Setze dein Passwort zurück", "Zeile mit Umlaut ä\nhttps://x.example/reset/otr_abc\n", "https://todo.example.com", time.Unix(0, 0))
+	data, err := Assemble("OpenTaskKit <todo@example.com>", "bob@example.com", "Setze dein Passwort zurück", "Zeile mit Umlaut ä\nhttps://x.example/reset/otr_abc\n", "https://todo.example.com", time.Unix(0, 0))
 	if err != nil {
 		t.Fatal(err)
 	}

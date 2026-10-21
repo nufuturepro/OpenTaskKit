@@ -97,7 +97,7 @@ func (s *Server) handleMCP(w http.ResponseWriter, r *http.Request) {
 	}
 	if u == nil {
 		s.mcpLimiter.hit(ip)
-		w.Header().Set("WWW-Authenticate", `Bearer realm="OpenTodo MCP"`)
+		w.Header().Set("WWW-Authenticate", `Bearer realm="OpenTaskKit MCP"`)
 		writeError(w, http.StatusUnauthorized, "unauthorized", "an API token is required: Authorization: Bearer <token>")
 		return
 	}

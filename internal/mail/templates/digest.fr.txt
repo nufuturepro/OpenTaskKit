@@ -1,6 +1,6 @@
-Votre semaine dans OpenTodo : {{.Completed}} terminées
+Votre semaine dans OpenTaskKit : {{.Completed}} terminées
 
-Voici votre récapitulatif hebdomadaire d'OpenTodo sur {{.Origin}}.
+Voici votre récapitulatif hebdomadaire d'OpenTaskKit sur {{.Origin}}.
 
 La semaine dernière ({{.Week}})
   Terminées : {{.Completed}}

@@ -146,7 +146,7 @@ func (s *Service) stagingDir(id string) string { return filepath.Join(s.restoreR
 func (s *Service) SetRestartFunc(f func()) { s.restart = f }
 
 // Archives lists the archives in the configured destination, newest first.
-// Objects that are not OpenTodo archives are left out.
+// Objects that are not OpenTaskKit archives are left out.
 func (s *Service) Archives(ctx context.Context) ([]ArchiveInfo, string, error) {
 	d, err := s.configuredDestination(ctx)
 	if err != nil {
@@ -291,7 +291,7 @@ func (s *Service) discard(id string) {
 // ReceiveUpload streams an uploaded archive into a new staging directory and
 // reads what it can of the manifest: everything for a plain archive or one the
 // stored passphrase opens, only the encrypted flag otherwise. Anything that is
-// not an OpenTodo archive is refused with ErrIntegrity and nothing is kept.
+// not an OpenTaskKit archive is refused with ErrIntegrity and nothing is kept.
 func (s *Service) ReceiveUpload(ctx context.Context, body io.Reader, ownerID string) (StagedRestore, error) {
 	id, dir, err := s.newStaging()
 	if err != nil {
@@ -332,7 +332,7 @@ func mustTime(rfc string, fallback time.Time) time.Time {
 	return fallback
 }
 
-// peekManifest checks that path is an OpenTodo archive and returns its manifest
+// peekManifest checks that path is an OpenTaskKit archive and returns its manifest
 // when it can be read without a passphrase other than the stored one.
 func (s *Service) peekManifest(path string) (*Manifest, bool, error) {
 	f, err := os.Open(path)
@@ -342,7 +342,7 @@ func (s *Service) peekManifest(path string) (*Manifest, bool, error) {
 	defer f.Close()
 	head := make([]byte, len(encMagic))
 	if _, err := io.ReadFull(f, head); err != nil {
-		return nil, false, fmt.Errorf("%w: the file is not an OpenTodo backup", ErrIntegrity)
+		return nil, false, fmt.Errorf("%w: the file is not an OpenTaskKit backup", ErrIntegrity)
 	}
 	encrypted := bytes.Equal(head, []byte(encMagic))
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
@@ -360,7 +360,7 @@ func (s *Service) peekManifest(path string) (*Manifest, bool, error) {
 		if encrypted && errors.Is(err, ErrIntegrity) {
 			return nil, true, nil // another server's passphrase: asked for at prepare
 		}
-		return nil, encrypted, fmt.Errorf("%w: the file is not an OpenTodo backup", ErrIntegrity)
+		return nil, encrypted, fmt.Errorf("%w: the file is not an OpenTaskKit backup", ErrIntegrity)
 	}
 	m, err := readManifest(tr)
 	if err != nil {
@@ -370,7 +370,7 @@ func (s *Service) peekManifest(path string) (*Manifest, bool, error) {
 		if encrypted {
 			return nil, true, nil
 		}
-		return nil, false, fmt.Errorf("%w: the file is not an OpenTodo backup", ErrIntegrity)
+		return nil, false, fmt.Errorf("%w: the file is not an OpenTaskKit backup", ErrIntegrity)
 	}
 	return &m, encrypted, nil
 }

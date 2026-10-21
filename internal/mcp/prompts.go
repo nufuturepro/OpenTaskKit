@@ -59,7 +59,7 @@ func (s *Server) getPrompt(params json.RawMessage) (any, error) {
 		return nil, invalidParams("unknown prompt: " + p.Name)
 	}
 	var b strings.Builder
-	b.WriteString("Run the OpenTodo skill \"" + sk.Name + "\" with the OpenTodo tools of this server.\n\n")
+	b.WriteString("Run the OpenTaskKit skill \"" + sk.Name + "\" with the OpenTaskKit tools of this server.\n\n")
 	b.WriteString(sk.Instructions)
 	b.WriteString("\n")
 	if sk.ID == "plan-week" {

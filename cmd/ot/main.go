@@ -1,4 +1,4 @@
-// Command ot is the OpenTodo command-line client. It talks to any OpenTodo server
+// Command ot is the OpenTaskKit command-line client. It talks to any OpenTaskKit server
 // over the /api/v1 REST API with a bearer token; see docs/cli.md.
 //
 //	ot login https://todo.example.com

@@ -485,7 +485,7 @@ func (d *davRequest) commonProps(m map[caldav.PropName]propFunc) {
 func (d *davRequest) rootProps() map[caldav.PropName]propFunc {
 	m := map[caldav.PropName]propFunc{
 		pResourceType: func() string { return "<d:collection/>" },
-		pDisplayName:  func() string { return "OpenTodo" },
+		pDisplayName:  func() string { return "OpenTaskKit" },
 	}
 	d.commonProps(m)
 	return m

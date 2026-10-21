@@ -85,7 +85,7 @@ func (m *mfaEnv) enrol(c *env) (string, []string) {
 	resp, out := c.do("POST", "/api/v1/mfa/totp/enroll", map[string]any{})
 	c.mustStatus(resp, 200, out)
 	secret := out["secret"].(string)
-	if !strings.HasPrefix(out["uri"].(string), "otpauth://totp/OpenTodo:") || out["expiresAt"] == nil {
+	if !strings.HasPrefix(out["uri"].(string), "otpauth://totp/OpenTaskKit:") || out["expiresAt"] == nil {
 		m.t.Fatalf("enroll = %v", out)
 	}
 	resp, out = c.do("POST", "/api/v1/mfa/totp/confirm", map[string]string{"code": m.code(secret)})

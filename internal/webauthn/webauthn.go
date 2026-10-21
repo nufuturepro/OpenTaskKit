@@ -1,6 +1,6 @@
 // Package webauthn verifies passkey registrations and assertions.
 //
-// It implements the server side of the WebAuthn ceremonies that OpenTodo uses
+// It implements the server side of the WebAuthn ceremonies that OpenTaskKit uses
 // (OpenSpec change `passkeys`): parsing of clientDataJSON, authenticator data
 // and the attestation object, COSE public keys for ES256, RS256 and Ed25519,
 // and signature verification over authData || sha256(clientDataJSON). The

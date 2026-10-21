@@ -56,7 +56,7 @@ func (a *api) get(ctx context.Context, path string, query url.Values, etag strin
 	if err != nil {
 		return nil, &Error{ReasonConnection}
 	}
-	req.Header.Set("User-Agent", "OpenTodo/"+a.version)
+	req.Header.Set("User-Agent", "OpenTaskKit/"+a.version)
 	a.auth(req.Header)
 	if etag != "" {
 		req.Header.Set("If-None-Match", etag)

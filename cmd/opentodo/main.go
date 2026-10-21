@@ -1,4 +1,4 @@
-// Command opentodo runs the OpenTodo server: API, sync and the embedded web app.
+// Command opentodo runs the OpenTaskKit server: API, sync and the embedded web app.
 //
 //	opentodo              start the server (configured via OPENTODO_* env vars)
 //	opentodo healthcheck  exit 0 when a local server answers /healthz (used by Docker)
@@ -79,7 +79,7 @@ func main() {
 		// again in the same process, so the next start applies it without relying
 		// on a container restart policy.
 		if err := reexec(); err != nil {
-			slog.Error("could not restart in place: restart OpenTodo to finish the restore", "err", err)
+			slog.Error("could not restart in place: restart OpenTaskKit to finish the restore", "err", err)
 		}
 		os.Exit(0)
 	}

@@ -15,7 +15,7 @@ type opentodoProfile struct{}
 
 func (opentodoProfile) Name() string { return "opentodo" }
 func (opentodoProfile) Description() string {
-	return "OpenTodo JSON export (exact round trip: ids, labels, sub-projects, sections, subtasks, recurrence, reminders, views, tombstones)"
+	return "OpenTaskKit JSON export (exact round trip: ids, labels, sub-projects, sections, subtasks, recurrence, reminders, views, tombstones)"
 }
 
 func (opentodoProfile) Detect(data []byte) bool {
@@ -61,10 +61,10 @@ func (opentodoProfile) Read(r io.Reader, opts Options) (*Parsed, error) {
 		Template *TemplateInfo `json:"template"`
 	}
 	if err := json.NewDecoder(r).Decode(&doc); err != nil {
-		return nil, &FileError{fmt.Sprintf("not a readable OpenTodo export: %v", err)}
+		return nil, &FileError{fmt.Sprintf("not a readable OpenTaskKit export: %v", err)}
 	}
 	if doc.Format != "opentodo-export" {
-		return nil, &FileError{`not an OpenTodo export: "format" must be "opentodo-export"`}
+		return nil, &FileError{`not an OpenTaskKit export: "format" must be "opentodo-export"`}
 	}
 	if doc.Version < 1 {
 		return nil, &FileError{fmt.Sprintf("unsupported export version %d", doc.Version)}

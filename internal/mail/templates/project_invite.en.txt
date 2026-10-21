@@ -1,8 +1,8 @@
 {{.Inviter}} invited you to a shared project
 
-This is an invitation to a shared project in OpenTodo.
+This is an invitation to a shared project in OpenTaskKit.
 
-{{.Inviter}} invited {{.Email}} to join a project as {{.Role}} on the OpenTodo server at {{.Origin}}. To join, open this link:
+{{.Inviter}} invited {{.Email}} to join a project as {{.Role}} on the OpenTaskKit server at {{.Origin}}. To join, open this link:
 
 {{.Link}}
 

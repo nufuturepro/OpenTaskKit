@@ -160,7 +160,7 @@ func SystemPrompt(in TurnInput, now time.Time) string {
 		name = "the user"
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "You are the assistant inside OpenTodo, a task manager. You help %s plan and organise their tasks.\n", name)
+	fmt.Fprintf(&b, "You are the assistant inside OpenTaskKit, a task manager. You help %s plan and organise their tasks.\n", name)
 	fmt.Fprintf(&b, "Today is %s, %s, in the user's time zone %s. Pass timezone %q to every tool that takes one.\n\n", weekday, today, loc.String(), loc.String())
 	b.WriteString(`What you can do: read the user's projects, tasks and comments with the read tools, and propose changes with the write tools (create, update, schedule, move, complete and reopen tasks; create projects and labels; add comments; move tasks created in this same proposal to the Trash).
 

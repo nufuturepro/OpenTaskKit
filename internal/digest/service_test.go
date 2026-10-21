@@ -88,7 +88,7 @@ func newEnv(t *testing.T) *env {
 	}
 	e := &env{t: t, db: db, sync: opsync.NewService(db), smtp: smtptest.New(t, smtptest.Options{NoSTARTTLS: true, NoAuth: true}), tr: &flaky{}, e2ee: fakeE2EE{}}
 	e.mail = mail.New(settings.New(db), dir, mail.Options{
-		Env:       config.SMTPConfig{Host: e.smtp.Host, Port: e.smtp.Port, Security: "none", From: "OpenTodo <todo@example.com>"},
+		Env:       config.SMTPConfig{Host: e.smtp.Host, Port: e.smtp.Port, Security: "none", From: "OpenTaskKit <todo@example.com>"},
 		Audit:     audit.New(db, nil),
 		Transport: e.tr,
 		Now:       func() time.Time { return e.clock },

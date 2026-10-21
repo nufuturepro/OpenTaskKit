@@ -44,7 +44,7 @@ func ApplyPendingRestore(dataDir string, log *slog.Logger, now func() time.Time)
 		os.Remove(path)
 		log.Error("restore: ignoring a pending restore in an unknown format", "file", PendingRestoreFile)
 		return writeLastRestore(dataDir, LastRestore{Source: p.Source, Archive: p.Archive, ActorID: p.ActorID, RequestedAt: p.RequestedAt,
-			FinishedAt: now().UnixMilli(), Error: "the pending restore was written by a different OpenTodo version"})
+			FinishedAt: now().UnixMilli(), Error: "the pending restore was written by a different OpenTaskKit version"})
 	}
 	dir := filepath.Join(dataDir, "tmp", "restore", p.ID)
 	last := LastRestore{Source: p.Source, Archive: p.Archive, ActorID: p.ActorID, RequestedAt: p.RequestedAt}
@@ -53,7 +53,7 @@ func ApplyPendingRestore(dataDir string, log *slog.Logger, now func() time.Time)
 	if err != nil {
 		last.Error = err.Error()
 		if errors.Is(err, store.ErrLocked) {
-			last.Error = "another OpenTodo process is using the data directory; confirm the restore again once it has stopped"
+			last.Error = "another OpenTaskKit process is using the data directory; confirm the restore again once it has stopped"
 			last.RetryID = p.ID
 		} else {
 			os.RemoveAll(dir)

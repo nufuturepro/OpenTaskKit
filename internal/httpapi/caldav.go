@@ -23,7 +23,7 @@ import (
 const caldavSettingKey = "caldav.enabled"
 
 // davRealm is the Basic authentication realm.
-const davRealm = "OpenTodo CalDAV"
+const davRealm = "OpenTaskKit CalDAV"
 
 // caldavState caches the toggle: 0 = not loaded, 1 = off, 2 = on.
 type caldavState struct{ v atomic.Int32 }

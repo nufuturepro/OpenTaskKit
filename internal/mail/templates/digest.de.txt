@@ -1,6 +1,6 @@
-Deine Woche in OpenTodo: {{.Completed}} erledigt
+Deine Woche in OpenTaskKit: {{.Completed}} erledigt
 
-Dies ist deine Wochenübersicht von OpenTodo unter {{.Origin}}.
+Dies ist deine Wochenübersicht von OpenTaskKit unter {{.Origin}}.
 
 Letzte Woche ({{.Week}})
   Erledigt: {{.Completed}}

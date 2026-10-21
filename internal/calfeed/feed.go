@@ -52,7 +52,7 @@ func WriteFeed(tasks []FeedTask, opts FeedOptions) []byte {
 	add(cal, "PRODID", caldav.ProdID)
 	add(cal, "CALSCALE", "GREGORIAN")
 	add(cal, "METHOD", "PUBLISH")
-	add(cal, "X-WR-CALNAME", "OpenTodo")
+	add(cal, "X-WR-CALNAME", "OpenTaskKit")
 	add(cal, "X-PUBLISHED-TTL", "PT15M")
 	cal.Props = append(cal.Props, caldav.Prop{Name: "REFRESH-INTERVAL", Params: []caldav.Param{{Name: "VALUE", Values: []string{"DURATION"}}}, Value: "PT15M"})
 	from := opts.Now.UTC().AddDate(0, 0, -FeedPastDays).Format("2006-01-02")

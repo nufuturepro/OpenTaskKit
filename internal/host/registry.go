@@ -1,4 +1,4 @@
-// Package host serves many OpenTodo tenants from one process (OpenSpec
+// Package host serves many OpenTaskKit tenants from one process (OpenSpec
 // `multi-tenant-host`): a registry of tenants beside their data directories,
 // host-name routing, lazy open and idle close, one scheduler for every
 // tenant's background work, per-tenant limits and the operator interface a

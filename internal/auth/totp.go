@@ -16,14 +16,14 @@ import (
 
 // Time-based one-time passwords (RFC 6238) with the standard library only
 // (OpenSpec change `mfa-totp`, design D1). Authenticator apps default to
-// HMAC-SHA1, six digits and a 30-second period; that is what OpenTodo issues.
+// HMAC-SHA1, six digits and a 30-second period; that is what OpenTaskKit issues.
 
 const (
 	totpPeriod     = 30 // seconds per time step
 	totpDigits     = 6
 	totpSecretSize = 20 // bytes, the RFC 4226 recommended key length for SHA1
 	totpSkew       = 1  // accepted steps either side of the server's current step
-	totpIssuer     = "OpenTodo"
+	totpIssuer     = "OpenTaskKit"
 )
 
 var b32 = base32.StdEncoding.WithPadding(base32.NoPadding)

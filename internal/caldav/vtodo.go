@@ -31,7 +31,7 @@ type Due struct {
 }
 
 // ProdID identifies the server in generated objects.
-const ProdID = "-//OpenTodo//CalDAV//EN"
+const ProdID = "-//OpenTaskKit//CalDAV//EN"
 
 // Task is the outbound view of a task: everything one VTODO carries.
 type Task struct {
@@ -81,7 +81,7 @@ type Inbound struct {
 	DependsOn []string
 	CreatedAt *int64
 	// RRULE is the raw rule value ("" when none). Rule is its canonical
-	// OpenTodo form, or "" when the grammar cannot express it; then the RRULE
+	// OpenTaskKit form, or "" when the grammar cannot express it; then the RRULE
 	// line is part of Extra and the task keeps no rule of its own.
 	RRULE string
 	Rule  string
@@ -183,7 +183,7 @@ func Encode(t Task) []byte {
 			add("RRULE", r.RRULE())
 		}
 	}
-	// iCalendar has no deferral or evening bucket: OpenTodo's own properties.
+	// iCalendar has no deferral or evening bucket: OpenTaskKit's own properties.
 	switch {
 	case t.Start == "someday":
 		add("X-OPENTODO-START", "SOMEDAY")

@@ -19,7 +19,7 @@ import (
 func TestDigestInClosedTenant(t *testing.T) {
 	sink := smtptest.New(t, smtptest.Options{NoSTARTTLS: true, NoAuth: true})
 	f := newFixture(t, func(c *config.Config, _ *Options) {
-		c.SMTP = config.SMTPConfig{Host: sink.Host, Port: sink.Port, Security: "none", From: "OpenTodo <todo@example.com>"}
+		c.SMTP = config.SMTPConfig{Host: sink.Host, Port: sink.Port, Security: "none", From: "OpenTaskKit <todo@example.com>"}
 	})
 	ctx := context.Background()
 	c := f.client("alice")

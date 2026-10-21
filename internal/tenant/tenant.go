@@ -1,4 +1,4 @@
-// Package tenant builds one OpenTodo server around one data directory: the
+// Package tenant builds one OpenTaskKit server around one data directory: the
 // database and its lock, the services, the notifier, the HTTP handler and the
 // background jobs (OpenSpec `multi-tenant-host`, design D1). A self-hosted
 // server opens exactly one tenant; a host (internal/host) opens many, lazily.

@@ -21,7 +21,7 @@ func TestWriteFeed(t *testing.T) {
 	}
 	out := string(WriteFeed(tasks, FeedOptions{Now: now, BaseURL: "https://todo.example"}))
 	for _, want := range []string{
-		"METHOD:PUBLISH", "X-WR-CALNAME:OpenTodo", "REFRESH-INTERVAL;VALUE=DURATION:PT15M",
+		"METHOD:PUBLISH", "X-WR-CALNAME:OpenTaskKit", "REFRESH-INTERVAL;VALUE=DURATION:PT15M",
 		"UID:t-dentist", "DTSTART:20261016T150000", "DTEND:20261016T154500", "CATEGORIES:health,a\\,b", "DESCRIPTION:Bring the card",
 		"DTSTART;TZID=Europe/Berlin:20261019T093000", "DTEND;TZID=Europe/Berlin:20261019T100000", "RRULE:FREQ=WEEKLY;BYDAY=MO", "BEGIN:VTIMEZONE",
 		"DTSTART;VALUE=DATE:20261020", "DTEND;VALUE=DATE:20261021", "URL:https://todo.example/day/2026-10-20",

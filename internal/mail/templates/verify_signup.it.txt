@@ -1,6 +1,6 @@
-Conferma il tuo account OpenTodo
+Conferma il tuo account OpenTaskKit
 
-Questa è una conferma di registrazione di OpenTodo.
+Questa è una conferma di registrazione di OpenTaskKit.
 
 Qualcuno si è registrato su {{.Origin}} con {{.Email}}. Per creare l'account, apri questo link e premi il pulsante nella pagina:
 

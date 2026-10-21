@@ -242,7 +242,7 @@ func TestRetryThenSuccessAndSignature(t *testing.T) {
 	if !Verify(w.Secret, ts, got.body, got.header.Get(HeaderSignature)) {
 		t.Fatal("signature does not verify")
 	}
-	if got.header.Get(HeaderWebhook) != w.ID || got.header.Get(HeaderEvent) != "task.updated" || got.header.Get("User-Agent") != "OpenTodo/test" {
+	if got.header.Get(HeaderWebhook) != w.ID || got.header.Get(HeaderEvent) != "task.updated" || got.header.Get("User-Agent") != "OpenTaskKit/test" {
 		t.Fatalf("headers = %v", got.header)
 	}
 	var body map[string]any

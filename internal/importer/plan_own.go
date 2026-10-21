@@ -11,7 +11,7 @@ import (
 	opsync "github.com/pixari/opentodo/internal/sync"
 )
 
-// Planning an import of OpenTodo's own export (opentodo-export files and
+// Planning an import of OpenTaskKit's own export (opentodo-export files and
 // their ZIP form).
 
 func (pl *planner) planOwn(rows []Row) []change {

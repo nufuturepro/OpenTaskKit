@@ -1,5 +1,5 @@
-Messaggio di prova di OpenTodo
+Messaggio di prova di OpenTaskKit
 
-Questo è un messaggio di prova dal server OpenTodo {{.Origin}}.
+Questo è un messaggio di prova dal server OpenTaskKit {{.Origin}}.
 
 L'invio delle email funziona: reimpostazioni della password, conferme di registrazione e inviti ora possono essere inviati per email. Non devi fare nulla.

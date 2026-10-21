@@ -199,5 +199,5 @@ var errorCodes = []map[string]any{
 	{"code": "idempotency_conflict", "exit": ExitServer, "meaning": "the idempotency key was already used for different content"},
 	{"code": "rate_limited", "exit": ExitServer, "meaning": "too many requests; retry after a while", "retry": true},
 	{"code": "internal", "exit": ExitServer, "meaning": "server error; retry later", "retry": true},
-	{"code": "http_<status>", "exit": ExitServer, "meaning": "a non-OpenTodo error response (proxy, wrong URL)"},
+	{"code": "http_<status>", "exit": ExitServer, "meaning": "a non-OpenTaskKit error response (proxy, wrong URL)"},
 }

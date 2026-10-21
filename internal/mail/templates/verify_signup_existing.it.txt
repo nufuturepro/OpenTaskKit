@@ -1,6 +1,6 @@
-La tua registrazione a OpenTodo
+La tua registrazione a OpenTaskKit
 
-Questo è un messaggio di registrazione di OpenTodo.
+Questo è un messaggio di registrazione di OpenTaskKit.
 
 Qualcuno ha provato a registrarsi su {{.Origin}} con {{.Email}}, ma questo indirizzo ha già un account. Per accedere, apri l'indirizzo del server qui sopra. Se hai dimenticato la password, usa «Password dimenticata?» nella schermata di accesso.
 

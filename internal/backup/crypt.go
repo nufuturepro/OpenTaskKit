@@ -161,7 +161,7 @@ func newDecryptReader(r io.Reader, passphrase string) (*decryptReader, error) {
 		return nil, integrity("truncated header")
 	}
 	if string(hdr[:5]) != encMagic {
-		return nil, fmt.Errorf("not an encrypted OpenTodo archive")
+		return nil, fmt.Errorf("not an encrypted OpenTaskKit archive")
 	}
 	if hdr[5] != kdfArgon2id {
 		return nil, fmt.Errorf("unsupported key derivation id %d", hdr[5])

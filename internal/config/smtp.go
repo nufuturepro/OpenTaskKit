@@ -112,7 +112,7 @@ func loadSMTP() (SMTPConfig, error) {
 		return c, fmt.Errorf("OPENTODO_SMTP_SECURITY=none cannot be used with OPENTODO_SMTP_USER: credentials need tls or starttls")
 	}
 	if c.From != "" && !ValidSMTPFrom(c.From) {
-		return c, fmt.Errorf("OPENTODO_SMTP_FROM must be one address such as todo@example.com or OpenTodo <todo@example.com>, got %q", c.From)
+		return c, fmt.Errorf("OPENTODO_SMTP_FROM must be one address such as todo@example.com or OpenTaskKit <todo@example.com>, got %q", c.From)
 	}
 	return c, nil
 }

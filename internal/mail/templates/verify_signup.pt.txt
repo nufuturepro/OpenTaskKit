@@ -1,6 +1,6 @@
-Confirme sua conta do OpenTodo
+Confirme sua conta do OpenTaskKit
 
-Esta é uma confirmação de cadastro do OpenTodo.
+Esta é uma confirmação de cadastro do OpenTaskKit.
 
 Alguém se cadastrou em {{.Origin}} com {{.Email}}. Para criar a conta, abra este link e clique no botão da página:
 

@@ -34,7 +34,7 @@ var (
 )
 
 // rpName is shown by authenticators next to the credential.
-const rpName = "OpenTodo"
+const rpName = "OpenTaskKit"
 
 // ConfigurePasskeys enables passkey ceremonies for the given relying party.
 func (s *Service) ConfigurePasskeys(rpID, origin string) {

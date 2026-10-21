@@ -16,11 +16,11 @@ const SecretPrefix = "whsec_"
 
 // Header names sent with every delivery.
 const (
-	HeaderEvent     = "X-OpenTodo-Event"
-	HeaderDelivery  = "X-OpenTodo-Delivery"
-	HeaderWebhook   = "X-OpenTodo-Webhook"
-	HeaderTimestamp = "X-OpenTodo-Timestamp"
-	HeaderSignature = "X-OpenTodo-Signature"
+	HeaderEvent     = "X-OpenTaskKit-Event"
+	HeaderDelivery  = "X-OpenTaskKit-Delivery"
+	HeaderWebhook   = "X-OpenTaskKit-Webhook"
+	HeaderTimestamp = "X-OpenTaskKit-Timestamp"
+	HeaderSignature = "X-OpenTaskKit-Signature"
 )
 
 // NewSecret returns a fresh signing secret: 32 random bytes, base64url, prefixed.
@@ -46,7 +46,7 @@ func Verify(secret string, timestamp int64, body []byte, signature string) bool 
 // SetHeaders writes the full header set for one delivery attempt.
 func SetHeaders(h http.Header, version, event, deliveryID, webhookID, secret string, timestamp int64, body []byte) {
 	h.Set("Content-Type", "application/json")
-	h.Set("User-Agent", "OpenTodo/"+version)
+	h.Set("User-Agent", "OpenTaskKit/"+version)
 	h.Set(HeaderEvent, event)
 	h.Set(HeaderDelivery, deliveryID)
 	h.Set(HeaderWebhook, webhookID)

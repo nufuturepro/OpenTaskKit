@@ -80,7 +80,7 @@ func cmdLogin(a *App, ctx context.Context, g *globalFlags, args []string) error 
 		return err
 	}
 	if c.cookie == nil {
-		return serverErr("server did not start a session (is %s an OpenTodo server?)", serverURL)
+		return serverErr("server did not start a session (is %s an OpenTaskKit server?)", serverURL)
 	}
 	var created struct {
 		Token  json.RawMessage `json:"token"`

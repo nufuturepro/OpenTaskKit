@@ -286,7 +286,7 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 // baseURLMailWarning tells the owner why emailed links are refused: they are
 // built from OPENTODO_BASE_URL only (harden-links-and-sharing).
 var baseURLMailWarning = config.Warning{Variable: "OPENTODO_BASE_URL",
-	Message: "outgoing email is configured but no base URL is set, so password resets, sign-up verification and invitations are not sent by email. Set OPENTODO_BASE_URL to the address people open OpenTodo at, such as https://todo.example.com, and restart."}
+	Message: "outgoing email is configured but no base URL is set, so password resets, sign-up verification and invitations are not sent by email. Set OPENTODO_BASE_URL to the address people open OpenTaskKit at, such as https://todo.example.com, and restart."}
 
 func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 	u := userFrom(r.Context())

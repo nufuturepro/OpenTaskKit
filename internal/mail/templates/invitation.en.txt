@@ -1,8 +1,8 @@
-{{.Inviter}} invited you to OpenTodo
+{{.Inviter}} invited you to OpenTaskKit
 
-This is an invitation to OpenTodo.
+This is an invitation to OpenTaskKit.
 
-{{.Inviter}} invited {{.Email}} to the OpenTodo server at {{.Origin}}. To create your account, open this link:
+{{.Inviter}} invited {{.Email}} to the OpenTaskKit server at {{.Origin}}. To create your account, open this link:
 
 {{.Link}}
 

@@ -74,7 +74,7 @@ func (f *fakeIMAP) add(uid uint32, raw []byte) {
 
 func (f *fakeIMAP) source() *IMAPSource {
 	return &IMAPSource{Addr: f.ln.Addr().String(), User: f.user, Password: f.pass, Mailbox: "INBOX",
-		Folder: "OpenTodo/Processed", insecurePlaintext: f.tlsCfg == nil, Timeout: 5 * time.Second}
+		Folder: "OpenTaskKit/Processed", insecurePlaintext: f.tlsCfg == nil, Timeout: 5 * time.Second}
 }
 
 var reCmdLiteral = regexp.MustCompile(`\{(\d+)\}$`)
@@ -325,7 +325,7 @@ func TestIMAPSourceMoveFlow(t *testing.T) {
 					}
 					continue
 				}
-				if m.folder != "OpenTodo.Processed" || !m.seen || m.deleted {
+				if m.folder != "OpenTaskKit.Processed" || !m.seen || m.deleted {
 					t.Fatalf("message %d after Done: %+v", uid, m)
 				}
 			}
@@ -480,7 +480,7 @@ func TestIMAPWithoutUIDPLUSNeverExpungesOthers(t *testing.T) {
 				t.Fatalf("processed message = %+v, %v; want it left flagged \\Seen \\Deleted", m, ok)
 			}
 			if !del {
-				if m, ok := msgs[10001]; !ok || m.folder != "OpenTodo.Processed" {
+				if m, ok := msgs[10001]; !ok || m.folder != "OpenTaskKit.Processed" {
 					t.Fatalf("no copy in the processed folder: %+v", msgs)
 				}
 			}

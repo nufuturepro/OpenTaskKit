@@ -38,7 +38,7 @@ func (p *AnthropicProvider) client() anthropic.Client {
 		option.WithAPIKey(p.Key),
 		option.WithMaxRetries(p.MaxRetries),
 		// No telemetry (AGENTS.md rule 5): the SDK emits OpenTelemetry spans
-		// through the global provider unless told not to; OpenTodo never
+		// through the global provider unless told not to; OpenTaskKit never
 		// registers one, and this keeps it off even if a library ever does.
 		option.WithoutOpenTelemetry(),
 	}

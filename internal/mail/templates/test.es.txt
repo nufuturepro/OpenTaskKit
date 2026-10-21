@@ -1,5 +1,5 @@
-Mensaje de prueba de OpenTodo
+Mensaje de prueba de OpenTaskKit
 
-Este es un mensaje de prueba del servidor de OpenTodo {{.Origin}}.
+Este es un mensaje de prueba del servidor de OpenTaskKit {{.Origin}}.
 
 El correo saliente funciona: los restablecimientos de contraseña, las confirmaciones de registro y las invitaciones ya se pueden enviar por correo. No hace falta hacer nada.

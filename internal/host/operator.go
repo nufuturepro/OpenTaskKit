@@ -218,7 +218,7 @@ func (h *Host) opImport(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, backup.ErrIntegrity), errors.Is(err, backup.ErrNewerSchema):
 			writeError(w, http.StatusUnprocessableEntity, "archive_invalid", err.Error())
 		default:
-			writeError(w, http.StatusUnprocessableEntity, "archive_invalid", "not a usable OpenTodo backup archive: "+err.Error())
+			writeError(w, http.StatusUnprocessableEntity, "archive_invalid", "not a usable OpenTaskKit backup archive: "+err.Error())
 		}
 		return
 	}

@@ -166,9 +166,9 @@ func (t TrustedProxies) NoLocalProxyWarning() (Warning, bool) {
 			}
 		}
 	}
-	msg := `The list replaces the default (loopback and private networks), and it names no such address, so X-Forwarded-For from a reverse proxy on this machine or a container network is ignored and every visitor shares the proxy's address. If such a proxy connects to OpenTodo, add "private" (for example "private, 203.0.113.10") and restart.`
+	msg := `The list replaces the default (loopback and private networks), and it names no such address, so X-Forwarded-For from a reverse proxy on this machine or a container network is ignored and every visitor shares the proxy's address. If such a proxy connects to OpenTaskKit, add "private" (for example "private, 203.0.113.10") and restart.`
 	return Warning{Variable: "OPENTODO_TRUSTED_PROXIES", Message: msg, logMsg: "OPENTODO_TRUSTED_PROXIES: no local proxy is trusted",
-		logAttrs: []any{"applied", strings.Join(t.Applied, ","), "hint", `add "private" when a reverse proxy on this machine or network connects to OpenTodo`}}, true
+		logAttrs: []any{"applied", strings.Join(t.Applied, ","), "hint", `add "private" when a reverse proxy on this machine or network connects to OpenTaskKit`}}, true
 }
 
 // editDistance is the Levenshtein distance between a and b (bytes; the

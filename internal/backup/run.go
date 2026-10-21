@@ -305,7 +305,7 @@ func (s *Service) applyRetention(ctx context.Context, dest Destination, pol Rete
 
 // retentionVictims picks the archives to delete: everything beyond the newest
 // KeepLast, plus anything older than MaxAgeDays. The archive just written and
-// the newest archive are never deleted; names that are not OpenTodo archives
+// the newest archive are never deleted; names that are not OpenTaskKit archives
 // are never considered.
 func retentionVictims(objs []Object, pol Retention, justWritten string, now time.Time) []string {
 	type arch struct {

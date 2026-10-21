@@ -38,7 +38,7 @@ type RestoreResult struct {
 }
 
 // ErrNewerSchema is returned for archives made by a newer schema version.
-var ErrNewerSchema = errors.New("archive was made by a newer version of OpenTodo")
+var ErrNewerSchema = errors.New("archive was made by a newer version of OpenTaskKit")
 
 // Restore replaces the database in DataDir with the one in the archive. It must
 // run while the server is stopped and refuses otherwise. Everything is verified
@@ -212,13 +212,13 @@ func readManifest(tr *tar.Reader) (Manifest, error) {
 	var m Manifest
 	h, err := tr.Next()
 	if err != nil || h.Name != ManifestName {
-		return m, fmt.Errorf("%w: %s is not the first entry (is this an OpenTodo backup?)", ErrIntegrity, ManifestName)
+		return m, fmt.Errorf("%w: %s is not the first entry (is this an OpenTaskKit backup?)", ErrIntegrity, ManifestName)
 	}
 	if err := json.NewDecoder(io.LimitReader(tr, 1<<20)).Decode(&m); err != nil {
 		return m, fmt.Errorf("%w: manifest: %v", ErrIntegrity, err)
 	}
 	if m.Format != ManifestFormat || m.FormatVersion < 1 {
-		return m, fmt.Errorf("%w: not an OpenTodo backup manifest", ErrIntegrity)
+		return m, fmt.Errorf("%w: not an OpenTaskKit backup manifest", ErrIntegrity)
 	}
 	if m.FormatVersion > ManifestVersion {
 		return m, fmt.Errorf("%w: archive format %d, this binary reads up to %d", ErrNewerSchema, m.FormatVersion, ManifestVersion)

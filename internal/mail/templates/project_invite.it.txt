@@ -1,8 +1,8 @@
 {{.Inviter}} ti ha invitato in un progetto condiviso
 
-Questo è un invito a un progetto condiviso in OpenTodo.
+Questo è un invito a un progetto condiviso in OpenTaskKit.
 
-{{.Inviter}} ha invitato {{.Email}} a unirsi a un progetto come {{.Role}} sul server OpenTodo {{.Origin}}. Per unirti, apri questo link:
+{{.Inviter}} ha invitato {{.Email}} a unirsi a un progetto come {{.Role}} sul server OpenTaskKit {{.Origin}}. Per unirti, apri questo link:
 
 {{.Link}}
 

@@ -1,6 +1,6 @@
-Tu registro en OpenTodo
+Tu registro en OpenTaskKit
 
-Este es un mensaje de registro de OpenTodo.
+Este es un mensaje de registro de OpenTaskKit.
 
 Alguien intentó registrarse en {{.Origin}} con {{.Email}}, pero esta dirección ya tiene una cuenta. Para iniciar sesión, abre la dirección del servidor indicada arriba. Si olvidaste tu contraseña, usa «¿Olvidaste tu contraseña?» en la pantalla de inicio de sesión.
 

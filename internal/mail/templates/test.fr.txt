@@ -1,5 +1,5 @@
-Message de test OpenTodo
+Message de test OpenTaskKit
 
-Ceci est un message de test du serveur OpenTodo {{.Origin}}.
+Ceci est un message de test du serveur OpenTaskKit {{.Origin}}.
 
 L'envoi d'e-mails fonctionne : les réinitialisations de mot de passe, les confirmations d'inscription et les invitations peuvent maintenant être envoyées par e-mail. Aucune action n'est nécessaire.

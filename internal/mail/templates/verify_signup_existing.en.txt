@@ -1,6 +1,6 @@
-Your OpenTodo sign-up
+Your OpenTaskKit sign-up
 
-This is a sign-up message from OpenTodo.
+This is a sign-up message from OpenTaskKit.
 
 Someone tried to sign up at {{.Origin}} with {{.Email}}, but this address already has an account. To sign in, go to the server's address above. If you forgot your password, use "Forgot password?" on the sign-in screen.
 

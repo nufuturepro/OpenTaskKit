@@ -43,7 +43,7 @@ const (
 	// rest wait for the next tick.
 	UserSendBudget = 20 * time.Second
 	// DefaultSubject is the VAPID contact when no base URL is configured.
-	DefaultSubject = "https://github.com/pixari/opentodo"
+	DefaultSubject = "https://github.com/nufuturepro/OpenTaskKit"
 )
 
 // Options configure a Service.

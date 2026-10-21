@@ -206,7 +206,7 @@ func (c *client) mapError(status int, raw []byte) error {
 		ae.Code, ae.Message = env.Error.Code, env.Error.Message
 	} else {
 		// Not the API's envelope: most likely a proxy or a wrong URL.
-		ae.Message = fmt.Sprintf("server returned HTTP %d from %s (is this an OpenTodo server?)", status, c.base)
+		ae.Message = fmt.Sprintf("server returned HTTP %d from %s (is this an OpenTaskKit server?)", status, c.base)
 		raw = nil
 	}
 	ee := &exitError{code: ExitServer, jsonCode: ae.Code, msg: ae.Message, envelope: raw}

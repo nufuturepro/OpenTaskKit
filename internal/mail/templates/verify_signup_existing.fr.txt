@@ -1,6 +1,6 @@
-Votre inscription à OpenTodo
+Votre inscription à OpenTaskKit
 
-Ceci est un message d'inscription d'OpenTodo.
+Ceci est un message d'inscription d'OpenTaskKit.
 
 Quelqu'un a essayé de s'inscrire sur {{.Origin}} avec {{.Email}}, mais cette adresse a déjà un compte. Pour vous connecter, ouvrez l'adresse du serveur ci-dessus. Si vous avez oublié votre mot de passe, utilisez « Mot de passe oublié ? » sur l'écran de connexion.
 

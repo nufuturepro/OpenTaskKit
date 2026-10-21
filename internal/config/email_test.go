@@ -40,7 +40,7 @@ func TestEmailConfigDefaults(t *testing.T) {
 	e := c.Email
 	if !e.Enabled() || e.Address != "todo@example.com" || e.IMAPHost != "imap.example.com:993" ||
 		e.Mailbox != "INBOX" || e.PollInterval != time.Minute || e.Processed != "move" ||
-		e.ProcessedFolder != "OpenTodo/Processed" || e.IMAPPassword != "s3cret" {
+		e.ProcessedFolder != "OpenTaskKit/Processed" || e.IMAPPassword != "s3cret" {
 		t.Fatalf("defaults = %+v", e)
 	}
 	if got := e.AddressFor("abc"); got != "todo+abc@example.com" {

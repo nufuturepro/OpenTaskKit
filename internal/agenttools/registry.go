@@ -1,5 +1,5 @@
 // Package agenttools is the one registry of tools an AI agent can call on
-// OpenTodo (OpenSpec change `mcp-write-tools`, design D1). It owns every tool's
+// OpenTaskKit (OpenSpec change `mcp-write-tools`, design D1). It owns every tool's
 // definition (name, description, JSON input schema, annotations), its kind,
 // argument validation, planning against the caller's materialised state,
 // limits and the write permission gate. Callers decide what happens to a

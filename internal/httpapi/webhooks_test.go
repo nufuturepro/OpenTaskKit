@@ -382,11 +382,11 @@ func TestWebhookEndToEnd(t *testing.T) {
 	rcv.mu.Lock()
 	req, body := rcv.got[1], rcv.body[1]
 	rcv.mu.Unlock()
-	ts, _ := strconv.ParseInt(req.Header.Get("X-OpenTodo-Timestamp"), 10, 64)
-	if !webhook.Verify(secret, ts, body, req.Header.Get("X-OpenTodo-Signature")) {
+	ts, _ := strconv.ParseInt(req.Header.Get("X-OpenTaskKit-Timestamp"), 10, 64)
+	if !webhook.Verify(secret, ts, body, req.Header.Get("X-OpenTaskKit-Signature")) {
 		t.Fatal("delivery signature does not verify")
 	}
-	if req.Header.Get("X-OpenTodo-Event") != "task.completed" || req.Header.Get("X-OpenTodo-Webhook") != hookID || req.Header.Get("Content-Type") != "application/json" {
+	if req.Header.Get("X-OpenTaskKit-Event") != "task.completed" || req.Header.Get("X-OpenTaskKit-Webhook") != hookID || req.Header.Get("Content-Type") != "application/json" {
 		t.Fatalf("headers = %v", req.Header)
 	}
 	var payload struct {
@@ -406,7 +406,7 @@ func TestWebhookEndToEnd(t *testing.T) {
 	if err := json.Unmarshal(body, &payload); err != nil {
 		t.Fatal(err)
 	}
-	if payload.Version != 1 || payload.Event != "task.completed" || payload.Source != "device" || payload.Device != "phone-1" || payload.ID != req.Header.Get("X-OpenTodo-Delivery") {
+	if payload.Version != 1 || payload.Event != "task.completed" || payload.Source != "device" || payload.Device != "phone-1" || payload.ID != req.Header.Get("X-OpenTaskKit-Delivery") {
 		t.Fatalf("payload = %+v", payload)
 	}
 	if len(payload.Changes) != 1 || payload.Changes["completed_at"].From != nil || payload.Changes["completed_at"].To != float64(completedAt) {

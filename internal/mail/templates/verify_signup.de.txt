@@ -1,6 +1,6 @@
-Bestätige dein OpenTodo-Konto
+Bestätige dein OpenTaskKit-Konto
 
-Dies ist eine Anmeldebestätigung von OpenTodo.
+Dies ist eine Anmeldebestätigung von OpenTaskKit.
 
 Jemand hat sich auf {{.Origin}} mit {{.Email}} registriert. Um das Konto anzulegen, öffne diesen Link und drücke die Schaltfläche auf der Seite:
 

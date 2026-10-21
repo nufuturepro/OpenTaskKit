@@ -88,7 +88,7 @@ func (f *Fetcher) Fetch(ctx context.Context, sub *Subscription) (*Result, error)
 		return nil, &FetchError{"invalid_url"}
 	}
 	req.Header.Set("Accept", "text/calendar, */*;q=0.5")
-	req.Header.Set("User-Agent", "OpenTodo/"+f.Version)
+	req.Header.Set("User-Agent", "OpenTaskKit/"+f.Version)
 	if sub.ETag != "" {
 		req.Header.Set("If-None-Match", sub.ETag)
 	}

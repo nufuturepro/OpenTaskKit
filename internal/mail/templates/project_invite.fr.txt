@@ -1,8 +1,8 @@
 {{.Inviter}} vous invite dans un projet partagé
 
-Ceci est une invitation à un projet partagé dans OpenTodo.
+Ceci est une invitation à un projet partagé dans OpenTaskKit.
 
-{{.Inviter}} a invité {{.Email}} à rejoindre un projet en tant que {{.Role}} sur le serveur OpenTodo {{.Origin}}. Pour le rejoindre, ouvrez ce lien :
+{{.Inviter}} a invité {{.Email}} à rejoindre un projet en tant que {{.Role}} sur le serveur OpenTaskKit {{.Origin}}. Pour le rejoindre, ouvrez ce lien :
 
 {{.Link}}
 

@@ -37,8 +37,8 @@ type Destination interface {
 	Open(ctx context.Context, name string) (body io.ReadCloser, size int64, err error)
 }
 
-// ErrNotArchiveName is returned by Open for anything but an OpenTodo archive name.
-var ErrNotArchiveName = errors.New("not an OpenTodo archive name")
+// ErrNotArchiveName is returned by Open for anything but an OpenTaskKit archive name.
+var ErrNotArchiveName = errors.New("not an OpenTaskKit archive name")
 
 // ErrArchiveNotFound is returned by Open when the destination has no such archive.
 var ErrArchiveNotFound = errors.New("archive not found at the destination")
@@ -166,7 +166,7 @@ func (d *localDest) Open(_ context.Context, name string) (io.ReadCloser, int64, 
 // probe writes and deletes a small object to prove the destination works.
 func probe(ctx context.Context, d Destination, now time.Time) error {
 	name := fmt.Sprintf("opentodo-probe-%d.txt", now.UnixMilli())
-	body := []byte("OpenTodo destination test. Safe to delete.\n")
+	body := []byte("OpenTaskKit destination test. Safe to delete.\n")
 	if err := d.Put(ctx, name, bytes.NewReader(body), int64(len(body))); err != nil {
 		return fmt.Errorf("write test object to %s: %w", d.Describe(), err)
 	}

@@ -41,7 +41,7 @@ func (s *Server) restoreError(w http.ResponseWriter, err error) {
 	case errors.Is(err, backup.ErrInsufficientStorage):
 		writeError(w, http.StatusInsufficientStorage, "insufficient_storage", err.Error())
 	case errors.Is(err, backup.ErrNotArchiveName):
-		invalidField(w, "source", "name an OpenTodo archive from the list")
+		invalidField(w, "source", "name an OpenTaskKit archive from the list")
 	case errors.Is(err, backup.ErrNotSafetyCopy):
 		invalidField(w, "name", "not a safety copy name")
 	case errors.Is(err, backup.ErrStagedNotFound), errors.Is(err, backup.ErrArchiveNotFound):

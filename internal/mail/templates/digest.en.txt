@@ -1,6 +1,6 @@
-Your week in OpenTodo: {{.Completed}} completed
+Your week in OpenTaskKit: {{.Completed}} completed
 
-This is your weekly digest from OpenTodo at {{.Origin}}.
+This is your weekly digest from OpenTaskKit at {{.Origin}}.
 
 Last week ({{.Week}})
   Completed: {{.Completed}}

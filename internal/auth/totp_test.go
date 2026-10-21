@@ -99,8 +99,8 @@ func TestTOTPSecretAndURI(t *testing.T) {
 		t.Fatal(err)
 	}
 	q := u.Query()
-	if u.Scheme != "otpauth" || u.Host != "totp" || u.Path != "/OpenTodo:a@example.com" ||
-		q.Get("secret") != enc || q.Get("issuer") != "OpenTodo" || q.Get("algorithm") != "SHA1" || q.Get("digits") != "6" || q.Get("period") != "30" {
+	if u.Scheme != "otpauth" || u.Host != "totp" || u.Path != "/OpenTaskKit:a@example.com" ||
+		q.Get("secret") != enc || q.Get("issuer") != "OpenTaskKit" || q.Get("algorithm") != "SHA1" || q.Get("digits") != "6" || q.Get("period") != "30" {
 		t.Fatalf("uri = %s", u)
 	}
 	code, err := TOTPCodeAt(enc, time.Unix(59, 0))

@@ -42,7 +42,7 @@ func TestSetHeaders(t *testing.T) {
 	SetHeaders(h, "1.2.3", "ping", "d1", "w1", RefSecret, RefTimestamp, []byte(RefBody))
 	want := map[string]string{
 		"Content-Type":  "application/json",
-		"User-Agent":    "OpenTodo/1.2.3",
+		"User-Agent":    "OpenTaskKit/1.2.3",
 		HeaderEvent:     "ping",
 		HeaderDelivery:  "d1",
 		HeaderWebhook:   "w1",

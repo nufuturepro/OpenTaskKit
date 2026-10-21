@@ -1,5 +1,5 @@
-OpenTodo-Testnachricht
+OpenTaskKit-Testnachricht
 
-Dies ist eine Testnachricht vom OpenTodo-Server {{.Origin}}.
+Dies ist eine Testnachricht vom OpenTaskKit-Server {{.Origin}}.
 
 Der E-Mail-Versand funktioniert: Passwort-Zurücksetzungen, Anmeldebestätigungen und Einladungen können jetzt per E-Mail verschickt werden. Du musst nichts tun.

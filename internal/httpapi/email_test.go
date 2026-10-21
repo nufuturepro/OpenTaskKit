@@ -79,7 +79,7 @@ func emailEnv(t *testing.T) (*env, *email.Service, *testMailbox) {
 	cfg := config.Config{SessionTTL: time.Hour, AllowSignup: true, Email: config.EmailConfig{
 		Address: "todo@example.com", LocalPart: "todo", Domain: "example.com",
 		IMAPHost: testIMAPHost, IMAPUser: testIMAPUser, IMAPPassword: testIMAPPass,
-		Mailbox: "INBOX", PollInterval: time.Minute, Processed: "move", ProcessedFolder: "OpenTodo/Processed",
+		Mailbox: "INBOX", PollInterval: time.Minute, Processed: "move", ProcessedFolder: "OpenTaskKit/Processed",
 	}}
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	syncSvc := opsync.NewService(db)

@@ -235,7 +235,7 @@ func (s *Service) Save(ctx context.Context, u Update) ([]Change, error) {
 		return nil, &InvalidError{Field: "security", Msg: "must be tls, starttls or none"}
 	}
 	if next.From != "" && !config.ValidSMTPFrom(next.From) {
-		return nil, &InvalidError{Field: "from", Msg: "must be one address such as todo@example.com or OpenTodo <todo@example.com>"}
+		return nil, &InvalidError{Field: "from", Msg: "must be one address such as todo@example.com or OpenTaskKit <todo@example.com>"}
 	}
 	if (next.Host == "") != (next.From == "") {
 		if next.Host == "" {
