@@ -94,17 +94,28 @@ async function seed() {
   for (const [name, color] of [['errand', '#f59e0b'], ['waiting', '#64748b'], ['deep-work', '#8b5cf6']]) L[name] = (await A('POST', '/api/v1/labels', { name, color })).id
   const home = await A('POST', '/api/v1/projects', { name: 'Home renovation with a rather long project name', color: '#f59e0b' })
   const work = await A('POST', '/api/v1/projects', { name: 'Work', color: '#38bdf8' })
+  // Four levels under Work (ux-feedback-2 D6): the sidebar's guide lines and capped indentation at 360 px.
+  let nested = work.id
+  for (const name of ['Clients', 'Acme Corporation international', 'Q4 launch campaign', 'Press kit']) nested = (await A('POST', '/api/v1/projects', { name, parent_id: nested })).id
   await A('POST', `/api/v1/projects/${home.id}/members`, { email: 'bob@example.com', role: 'editor' })
   // A pending project invite link (project-invite-links): its acceptance screen is
   // checked signed out and signed in, and the share dialog lists it.
   const { link: projectLink } = await A('POST', `/api/v1/projects/${home.id}/invites`, { role: 'editor', email: 'dora@example.com' })
   const { link: publicLink } = await A('POST', `/api/v1/projects/${home.id}/public-links`, { rights: 'tick', name: 'Family chat' })
+  // A task page with a long title, a checklist and a guest's reply (task-pages).
+  const fence = await A('POST', '/api/v1/tasks', { title: 'Paint the fence along the garden path before the neighbours come over', description: `Two coats. See ${LONG_URL}` })
+  for (const title of ['Buy primer', 'Sand the boards']) await A('POST', '/api/v1/tasks', { title, parent_id: fence.id })
+  const { link: pageLink } = await A('POST', `/api/v1/tasks/${fence.id}/page`, { rights: 'tick', label: 'paint-the-fence' })
+  const pageSecret = pageLink.split('/t/')[1].split('/')[0]
+  await A('POST', `/api/v1/pages/${pageSecret}/replies`, { name: 'Marco', body: 'Bought the primer.' })
   const sections = {}
   let i = 1
   for (const n of ['Planning', 'In progress', 'Waiting']) sections[n] = (await A('POST', '/api/v1/sections', { name: n, project_id: home.id, position: i++ })).id
   const today = new Date().toISOString().slice(0, 10)
   const T = (b) => A('POST', '/api/v1/tasks', b)
   await T({ title: 'Inbox task with a deliberately long title that has to wrap or truncate on a narrow phone screen', priority: 1, due: { date: today }, labels: [L.errand, L.waiting] })
+  // Undated and without a project: an Inbox task (inbox-means-unplaced); dated tasks without a project are not.
+  await T({ title: 'Undated inbox task with a long title that has to wrap or truncate on a narrow phone screen', labels: [L.errand] })
   await T({ title: 'Renew passport', priority: 2, due: { date: today }, labels: [L.errand], estimate_minutes: 30 })
   await T({ title: 'Read ' + LONG_URL, description: 'See ' + LONG_URL })
   const quotes = await T({ title: 'Get three quotes for the kitchen', project_id: home.id, section_id: sections['In progress'], due: { date: today, time: '10:00' }, estimate_minutes: 60 })
@@ -170,7 +181,7 @@ async function seed() {
   // One session for every browser context: logging in per context trips the rate limit.
   const storageState = await ctx.storageState()
   await browser.close()
-  return { storageState, projectInvite: projectLink.split('/invite/p/')[1], publicLink: publicLink.split('/public/')[1], home: home.id, work: work.id, view: v1.id, dashboard: dash.id, label: L.errand, quotes: quotes.id, llm }
+  return { storageState, projectInvite: projectLink.split('/invite/p/')[1], publicLink: publicLink.split('/public/')[1], pageSecret, home: home.id, work: work.id, view: v1.id, dashboard: dash.id, label: L.errand, quotes: quotes.id, llm }
 }
 
 // ------------------------------------------------------------------ screens
@@ -183,8 +194,9 @@ function screens(ids) {
     // Project invite link (project-invite-links): a visitor's choice, and the creator, who is a member already.
     { name: 'project-invite', path: `/invite/p/${ids.projectInvite}`, anon: true, ready: (p) => p.getByRole('button', { name: /sign in to join/ }).waitFor() },
     { name: 'public-list', path: `/public/${ids.publicLink}`, anon: true, ready: (p) => p.locator('[data-public-task]').first().waitFor() },
+    { name: 'task-page', path: `/t/${ids.pageSecret}/paint-the-fence`, anon: true, ready: (p) => p.locator('[data-page-send]').waitFor() },
     { name: 'project-invite-member', path: `/invite/p/${ids.projectInvite}`, ready: heading(/already a member/) },
-    { name: 'inbox', path: '/inbox', ready: row('Renew passport'), overlays: ['notifications', 'command-palette', 'help', 'spotlight', 'sidebar', 'sidebar-view-menu', 'task-detail', 'label-picker', 'bulk-actions-menu', 'bulk-review', 'bulk-toast', 'reminder-toast', 'assistant', 'assistant-review', 'template-dialog'] },
+    { name: 'inbox', path: '/inbox', ready: row('Undated inbox task'), overlays: ['notifications', 'command-palette', 'help', 'spotlight', 'sidebar', 'sidebar-view-menu', 'task-detail', 'label-picker', 'bulk-actions-menu', 'bulk-review', 'bulk-toast', 'reminder-toast', 'assistant', 'assistant-review', 'template-dialog', 'template-detail'] },
     { name: 'today', path: '/today', ready: row('Renew passport') },
     // Display mode (display-mode 3.4, 5.1): no shell, large type; high contrast and the largest size included.
     { name: 'display-today', path: '/display/today', ready: (p) => p.locator('[data-screen="display"] [data-display-row]').first().waitFor() },
@@ -193,7 +205,7 @@ function screens(ids) {
     { name: 'display-project', path: `/display/project/${ids.home}?size=xl`, ready: (p) => p.locator('[data-screen="display"] [data-display-row]').first().waitFor() },
     { name: 'display-view', path: `/display/view/${ids.view}?contrast=high`, ready: (p) => p.locator('[data-screen="display"] h1').waitFor() },
     { name: 'public-display', path: `/public/${ids.publicLink}?display=1&eink=1`, anon: true, ready: (p) => p.locator('[data-screen="public/display"] [data-display-row]').first().waitFor() },
-    { name: 'triage', path: '/triage', ready: (p) => p.locator('[data-triage-card]').waitFor() },
+    { name: 'triage', path: '/triage', ready: (p) => p.locator('[data-triage-card]').waitFor(), overlays: ['schedule-sheet'] },
     { name: 'upcoming', path: '/upcoming', ready: heading('Upcoming') },
     { name: 'assigned', path: '/assigned', ready: row('Pick paint colours') },
     { name: 'day', path: '/day', ready: (p) => p.locator('[data-now-line], main').first().waitFor() },
@@ -201,6 +213,9 @@ function screens(ids) {
     { name: 'month', path: '/month', ready: (p) => p.locator('[data-month-grid]').waitFor() },
     // The Plan (planner-view 4.2): seven columns per row from 640 px, the agenda below it.
     { name: 'plan', path: '/plan', ready: (p) => p.locator('[data-plan-grid], [data-plan-agenda]').first().waitFor() },
+    // The Statistics dashboard (stats-dashboard 5.1): tiles and panels; the heatmap and
+    // the dot grid scroll sideways inside their figures, never the page.
+    { name: 'stats', path: '/stats', ready: (p) => p.locator('[data-testid="stats-panels"]').waitFor() },
     { name: 'completed', path: '/completed', ready: row('Submit expense report') },
     { name: 'filter', path: '/filter', ready: (p) => p.getByLabel('Filter query').waitFor() },
     { name: 'ask', path: '/ask', ready: heading('Ask OpenTaskKit') },
@@ -208,7 +223,7 @@ function screens(ids) {
     { name: 'updates', path: '/updates', ready: heading('Updates') },
     // The old address still opens Updates (ux-overhaul vocabulary).
     { name: 'activity-redirect', path: '/activity', ready: heading('Updates') },
-    { name: 'project', path: `/project/${ids.home}`, ready: row('Pick paint colours'), overlays: ['project-menu', 'project-move-picker', 'section-menu', 'share', 'share-invite-link', 'mention-picker', 'assignee-picker', 'help-panel', 'project-picker', 'parent-picker', 'section-picker', 'when-popover', 'zone-control', 'task-history', 'blocked-by-picker', 'duplicate-project', 'save-template'] },
+    { name: 'project', path: `/project/${ids.home}`, ready: row('Pick paint colours'), overlays: ['project-menu', 'project-move-picker', 'section-menu', 'share', 'share-invite-link', 'mention-picker', 'assignee-picker', 'help-panel', 'project-picker', 'parent-picker', 'section-picker', 'when-popover', 'inline-editor', 'zone-control', 'location-editor', 'task-history', 'blocked-by-picker', 'duplicate-project', 'save-template'] },
     { name: 'board', path: `/project/${ids.home}`, ready: row('Pick paint colours'), layout: 'Board' },
     { name: 'timeline', path: `/project/${ids.home}`, ready: row('Pick paint colours'), layout: 'Timeline' },
     // Custom fields (custom-fields): five columns at 768 px; below it the layout is not offered.
@@ -225,6 +240,7 @@ function screens(ids) {
     { name: 'views', path: '/views', ready: heading('Filters'), overlays: ['view-menu', 'rename-view', 'new-dashboard'] },
     // All projects (sidebar-favourites D6): the tree, the find field, and the archived projects opened from Settings → Data.
     { name: 'projects', path: '/projects', ready: heading('Projects') },
+    { name: 'locations', path: '/locations', ready: heading('Locations'), overlays: ['new-location'] },
     { name: 'projects-archived', path: '/projects#archived', ready: (p) => p.getByText('No archived projects').first().waitFor() },
     // Settings (settings-navigation): the overview and every section, each overlay on
     // the section that holds its control (the owner sees all of them).
@@ -356,7 +372,12 @@ const OVERLAYS = {
   async sidebar(p, ctx) {
     if (ctx.width >= 768) return null
     await openSidebar(p)
-    return { overlay: p.locator('aside[data-sidebar]'), kind: 'drawer' }
+    // The whole tree open (ux-feedback-2 D6): five levels under Work with guide lines at the capped indentation.
+    const aside = p.locator('aside[data-sidebar]')
+    await aside.getByRole('button', { name: 'Add or fold projects' }).click()
+    await p.getByRole('menuitem', { name: 'Expand all' }).click()
+    await aside.locator('[data-guide-line]').first().waitFor()
+    return { overlay: aside, kind: 'drawer' }
   },
   async 'sidebar-view-menu'(p) {
     await openSidebar(p)
@@ -365,11 +386,17 @@ const OVERLAYS = {
     return { overlay: overlayLoc(p), trigger, kind: 'popover', after: async () => p.keyboard.press('Escape') }
   },
   async 'task-detail'(p) {
-    await p.locator('[data-task-id]').filter({ hasText: 'Renew passport' }).first().getByRole('button').nth(1).click()
+    await p.locator('[data-task-id]').filter({ hasText: /Renew passport|Undated inbox task/ }).first().getByRole('button').nth(1).click()
     return { overlay: p.locator('aside[data-detail-for]'), kind: 'panel' }
   },
+  // Process the Inbox's scheduling sheet (inbox-means-unplaced): a bottom sheet on phones.
+  async 'schedule-sheet'(p) {
+    await p.locator('[data-triage-card]').focus()
+    await p.keyboard.press('s')
+    return { overlay: p.getByRole('dialog', { name: 'Schedule' }), kind: 'dialog' }
+  },
   async 'label-picker'(p) {
-    await p.locator('[data-task-id]').filter({ hasText: 'Renew passport' }).first().getByRole('button').nth(1).click()
+    await p.locator('[data-task-id]').filter({ hasText: /Renew passport|Undated inbox task/ }).first().getByRole('button').nth(1).click()
     await p.locator('aside[data-detail-for]').waitFor()
     await p.keyboard.press('Escape')
     await p.keyboard.press('L')
@@ -427,6 +454,16 @@ const OVERLAYS = {
     await p.getByRole('menuitem', { name: 'From a template…' }).click()
     return { overlay: p.locator('[data-testid="template-dialog"]'), kind: 'dialog' }
   },
+  // The library's detail (template-library): description, steps, the preview, start day and Create.
+  // Escape steps back to the library first, then closes.
+  async 'template-detail'(p) {
+    await openSidebar(p)
+    await p.locator('aside[data-sidebar]').getByRole('button', { name: 'Add or fold projects' }).click()
+    await p.getByRole('menuitem', { name: 'From a template…' }).click()
+    await p.locator('[data-template-card="moving-house"]').click()
+    await p.locator('[data-template-detail]').waitFor()
+    return { overlay: p.locator('[data-testid="template-dialog"]'), kind: 'dialog', escapes: 2 }
+  },
   async 'section-menu'(p) {
     const trigger = p.getByRole('button', { name: 'Section menu for Planning' })
     await trigger.click()
@@ -477,11 +514,36 @@ const OVERLAYS = {
     await editor.getByRole('combobox').first().waitFor()
     return { overlay: editor, trigger, kind: 'popover' }
   }])),
+  // A row edited in place (inline-task-editing): a mouse click on the title, from 768 px.
+  async 'inline-editor'(p, ctx) {
+    if (ctx.width < 768) return null
+    await p.locator('[data-task-id]').filter({ hasText: 'Pick paint colours' }).first().locator('[data-row-title]').click()
+    const editor = p.locator('[data-inline-editor]').first()
+    // A touch screen opens the panel instead (coarse pointer): nothing inline to check there.
+    if (!(await editor.waitFor({ timeout: 3000 }).then(() => true, () => false))) { await p.keyboard.press('Escape'); return null }
+    return { overlay: editor, kind: 'inline', after: async () => p.keyboard.press('Escape') }
+  },
   // The When popover, one segment at a time (task-panel-facets D3).
   async 'when-popover'(p) {
     await p.locator('[data-task-id]').filter({ hasText: 'Get three quotes' }).first().getByRole('button').nth(1).click()
     const { editor, trigger } = await openProperty(p, 'due', 'Do on')
     return { overlay: editor, trigger, kind: 'popover' }
+  },
+  // A task's location editor (task-locations "Setting a location"): search, coordinates,
+  // "Use my location" and the saved locations; no map until "Pick on the map".
+  async 'location-editor'(p) {
+    await p.locator('[data-task-id]').filter({ hasText: 'Get three quotes' }).first().getByRole('button').nth(1).click()
+    const { editor, trigger } = await openProperty(p, 'location', 'Location')
+    await editor.locator('[data-location-editor]').waitFor()
+    return { overlay: editor, trigger, kind: 'popover' }
+  },
+  // The Locations page's new-location form (task-locations "Locations page").
+  async 'new-location'(p) {
+    const trigger = p.locator('[data-places-page]').getByRole('button', { name: 'New location' }).first()
+    await trigger.click()
+    const form = p.locator('[data-new-place]')
+    await form.waitFor()
+    return { overlay: form, kind: 'inline', after: async () => { await form.getByRole('button', { name: 'Cancel' }).click() } }
   },
   async 'zone-control'(p) {
     await p.locator('[data-task-id]').filter({ hasText: 'Get three quotes' }).first().getByRole('button').nth(1).click()
@@ -705,6 +767,25 @@ function verticalScrollers() {
 const MAX_SCROLLERS = 3
 
 // Touch targets inside `root` (default: the whole page) that are visible in the viewport.
+// Task rows whose checkbox circle and title's first line are not centred on the same
+// line (more than 3 px apart): on touch screens the title grows to the 44 px target and
+// the circle has to follow it.
+function rowMisalignment() {
+  const out = []
+  for (const row of document.querySelectorAll('[data-task-id]')) {
+    const circle = row.querySelector('.group\\/check')
+    const text = row.querySelector('[data-row-open] .user-text')
+    if (!circle || !text) continue
+    const c = circle.getBoundingClientRect(), t = text.getBoundingClientRect()
+    if (!c.height || !t.height || c.bottom < 0 || c.top > innerHeight) continue
+    const line = parseFloat(getComputedStyle(text).lineHeight) || t.height
+    const off = Math.abs((c.top + c.height / 2) - (t.top + Math.min(line, t.height) / 2))
+    if (off > 3) out.push(`row "${text.textContent.trim().slice(0, 30)}": circle ${Math.round(off)} px off the title's first line`)
+    if (out.length >= 3) break
+  }
+  return out
+}
+
 function smallTargets([rootSel, min]) {
   const root = rootSel ? document.querySelector(rootSel) : document.body
   if (!root) return []
@@ -871,6 +952,7 @@ async function runComboOnce(engine, width, theme, ids, failures, run) {
       const scrollers = await p.evaluate(verticalScrollers)
       if (scrollers.length > MAX_SCROLLERS) await fail(p, s.name, null, `${scrollers.length} vertical scroll regions (at most ${MAX_SCROLLERS}): ${scrollers.join(', ')}`)
       for (const m of await p.evaluate(smallTargets, [null, MIN_TARGET])) await fail(p, s.name, null, `touch target: ${m}`)
+      for (const m of await p.evaluate(rowMisalignment)) await fail(p, s.name, null, m)
       // Accessibility of the whole screen (axe-core, serious and critical issues).
       for (const m of await axeProblems(p)) await fail(p, s.name, null, m)
       if (s.offline && engine === 'chromium') {

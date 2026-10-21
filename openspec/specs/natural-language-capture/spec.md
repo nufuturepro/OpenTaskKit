@@ -147,11 +147,15 @@ Parsing SHALL be a pure function of the line, the reference date and time, the a
 - **THEN** both show the next Monday's occurrence with the reminder firing at 08:00 that day
 
 ### Requirement: Per-device parsing toggle
-Settings SHALL offer a switch that turns natural-language parsing off for the current device. With parsing off, quick add SHALL behave as a plain title field and SHALL show no chips. The setting SHALL be stored only on the device and SHALL not sync.
+Settings SHALL offer a switch that turns natural-language parsing off for the current device. With parsing off, quick add SHALL behave as a plain title field, the task panel's title and the inline title editor SHALL save the typed text as the title, and none of them SHALL show chips or token suggestions. The setting SHALL be stored only on the device and SHALL not sync.
 
 #### Scenario: Parsing off
 - **WHEN** parsing is switched off and the user enters `Buy milk tomorrow p2`
 - **THEN** a task titled `Buy milk tomorrow p2` is created with priority 4 and the view's default due date
+
+#### Scenario: Parsing off while editing
+- **WHEN** parsing is switched off and the user appends ` tomorrow` to a task's title in the panel
+- **THEN** the title ends with "tomorrow" and the due date is unchanged
 
 ### Requirement: Deadline phrases
 The parser SHALL recognise the word `deadline`, or its bundled equivalent in each active language, directly before a date phrase, and SHALL set the task's deadline to that date instead of its due date. The date SHALL resolve by the existing rules (today or later), a time after it SHALL stay in the title, and the deadline SHALL get its own chip. `on`, `by` and `due` SHALL keep setting the due date. Only the first deadline phrase in a line SHALL count.
@@ -196,7 +200,7 @@ The parser SHALL recognise `someday` and `tonight` / `this evening`, each with i
 - **THEN** the first task is parked and the second is due tomorrow and not parked
 
 ### Requirement: Recurrence phrases
-The parser SHALL recognise a recurrence phrase in the quick-add line and SHALL store it as the canonical English rule of the recurring-tasks grammar. Phrases SHALL cover every pattern of that grammar, including `after completion`, `until <date phrase>` and `for N times`, plus one-word forms (`daily`, `weekly`, `monthly`, `yearly`). The phrase SHALL be removed from the title; a phrase the grammar cannot express SHALL stay in it.
+The parser SHALL recognise a recurrence phrase in the quick-add line and SHALL store it as the canonical English rule of the recurring-tasks grammar. Phrases SHALL cover every pattern of that grammar, including `after completion`, `until <date phrase>` and `for N times`, plus one-word forms (`daily`, `weekly`, `monthly`, `yearly`). After a monthly pattern (an ordinal weekday, a day of the month, `last day`, `last weekday`) the parser SHALL also swallow the bundled "of the month" phrase (`of the month`, `im Monat`, `du mois`, `del mese`, `del mes`, `do mês`), which changes nothing in the stored rule. An ordinal SHALL be an ordinal word or a number with an ordinal suffix; a bare number between the "every" word and a weekday SHALL be read as a count, which the grammar cannot express, so the whole phrase SHALL stay in the title and set neither a rule nor a date. The phrase SHALL be removed from the title; a phrase the grammar cannot express SHALL stay in it.
 
 #### Scenario: Weekday rule
 - **WHEN** the user enters `Water plants every Monday`
@@ -209,6 +213,22 @@ The parser SHALL recognise a recurrence phrase in the quick-add line and SHALL s
 #### Scenario: Ordinal weekday with an end date
 - **WHEN** today is 2026-10-09 and the user enters `Board meeting every 2nd Tuesday until 31 Dec`
 - **THEN** the rule is `every 2nd tuesday until 2026-12-31`
+
+#### Scenario: Ordinal word and "of the month"
+- **WHEN** today is Friday 2026-10-09 and the user enters `Board every second Monday` or `Board every 2nd monday of the month`
+- **THEN** in both cases the title is `Board`, the rule is `every 2nd monday`, the task is due `2026-10-12`, and the recurrence chip reads `every 2nd monday · Mon 12 Oct`
+
+#### Scenario: "Of the month" in each language
+- **WHEN** today is 2026-10-09 and the user enters, with that language active, `jeden zweiten Montag im Monat`, `tous les 2e lundis du mois`, `ogni secondo lunedì del mese`, `cada segundo lunes del mes` or `toda segunda segunda-feira do mês` after a title
+- **THEN** the rule is `every 2nd monday` in every case and nothing of the phrase remains in the title
+
+#### Scenario: Last weekday of the month
+- **WHEN** today is 2026-10-09 and the user enters `Close books every last friday of the month`
+- **THEN** the rule is `every last friday`, the title is `Close books` and the task is due `2026-10-30`
+
+#### Scenario: A count before a weekday is not an ordinal
+- **WHEN** the user enters `Board every 2 Mondays`, `Treffen alle 2 Montage`, `Réunion tous les 2 lundis`, `Riunione ogni 2 lunedì`, `Reunión cada 2 lunes` or `Reunião cada 2 segundas-feiras`, with that language active
+- **THEN** no rule is set, no due date is set, no chip is shown, and the title is the line as typed
 
 #### Scenario: One-word form
 - **WHEN** the user enters `Standup daily at 9:30`
@@ -282,3 +302,133 @@ A moment reminder (`remind me at 9`, `remind me tomorrow at 9`) SHALL be resolve
 #### Scenario: View default supplies the due date
 - **WHEN** the user enters `Call mum remind me at 9` in the Today view
 - **THEN** the task is due today and the reminder is relative, offset 0, because the view's default due is applied before the reminder is resolved
+
+### Requirement: Token suggestions
+In every field that parses (quick add, the task panel's title, the inline title editor), typing `#` at the start of a word SHALL open a list of projects, and typing `@` at the start of a word SHALL open a list of labels, under the field, filtered by the text typed after the symbol and matching any word of the name regardless of case, accents and spaces. Nested projects SHALL show their path. Arrow keys SHALL move through the list, Enter or Tab SHALL pick, Esc SHALL close the list and keep the text, and a pointer SHALL be able to pick. Picking SHALL replace the typed token with one that resolves to exactly that item and SHALL show its chip at once. When no item has exactly the typed name, the list SHALL end with an entry to create a project or a label with that name. A project created this way SHALL be a top-level personal project created through the op log, available offline and converging like any project creation. Inside double quotes no list SHALL open.
+
+#### Scenario: Pick a project with spaces
+- **WHEN** a project "Home renovation" exists and the user types `Paint the hall #ren` in quick add and presses Enter on the highlighted "Home renovation"
+- **THEN** the line reads `Paint the hall #HomeRenovation `, a project chip reads "Home renovation", and adding the task puts it in that project
+
+#### Scenario: Labels list
+- **WHEN** labels "errand" and "deep-work" exist and the user types `@d`
+- **THEN** a list shows "deep-work" highlighted and "Create label “d”" last
+
+#### Scenario: Create a project offline
+- **WHEN** the device is offline, no project "Garden" exists, and the user types `#Garden` and picks "Create project “Garden”"
+- **THEN** a top-level project "Garden" exists at once, the chip reads "Garden", and both the project and the task sync when the device is back online
+
+#### Scenario: Same names under different parents
+- **WHEN** projects "Work › Docs" and "Home › Docs" exist and the user picks "Home › Docs"
+- **THEN** the token inserted resolves to "Home › Docs" and the chip reads "Home › Docs"
+
+#### Scenario: Esc keeps the text
+- **WHEN** the project list is open after `#ho` and the user presses Esc
+- **THEN** the list closes, `#ho` stays in the line, and quick add is not closed
+
+### Requirement: Unmatched tokens are explained
+When the caret leaves a `#token` that resolves to no project, the preview SHALL show a muted chip that says no project matches, or how many projects match when the token is ambiguous, and that the text stays in the title. Activating that chip SHALL open the project list for the token. An `@token` with no matching label SHALL show its chip as a new label.
+
+#### Scenario: Unknown project
+- **WHEN** no project starts with "gardn" and the user types `Rake leaves #gardn ` in quick add
+- **THEN** a muted chip reads "No project “gardn” · stays in the title", and the task would be saved with the title `Rake leaves #gardn`
+
+#### Scenario: Ambiguous prefix
+- **WHEN** projects "Home" and "Homework" exist and the user types `Fix sink #hom `
+- **THEN** a muted chip reads "2 projects match “hom”", and activating it opens the list with both
+
+#### Scenario: New label
+- **WHEN** no label "urgent" exists and the user types `@urgent `
+- **THEN** the label chip reads "New label “urgent”"
+
+### Requirement: Parsing while editing a title
+The task panel's title field and the inline title editor SHALL parse the text the user types during the current edit with the same grammar, chips, dismissal and quoting as quick add. Text that was in the title when the edit began SHALL never be parsed. On commit, every recognised attribute SHALL be applied to the task (due, deadline, start, evening, priority, estimate, recurrence, reminders and project overwrite; labels are added to the task's labels) and its token SHALL be removed from the title, as one undoable change that applies locally at once and converges per field like any edit. Fields of tasks the user cannot edit SHALL not parse.
+
+#### Scenario: Add a date and a priority while editing
+- **WHEN** a task is titled "Call the bank" and the user appends ` tomorrow p1` in the panel title and presses Enter
+- **THEN** the title is "Call the bank", the task is due tomorrow with priority 1, and the toast offers Undo for the whole change
+
+#### Scenario: Old text is not re-read
+- **WHEN** a task titled "Review may report" (saved with the date dismissed) is edited by appending ` draft`
+- **THEN** no date chip appears, and the title becomes "Review may report draft" with no due date set
+
+#### Scenario: Labels are added, not replaced
+- **WHEN** a task has the label "errand" and the user types ` @deep-work` into its title and commits
+- **THEN** the task has both labels, "errand" and "deep-work"
+
+#### Scenario: Move with a project token
+- **WHEN** a task in the Inbox is edited inline by typing ` #Work` and committed
+- **THEN** the task moves to the project "Work" and the title no longer contains `#Work`
+
+#### Scenario: Offline edit
+- **WHEN** the device is offline and the user appends ` friday` to a title and commits
+- **THEN** the due date and the new title apply at once and sync when online, converging with other devices' edits per field
+
+#### Scenario: Viewer
+- **WHEN** a viewer of a shared project focuses a task title
+- **THEN** the title is not editable and nothing is parsed
+
+### Requirement: Ordinal weekday phrases
+The parser SHALL recognise an ordinal weekday as a one-off date: an optional article, an ordinal (`first`…`fourth`, `last`, or a number from 1 to 4 with an ordinal suffix such as `2nd`, `2.`, `2º`, `2e`), a weekday name, and optionally `of` with a month name (and optional year) or the bundled "of the month" phrase, each in every active language. The phrase SHALL be removed from the title and SHALL combine with a time like any date.
+
+#### Scenario: Second Monday still ahead
+- **WHEN** today is Friday 2026-10-09 and the user enters `Dentist second Monday` or `Dentist 2nd monday`
+- **THEN** the task is titled `Dentist`, due `2026-10-12`, and the due chip reads that date
+
+#### Scenario: Ordinal weekday with a time
+- **WHEN** today is 2026-10-09 and the user enters `Board second Tuesday at 10:00`
+- **THEN** the task is due `{date: "2026-10-13", time: "10:00"}` with the title `Board`
+
+#### Scenario: Each language
+- **WHEN** today is 2026-10-09 and the user enters, with that language active, `Treffen am zweiten Montag`, `Réunion le deuxième lundi`, `Riunione secondo lunedì`, `Reunión segundo lunes` or `Reunião segunda segunda-feira`
+- **THEN** every task is due `2026-10-12` with the title `Treffen`, `Réunion`, `Riunione`, `Reunión` or `Reunião`
+
+#### Scenario: Named month in each language
+- **WHEN** today is 2026-10-09 and the user enters `Bericht dritten Freitag im November`, `Rapport le 3e vendredi de novembre`, `Rapporto terzo venerdì di novembre`, `Informe tercer viernes de noviembre` or `Relatório terceira sexta-feira de novembro`
+- **THEN** every task is due `2026-11-20`
+
+#### Scenario: Last weekday in each language
+- **WHEN** today is 2026-10-09 and the user enters `Abschluss letzten Freitag`, `Clôture dernier vendredi`, `Chiusura ultimo venerdì`, `Cierre último viernes` or `Fecho última sexta`
+- **THEN** every task is due `2026-10-30`
+
+#### Scenario: Portuguese weekday alone is not an ordinal
+- **WHEN** Portuguese is active, today is 2026-10-09 and the user enters `Reunião quarta`
+- **THEN** the task is due Wednesday `2026-10-14`, because `quarta` counts as "fourth" only directly before a weekday name
+
+#### Scenario: Ordinal without a weekday stays literal
+- **WHEN** the user enters `Pay the second invoice`
+- **THEN** no due date is set and the title is `Pay the second invoice`
+
+### Requirement: Ordinal weekday resolution
+Without a month, an ordinal weekday SHALL resolve to that weekday of the current month when it is today or later, else of the next month. With a month, it SHALL resolve to that month's occurrence in the current year when today or later, else in the next year. A fifth occurrence SHALL never be offered.
+
+#### Scenario: First Monday already past rolls to next month
+- **WHEN** today is Friday 2026-10-09 and the user enters `Pay rent first Monday`
+- **THEN** the task is due `2026-11-02`
+
+#### Scenario: Last Friday of the month
+- **WHEN** today is 2026-10-09 and the user enters `Close books last Friday`
+- **THEN** the task is titled `Close books` and due `2026-10-30`
+
+#### Scenario: Named month with an article
+- **WHEN** today is 2026-10-09 and the user enters `Report the 3rd Friday of November`
+- **THEN** the task is titled `Report` and due `2026-11-20`
+
+#### Scenario: Named month already past rolls to next year
+- **WHEN** today is 2026-10-09 and the user enters `Audit first Friday of October`
+- **THEN** the task is due `2027-10-01`
+
+#### Scenario: One-off "of the month"
+- **WHEN** today is 2026-10-09 and the user enters `Bins last Wednesday of the month`
+- **THEN** the task is titled `Bins` and due `2026-10-28`
+
+### Requirement: Ordinal weekday chips and storage
+An ordinal weekday date SHALL get the ordinary due chip and SHALL be dismissable like any date, keeping its text in the title. Parsing SHALL stay a pure, offline function of the line, the reference date and the active languages; the task SHALL store the resolved date as its due value, so other devices never re-parse the line and converge on it like any due value.
+
+#### Scenario: Dismissed ordinal weekday
+- **WHEN** the user types `Review notes from last Friday` and dismisses the due chip
+- **THEN** the title is `Review notes from last Friday`, the task has no due date, and the chip does not reappear while that text is unchanged
+
+#### Scenario: Offline capture
+- **WHEN** the device is offline and the user enters `Board second Tuesday #work`
+- **THEN** the task is created locally with the resolved date and project, survives a reload, and uploads on the next successful sync

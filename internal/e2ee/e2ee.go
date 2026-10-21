@@ -14,6 +14,7 @@ package e2ee
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 )
 
@@ -38,12 +39,14 @@ const Placeholder = "Encrypted item"
 var ContentFields = map[string][]string{
 	// A task's origin (OpenSpec change task-origin, design D2) is an object;
 	// devices serialise it and encrypt it whole into one ciphertext string.
-	"task":    {"title", "description", "ical_extra", "notes_doc", "origin"},
+	// A task's location (OpenSpec task-locations, design D1) is an object too.
+	"task":    {"title", "description", "ical_extra", "notes_doc", "origin", "location"},
 	"project": {"name", "description", "notes_doc"},
 	"label":   {"name"},
 	"section": {"name"},
 	"view":    {"name", "query"},
-	"comment": {"body"},
+	// A guest's typed name on a task page reply (OpenSpec task-pages, design D6).
+	"comment": {"body", "guest_name"},
 	// Attachments (OpenSpec attachments, design D8): the bytes are an envelope too.
 	"attachment": {"name", "mime", "url"},
 	// Custom field definitions (OpenSpec custom-fields, design D4).
@@ -54,6 +57,9 @@ var ContentFields = map[string][]string{
 	// The review record's line for tomorrow (OpenSpec close-the-day, design D5);
 	// the close time and the other rhythm stamps stay plaintext.
 	"review": {"tomorrow_note"},
+	// A place (OpenSpec task-locations, design D1): its coordinates are one
+	// object, encrypted whole; its position and timestamps stay plaintext.
+	"place": {"name", "address", "geo"},
 }
 
 // ContentPrefixes are families of content fields named by a prefix: a task's
@@ -95,6 +101,15 @@ func IsContentField(entity, field string) bool {
 
 // IsCiphertext reports whether a string value is a ciphertext envelope.
 func IsCiphertext(s string) bool { return strings.HasPrefix(s, Prefix) }
+
+var envelopeRe = regexp.MustCompile(`^enc:v[0-9]+:[A-Za-z0-9_-]{38,}$`)
+
+// IsEnvelope reports whether s is a well-formed ciphertext envelope: "enc:vN:" and
+// at least a nonce and a tag of base64url. Stricter than IsCiphertext, like
+// isEnvelope in web/src/lib/crypto.ts: an assistant writing ciphertext for an
+// encrypted account (OpenSpec change mcp-projects, design D3) must send one. The
+// server still cannot tell whether it was made with the right key.
+func IsEnvelope(s string) bool { return envelopeRe.MatchString(s) }
 
 // IsCiphertextJSON reports whether a JSON value is a string holding a ciphertext envelope.
 func IsCiphertextJSON(raw json.RawMessage) bool {

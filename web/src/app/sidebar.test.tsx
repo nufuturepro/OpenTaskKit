@@ -112,12 +112,12 @@ describe('primary destinations and More (ux-overhaul 4.1)', () => {
     expect(moreToggle(r.container).getAttribute('aria-expanded')).toBe('false')
     expect(moreItems(r.container)).toEqual([])
     await click(moreToggle(r.container))
-    expect(moreItems(r.container)).toEqual(['loop', 'next', 'waiting', 'anytime', 'someday', 'completed', 'review', 'stats', 'trash', 'filter'])
+    expect(moreItems(r.container)).toEqual(['loop', 'next', 'waiting', 'anytime', 'someday', 'completed', 'review', 'stats', 'places', 'trash', 'filter'])
     expect(localStorage.getItem('ot.sidebar.more')).toBe('1')
     // A shared project brings Assigned to me and Updates.
     await db.memberships.put({ projectId: 'p1', role: 'editor', ownerId: 'alice', members: [] } as Membership)
     await waitFor(() => moreItems(r.container).includes('assigned'))
-    expect(moreItems(r.container)).toEqual(['loop', 'next', 'waiting', 'anytime', 'someday', 'assigned', 'completed', 'review', 'stats', 'feed', 'trash', 'filter'])
+    expect(moreItems(r.container)).toEqual(['loop', 'next', 'waiting', 'anytime', 'someday', 'assigned', 'completed', 'review', 'stats', 'feed', 'places', 'trash', 'filter'])
     expect(primaryOf(r.container)).toHaveLength(4)
     await r.unmount()
   })
@@ -203,7 +203,7 @@ describe('the desktop sidebar (sidebar-compact-desktop)', () => {
     expect(trigger.querySelector('[data-review-due-more]')).not.toBeNull()
     await click(trigger)
     await waitFor(() => menuItems().length > 0)
-    expect(menuItems()).toEqual(['Loop home', 'Next', 'Waiting', 'Anytime', 'Someday', 'Completed', 'Review', 'Statistics', 'Trash', 'Filter'])
+    expect(menuItems()).toEqual(['Loop home', 'Next', 'Waiting', 'Anytime', 'Someday', 'Completed', 'Review', 'Statistics', 'Locations', 'Trash', 'Filter'])
     expect(document.querySelector('[data-menu-label="Review"]')?.textContent).toContain('Review due')
     await click(document.querySelector<HTMLElement>('[data-menu-label="Someday"]')!)
     await waitFor(() => window.location.pathname === '/someday')
@@ -341,6 +341,43 @@ describe('resize and collapse (ux-overhaul 4.9)', () => {
     } finally {
       window.matchMedia = original
     }
+  })
+})
+
+describe('children read as children (ux-feedback-2 D6)', () => {
+  it('16 px per level, guide lines beside every descendant (decoration only), 6 px after an expanded root, the path as a tooltip', async () => {
+    const work = await createProject({ name: 'Work' })
+    const client = await createProject({ name: 'Client A', parent_id: work })
+    const q4 = await createProject({ name: 'Q4 launch', parent_id: client })
+    const hiring = await createProject({ name: 'Hiring', parent_id: work })
+    const home = await createProject({ name: 'Home' })
+    await setCollapsedProjects(new Set())
+    const r = await render(<aside data-sidebar><Sidebar route={{ view: 'inbox' }} user={user} /></aside>)
+    await waitFor(() => !!r.container.querySelector(`[data-project-row="${q4}"]`))
+    const rowOf = (id: string) => r.container.querySelector<HTMLElement>(`[data-project-row="${id}"]`)!
+    expect([work, client, q4, hiring, home].map((id) => rowOf(id).style.paddingLeft)).toEqual(['0rem', '1rem', '2rem', '1rem', '0rem'])
+    expect([work, client, q4, hiring, home].map((id) => rowOf(id).querySelectorAll('[data-guide-line]').length)).toEqual([0, 1, 2, 1, 0])
+    for (const line of r.container.querySelectorAll('[data-guide-line]')) expect(line.getAttribute('aria-hidden')).toBe('true')
+    // Hiring ends Work's subtree: 6 px before Home; other rows are 2 px apart.
+    expect(rowOf(hiring).className).toContain('mb-1.5')
+    expect(rowOf(client).className).toContain('mb-0.5')
+    expect(r.container.querySelector(`[data-project-id="${q4}"]`)!.getAttribute('title')).toBe('Work › Client A › Q4 launch')
+    expect(r.container.querySelector(`[data-project-id="${work}"]`)!.hasAttribute('title')).toBe(false)
+    await r.unmount()
+  })
+
+  it('Guide lines stop at the capped indentation on a deep tree', async () => {
+    let parent: string | null = null
+    const ids: string[] = []
+    for (const name of ['L0', 'L1', 'L2', 'L3', 'L4']) { parent = await createProject({ name, parent_id: parent }); ids.push(parent) }
+    await setCollapsedProjects(new Set())
+    const r = await render(<aside data-sidebar><Sidebar route={{ view: 'inbox' }} user={user} /></aside>)
+    await waitFor(() => !!r.container.querySelector(`[data-project-row="${ids[4]}"]`))
+    const deepest = r.container.querySelector<HTMLElement>(`[data-project-row="${ids[4]}"]`)!
+    expect(deepest.querySelectorAll('[data-guide-line]').length).toBe(3)
+    expect(deepest.style.paddingLeft).toBe('3rem')
+    expect(r.container.querySelector(`[data-project-id="${ids[4]}"]`)!.getAttribute('title')).toBe('L0 › L1 › L2 › L3 › L4')
+    await r.unmount()
   })
 })
 

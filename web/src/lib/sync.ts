@@ -16,6 +16,7 @@ import { refreshNotifications } from './notifications'
 import { dropUnconfirmed, forgetRejected, storeMemberships, type RejectedNotice } from './sharing'
 import { flushPendingPurges, removeLocally, RETENTION_KEY } from './trash'
 import { onUploadRequest, refreshLimits, resumeFileMigration, runUploader } from './attachments'
+import { refreshMapsAvailable } from './locations'
 import { sweepInbox } from './shareInbox'
 import { refreshEvents } from './calendarFeeds'
 import { ENTITIES, type Clock, type Op, type RowEncryption, type SyncResponse, type SyncState } from './types'
@@ -336,6 +337,9 @@ async function exchange(alive: () => void, signal: AbortSignal): Promise<void> {
     // so far marked as seen (activity-feed), so an upgrade is not a wall of unread.
     await ensureFeedBaselines()
     alive()
+    // Encrypted task pages (task-pages D3, D4): a new snapshot after a change, and the
+    // guests' replies imported. Loaded on demand; it skips itself when there is nothing.
+    void import('./taskPages').then((m) => m.maintainTaskPages()).catch(() => undefined)
     failures = 0
     const held = await heldCount()
     alive()
@@ -594,6 +598,8 @@ export function startSync(): void {
   started = true
   onUploadRequest(() => requestSync(0))
   void refreshLimits()
+  // Whether the server shows maps (task-locations D6); offline keeps the last answer.
+  void refreshMapsAvailable()
   // Shares abandoned on the capture screen leave the hand-over store (attachments D9).
   void sweepInbox().catch(() => undefined)
   const offMutation = onLocalMutation(() => {
@@ -633,9 +639,26 @@ export function startSync(): void {
 }
 
 /** This tab runs the sync loop now: the timer, the live channel, the first exchange. */
+const leaderListeners = new Set<(leading: boolean) => void>()
+
+/**
+ * Follows whether this tab runs the sync loop (the device relay answers from it
+ * only, mcp-device-relay D5). Called at once with the current state.
+ */
+export function onLeadership(fn: (leading: boolean) => void): () => void {
+  leaderListeners.add(fn)
+  fn(leader && started)
+  return () => leaderListeners.delete(fn)
+}
+
+function tellLeadership(): void {
+  for (const fn of leaderListeners) fn(leader && started)
+}
+
 function lead(): void {
   if (!started) return
   leader = true
+  tellLeadership()
   armTimer()
   requestSync(0)
   connectLive()
@@ -660,6 +683,7 @@ export function stopSync(): void {
   removeListeners?.()
   removeListeners = null
   started = false
+  tellLeadership()
   needNotifications = true
   clearLiveTimers()
   closeSource()
@@ -770,6 +794,7 @@ function electLeader(): void {
 /** Gives up leadership and the channel; the lock is released once the running exchange stopped. */
 function resign(): void {
   leader = false
+  tellLeadership()
   lockAbort?.abort()
   lockAbort = null
   const release = releaseLock

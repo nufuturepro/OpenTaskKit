@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pixari/opentodo/internal/inbox"
 	"github.com/pixari/opentodo/internal/origin"
 	"github.com/pixari/opentodo/internal/quickadd"
 	"github.com/pixari/opentodo/internal/recurrence"
@@ -33,7 +34,7 @@ type listOptions struct {
 }
 
 func (o *listOptions) bind(fs *flag.FlagSet) {
-	fs.BoolVar(&o.inbox, "inbox", false, "tasks without a project")
+	fs.BoolVar(&o.inbox, "inbox", false, "the Inbox: tasks without a project that are not scheduled")
 	fs.BoolVar(&o.today, "today", false, "due today or earlier, overdue first")
 	fs.BoolVar(&o.upcoming, "upcoming", false, "due after today")
 	fs.BoolVar(&o.completed, "completed", false, "completed tasks, most recent first")
@@ -252,6 +253,7 @@ func filterTasks(all []task, projects []project, view string, selected *project,
 		visible[p.ID] = !p.Archived && p.DeletedAt == nil
 	}
 	out := make([]task, 0, len(all))
+	inInbox := inboxRule(all)
 	for _, t := range all {
 		if t.DeletedAt != nil {
 			continue
@@ -269,7 +271,7 @@ func filterTasks(all []task, projects []project, view string, selected *project,
 		open := t.CompletedAt == nil
 		switch view {
 		case "inbox":
-			if !open || t.ProjectID != nil {
+			if !inInbox(t) {
 				continue
 			}
 		case "today":
@@ -1034,4 +1036,36 @@ func cmdRm(a *App, ctx context.Context, g *globalFlags, args []string) error {
 		return a.printRawList(results)
 	}
 	return nil
+}
+
+// inboxTask is the part of a task the Inbox rule reads (internal/inbox).
+func inboxTask(t task) inbox.Task {
+	it := inbox.Task{HasDue: t.Due != nil, Completed: t.CompletedAt != nil, Deleted: t.DeletedAt != nil}
+	if t.ProjectID != nil {
+		it.ProjectID = *t.ProjectID
+	}
+	if t.Start != nil {
+		it.Start = *t.Start
+	}
+	if t.ParentID != nil {
+		it.ParentID = *t.ParentID
+	}
+	return it
+}
+
+// inboxRule returns the Inbox rule (internal/inbox, OpenSpec change inbox-means-unplaced)
+// over all: open, live, not placed, and no placed parent.
+func inboxRule(all []task) func(task) bool {
+	byID := make(map[string]task, len(all))
+	for _, t := range all {
+		byID[t.ID] = t
+	}
+	parentOf := func(id string) (inbox.Task, bool) {
+		p, ok := byID[id]
+		if !ok {
+			return inbox.Task{}, false
+		}
+		return inboxTask(p), true
+	}
+	return func(t task) bool { return inbox.IsTask(inboxTask(t), parentOf) }
 }

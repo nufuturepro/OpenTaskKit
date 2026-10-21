@@ -73,7 +73,7 @@ Pick a profile with `--profile work` or `OPENTODO_PROFILE=work`; `ot login --pro
 
 ```bash
 ot today                       # due today or earlier, overdue first
-ot inbox                       # tasks without a project
+ot inbox                       # the Inbox: no project and no date
 ot upcoming                    # due after today
 ot list                        # every open task, soonest first
 ot list --project Home         # one project (name or id)
@@ -106,7 +106,7 @@ ot edit 8c2a --origin-url none                       # forget where it came from
 
 | Flag | Meaning |
 | --- | --- |
-| `--project <name-or-id>` | Project; `none` (edit) moves the task to the Inbox |
+| `--project <name-or-id>` | Project; `none` (edit) takes the task out of its project (into the Inbox while it has no date) |
 | `--due <when>` | `YYYY-MM-DD`, `today`, `tomorrow` or an English weekday name (next occurrence; `monday` on a Monday means next week); `none` (edit) clears the date |
 | `--time HH:MM` | Due time, 24-hour; with `ot add` and no `--due` the date is today |
 | `--priority 1..4` | 1 is highest, 4 is the default |
@@ -195,6 +195,25 @@ ot token revoke backup-script --yes     # by name, id or id prefix
 ot export                               # full JSON export (including tombstones) to stdout
 ot export --out opentodo-$(date +%F).json
 ```
+
+## MCP bridge and encryption
+
+`ot mcp` bridges an MCP client that only speaks stdio (Claude Desktop, Claude Code) to the server's [MCP endpoint](mcp.md); see [MCP](mcp.md#3-connect-an-assistant) for the client configuration. It starts with a `read` token, or an `agent` token for an assistant that may make changes through the server's write switches; a `full` token needs `--allow-full-token`, and `--read-only` accepts only a `read` token.
+
+For an account with [end-to-end encryption](e2ee.md), `ot mcp --decrypt` lets that assistant read and write your text: it decrypts results and encrypts what the assistant writes on your computer, with the account key stored by `ot encryption unlock`. The server still receives only ciphertext; your AI provider receives the plaintext, and the bridge says so on stderr when it starts.
+
+```bash
+ot encryption unlock                       # asks for the encryption passphrase, no echo
+ot encryption unlock --recovery            # or the recovery key
+ot encryption unlock --passphrase-file ~/.otpass
+ot encryption status                       # locked, unlocked, stale or not_encrypted
+ot encryption lock                         # delete the stored key
+ot mcp --decrypt                           # the bridge, decrypting on this machine
+```
+
+`ot encryption unlock` fetches the wrapped key record with the profile's token, checks its key-derivation settings as devices do, unwraps the key locally and stores it with its key version in an owner-only file (`keys/<profile>.json` next to the configuration file, the same protection as the token). The passphrase, the recovery key and the key itself are never sent or printed. After 5 failed attempts within a minute it waits before trying again. A passphrase with accented or other non-ASCII characters may need `--recovery`, since `ot` does not normalise Unicode the way the browser does. Lock the key on a shared machine.
+
+`ot mcp --decrypt` refuses to start, without prompting, when no key is stored or the stored one is out of date (`stale`: the passphrase or key changed on another device); run `ot encryption unlock` again. Custom field text and task origins are not encrypted by the bridge: the server refuses them for an encrypted account.
 
 ## Scripting: JSON output and exit codes
 

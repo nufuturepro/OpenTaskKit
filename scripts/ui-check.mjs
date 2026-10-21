@@ -44,6 +44,48 @@ export function iconProblems(file, text) {
   return out
 }
 
+// A due's wall time joined into text ("`${due.time}`", "{task.due.time}") skips the
+// user's time format and the viewer's zone (OpenSpec change ux-feedback-2, D3): go
+// through formatDueLong/describeDue/formatTime in lib/dates.ts instead.
+const RAW_DUE_TIME = [
+  /\$\{[^}]*\bdue\??\.time\b[^}]*\}/, // a template literal: `${task.due.time}`
+  />\s*\{\s*[\w.?]*\bdue\??\.time\s*\}/, // JSX text: >{task.due.time}<
+  /\+\s*[\w.?]*\bdue\??\.time\b|\bdue\??\.time\s*\+/, // string concatenation
+]
+
+export function rawDueTimeProblems(file, text) {
+  const out = []
+  text.split('\n').forEach((line, i) => {
+    // A due time given to formatTime, or only tested (`due.time ?`, `due.time &&`), is not raw text.
+    const code = line.replace(/\/\/.*$/, '').replace(/^\s*\*.*$/, '')
+      .replace(/formatTime\(\s*[\w.?]*\bdue\??\.time\b/g, 'formatTime(t').replace(/\bdue\??\.time\s*(\?(?!\.)|&&)/g, 'cond $1')
+    if (RAW_DUE_TIME.some((re) => re.test(code))) out.push(`${file}:${i + 1}: raw due time in text (use formatDueLong or formatTime): ${line.trim().slice(0, 100)}`)
+  })
+  return out
+}
+
+// Illustrations (OpenSpec change inbox-means-unplaced, design D9; design-system
+// "Illustrations") use the design tokens only: no hard-coded colour, no raster or
+// external image, no text, no gradient or filter, and at most 4 KB per file.
+export const ILLUSTRATION_MAX_BYTES = 4096
+const ILLUSTRATION_RULES = [
+  [/#[0-9a-fA-F]{3,8}\b/, 'a hard-coded hex colour (use a token: currentColor or var(--color-…))'],
+  [/\brgba?\(|\bhsla?\(|\boklch\(/, 'a hard-coded colour function (use a token)'],
+  [/<image\b|xlinkHref|xlink:href|\bhref=|\.png\b|\.jpe?g\b|\.webp\b|data:image/, 'a raster or external image'],
+  [/<text\b|<tspan\b/, 'text inside the drawing (the message belongs beside it)'],
+  [/Gradient\b|<filter\b|<feDropShadow\b/, 'a gradient, filter or shadow'],
+]
+
+export function illustrationProblems(file, text) {
+  const out = []
+  if (Buffer.byteLength(text, 'utf8') > ILLUSTRATION_MAX_BYTES) out.push(`${file}: over ${ILLUSTRATION_MAX_BYTES} bytes`)
+  text.split('\n').forEach((line, i) => {
+    const code = line.replace(/\/\/.*$/, '')
+    for (const [re, what] of ILLUSTRATION_RULES) if (re.test(code)) out.push(`${file}:${i + 1}: ${what}`)
+  })
+  return out
+}
+
 function storyProblems() {
   const ui = join(repo, 'web/src/ui')
   return walk(ui)
@@ -65,6 +107,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     ...storyProblems(),
     ...walk(app).filter((f) => f.endsWith('.tsx') && !/\.test\.tsx$/.test(f))
       .flatMap((f) => iconProblems(relative(repo, f), readFileSync(f, 'utf8'))),
+    ...[...walk(app), ...walk(join(repo, 'web/src/ui'))].filter((f) => /\.tsx?$/.test(f) && !/\.(test|stories)\.tsx?$/.test(f))
+      .flatMap((f) => rawDueTimeProblems(relative(repo, f), readFileSync(f, 'utf8'))),
+    ...walk(join(repo, 'web/src/ui/illustrations')).filter((f) => f.endsWith('.tsx') && !/\.(test|stories)\.tsx$/.test(f))
+      .flatMap((f) => illustrationProblems(relative(repo, f), readFileSync(f, 'utf8'))),
     ...untranslated().map((p) => `${p} (untranslated: wrap it in t() or add it to scripts/i18n/allow.txt)`),
   ]
   if (problems.length) {

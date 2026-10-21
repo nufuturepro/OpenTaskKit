@@ -4,6 +4,7 @@
 // tree positions assistive technology announces. TaskListView only wires these to
 // the live data; tests call them directly.
 import { formatDateHeading, type ResolvedDateTime } from './dates'
+import { inboxTasks } from './inbox'
 import { groupToday, groupUpcoming, projectOpenList, todayList, upcomingList, withoutArchived } from './dayLists'
 import { appendTo, groupBy } from './collections'
 import { t } from './i18n'
@@ -14,11 +15,12 @@ import { breadcrumbOf } from './subtasks'
 import { flattenTree, type Tree, type TreeNode } from './tree'
 import type { Project, Section, Task } from './types'
 import { inAnytime, isSomeday } from './views'
+import { linkedPlaceId } from './locations'
 
 /** The list views TaskListView renders, as the router names them. */
 export type ListScope =
   | { view: 'inbox' | 'today' | 'upcoming' | 'someday' | 'anytime' | 'completed' | 'assigned' }
-  | { view: 'project' | 'label'; id: string }
+  | { view: 'project' | 'label' | 'place'; id: string }
 
 /** One rendered line: a task with its place in the (possibly flat) tree. */
 export interface ListRow {
@@ -96,7 +98,8 @@ export function tasksForView(scope: ListScope, allTasks: readonly Task[], projec
   const all = withoutArchived(allTasks as Task[], projects as Project[], scope.view === 'project' ? scope.id : undefined)
   switch (scope.view) {
     case 'inbox':
-      return all.filter((task) => !task.completed_at && task.project_id === null)
+      // Not placed, and no placed parent (lib/inbox, inbox-means-unplaced).
+      return inboxTasks(all, allTasks)
     case 'today':
       return todayList(all, today)
     case 'upcoming':
@@ -114,6 +117,9 @@ export function tasksForView(scope: ListScope, allTasks: readonly Task[], projec
       return projectOpenList(all, scope.id)
     case 'label':
       return all.filter((task) => !task.completed_at && task.labels.includes(scope.id)).sort(byPosition)
+    // A place's open tasks (task-locations "Places page"): those whose location links to it.
+    case 'place':
+      return all.filter((task) => !task.completed_at && linkedPlaceId(task) === scope.id).sort(byPosition)
     case 'assigned':
       return all.filter((task) => !task.completed_at && !!userId && task.assignee_id === userId).sort(compareDueThenPriority)
   }
@@ -137,7 +143,7 @@ export interface GroupInput {
   view: ListScope['view']
   /** The view's tasks after filters; for tree views without the Later ones. */
   tasks: Task[]
-  /** Project and Inbox: deferred and parked tasks, shown in a Later group at the end. */
+  /** Project views: deferred and parked tasks, shown in a Later group at the end (Inbox tasks are never deferred or parked). */
   laterTasks: Task[]
   tree: Tree<Task> | null
   today: string
@@ -217,7 +223,7 @@ function flatGroups(p: GroupInput): ListGroup[] {
     }))
   }
   if (p.view === 'upcoming') {
-    return groupUpcoming(p.tasks).map(({ date, tasks: list }) => ({ key: date, heading: formatDateHeading(date, p.today, p.resolved), rows: withImplied(list.map(row), { date }) }))
+    return groupUpcoming(p.tasks, p.today).map(({ date, tasks: list }) => ({ key: date, heading: formatDateHeading(date, p.today, p.resolved), rows: withImplied(list.map(row), { date }) }))
   }
   if (p.view === 'label' || p.view === 'assigned' || p.view === 'someday' || p.view === 'anytime') {
     // Grouped by project: Inbox first, then projects in sidebar order; flat rows with breadcrumbs.

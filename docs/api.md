@@ -158,6 +158,17 @@ Auth column: **none** = public; **yes** = any session or token (a `read` token o
 | DELETE | `/api/v1/projects/{id}/public-links/{linkId}` | owner, admin of the project | revoke → 204 |
 | GET | `/api/v1/public/{token}` | none | a public list `{projectName, projectColor, rights, sections, tasks, serverTime}` |
 | POST | `/api/v1/public/{token}/tick` | none (a `tick` link) | `{taskId, completed}` → `{taskId, completed_at}` |
+| POST | `/api/v1/tasks/{id}/page` | the task's owner, owner or admin of its project; fresh; full token | `{rights, label?, expiresInDays?, includeMap?, snapshot?, wrappedKey?}` → 201 the page with `link` (shown once), see [Task pages](#task-pages) |
+| GET | `/api/v1/tasks/{id}/page` | the same | the active page's status (never the secret or a key) |
+| DELETE | `/api/v1/tasks/{id}/page` | the same | revoke → 204 |
+| GET | `/api/v1/task-pages` | signed in, full token | the caller's own active pages, with the wrapped share key of encrypted ones |
+| PUT | `/api/v1/tasks/{id}/page/snapshot` | the publisher, full token | `{ciphertext, version, wrappedKey?}` → 200; an older `version` changes nothing |
+| GET | `/api/v1/tasks/{id}/page/replies` | the publisher, full token | pending encrypted replies `{replies:[{id, ciphertext, createdAt}]}` |
+| DELETE | `/api/v1/tasks/{id}/page/replies/{replyId}` | the publisher, full token | confirm an imported reply → 204 |
+| GET | `/api/v1/pages/{secret}` | none | the page: `mode` `live` (the task's shown fields) or `encrypted` (`snapshot`) |
+| POST | `/api/v1/pages/{secret}/replies` | none (`reply` or `tick` page) | `{name, body}`, or `{ciphertext}` on an encrypted page → 201 |
+| POST | `/api/v1/pages/{secret}/tick` | none (a `tick` page) | `{taskId, completed, name}` → `{taskId, completed_at}` |
+| GET | `/api/v1/pages/{secret}/files/{fileId}`, `…/maps/…` | none | a file of the task, as a download; the page's map style, tiles, fonts and sprites |
 | GET | `/api/v1/settings/project-invites` | yes | `{membersCanInviteNewPeople}` (the owner switch) |
 | PUT | `/api/v1/settings/project-invites` | owner | `{membersCanInviteNewPeople: true\|false}` → the same shape |
 | POST | `/api/v1/sync` | yes (not `read`) | device sync, see [sync.md](sync.md#exchange); the response carries the log `generation` |
@@ -594,6 +605,8 @@ A section is a named, ordered container inside one project (OpenSpec change `boa
 | `name` | string | required, not blank |
 | `project_id` | string | required on create: an existing, non-deleted project; cannot change afterwards (`400 invalid_input`) |
 | `position` | number | ascending order within the project; defaults to now (last) |
+| `color` | string or null | a `#rrggbb` colour shown before the name, `null` for none (the default); anything else is `400 invalid_input` |
+| `icon` | string or null | a name from the icon catalogue (`web/src/ui/icons/catalogue.json`, such as `hourglass`), `null` for none (the default); an unknown name is `400 invalid_input`. Responses always carry both fields |
 | `created_at` | number | set by the server when omitted |
 | `deleted_at` | number or null | set by `DELETE` |
 
@@ -602,7 +615,7 @@ A section is a named, ordered container inside one project (OpenSpec change `boa
 ```sh
 # Create a section, put a task in it, then move the task back to "No section"
 curl -X POST -H "Authorization: Bearer $T" -d '{"name":"Doing","project_id":"<project>"}' $BASE/api/v1/sections
-# 201 {"id":"…","name":"Doing","project_id":"<project>","position":1760000000000,"created_at":1760000000000}
+# 201 {"id":"…","name":"Doing","project_id":"<project>","position":1760000000000,"created_at":1760000000000,"color":null,"icon":null}
 curl -X PATCH -H "Authorization: Bearer $T" -d '{"section_id":"<section>"}' $BASE/api/v1/tasks/$TASK
 curl -X PATCH -H "Authorization: Bearer $T" -d '{"section_id":null}' $BASE/api/v1/tasks/$TASK
 curl -X POST -H "Authorization: Bearer $T" -d '{"name":"Doing","project_id":"missing"}' $BASE/api/v1/sections
@@ -942,6 +955,8 @@ The server records security-relevant events in its own database (never synced to
 | `logout` | success | actor = user | |
 | `token.created`, `token.revoked` | success | actor = user | `token_id`, `token_name`; `token.created` also `token_scope` (`full`, `read`, `agent` or `admin`) |
 | `agent.write` | success or failure | actor = user | `tool`, `token_id`, `token_name`, `count` (items changed; 0 on failure), `reason` on failure (`writes_disabled_by_owner`, `writes_disabled_by_user`, `rate_limited`, `encryption_enabled`, `not_found`, `forbidden`, `scope_change`, `not_permitted`, `invalid_arguments`, …). One per MCP write tool call of an `agent` token, and one per tool a REST write of an `agent` token runs (`update_project` for a project rename); never content or entity ids |
+| `relay.enabled` | success | actor = user | `relay_device_id`, `relay_device_label`. A device of an encrypted account opted in to answer AI connectors ([device relay](#device-relay)) |
+| `relay.disabled` | success | actor = user | `relay_device_id`, `relay_device_label`, `reason` (`user`, `locked`, `signed_out`, `encryption_off`). Relayed calls themselves are never relay events; relayed writes are `agent.write` |
 | `app_password.created`, `app_password.revoked` | success | actor = user | `app_password_id`, `app_password_name` |
 | `calendar_feed.created`, `calendar_feed.rotated`, `calendar_feed.revoked` | success | actor = user | none (the feed secret is never recorded) |
 | `email_inbox.created`, `email_inbox.rotated` | success | actor = user | (never the secret) |
@@ -971,6 +986,8 @@ The server records security-relevant events in its own database (never synced to
 | `email.failed` | failure | as `email.sent` | `email_kind`, `email`, `reason` (`connect`, `tls`, `auth`, `send`, `rate_limited`, `encrypted_account`) |
 | `public_link.created` | success | actor = creator | `public_link_id`, `shared_project_id`, `link_rights` (`view` or `tick`); never the secret or the name |
 | `public_link.revoked` | success | actor = owner or admin of the project | `public_link_id`, `shared_project_id` |
+| `task_page.published` | success | actor = publisher | `task_page_id`, `link_rights` (`view`, `reply` or `tick`); never the secret, the label or a share key |
+| `task_page.revoked` | success | actor = publisher, or owner or admin of the project (also when a page is replaced by a new one) | `task_page_id` |
 | `password.changed` | success | actor = user | |
 | `sessions.revoked` | success | actor = user | `session_count`, `device_count`, `token_count`, `app_password_count`: what "Sign out everywhere" ended |
 | `owner.transferred` | success | actor = previous owner, target = new owner | `from` (`owner`), `to` (`admin`): the previous owner's role change |
@@ -1496,6 +1513,20 @@ curl -X POST -H "Authorization: Bearer $TOKEN" https://todo.example.com/api/v1/e
 
 Replacing the record (passphrase change, recovery reset) and `DELETE` need a fresh re-authentication on cookie sessions (403 `reauth_required`). `GET /api/v1/me` and `GET /api/v1/auth/status` carry `"encryption":{"enabled":true,"keyVersion":2}` and `"minClientVersion":1`. The export adds `"encryption"`: the key record, or `null`. Refused for encrypted accounts with 409 `encryption_enabled`: the first share of a project (`POST /api/v1/projects/{id}/members` on an unshared project) and `POST /api/v1/app-passwords`; `/dav/` answers 403. `GET /api/v1/settings/caldav` adds `"encryption": true|false` for the caller.
 
+### Device relay
+
+For an account with end-to-end encryption, a device the user opted in answers the decrypt and encrypt steps of [MCP tool calls](mcp.md#encrypted-accounts) (OpenSpec `mcp-device-relay`). The server never holds the key; relayed text exists only in memory during the call and is never stored, logged or audited. Session cookies only (no API tokens); every route is refused on a demo instance.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/v1/relay/devices` | `{devices: [{deviceId, label, enabledAt, online, thisSession}]}` |
+| PUT | `/api/v1/relay/devices/{device}` | `{label}` → 204. Needs a recently confirmed session; binds the opt-in to this session. 409 `not_encrypted` without encryption, 409 `mcp_disabled` while the owner has MCP off. Recorded as `relay.enabled` |
+| DELETE | `/api/v1/relay/devices/{device}?reason=user\|locked` | → 204; ends the device's stream. Recorded as `relay.disabled`. Signing out the session that opted in and turning encryption off also end it |
+| GET | `/api/v1/relay/events?device=&key=` | Server-sent events for the opted-in device of this session only (403 `not_opted_in` otherwise). `key` is the device's ephemeral ECDH P-256 public key (uncompressed, base64url). The first event, `hello`, carries `{stream, key}`: the stream id and the server's key. Both sides derive an AES-256-GCM key with HKDF-SHA-256 (salt = stream id, info `opentodo relay v1`). Each `request` event is `{id, box}`: `box` is base64url(nonce ‖ AES-GCM of `{op, items, call, deadline}`) with `id` as associated data |
+| POST | `/api/v1/relay/answers/{id}` | `{box}` sealed the same way, holding `{results: [{value} or {error}]}` or `{error: "device_limit"\|"declined_on_device"\|"locked"}` → 204; any other session, a second answer or a box that does not open → 404 `not_found` |
+
+Limits: 60 relayed calls a minute and 4 at once per account, 2,000 values and 2 MB per request, deadlines of 20 s (reads) and 30 s (writes). The MCP tool errors are listed under [relay errors](mcp.md#encrypted-accounts).
+
 ### In-app assistant
 
 The [in-app assistant](assistant.md) (OpenSpec `in-app-assistant`). Every route requires authentication. Settings, consent and usage are server state, never ops; conversations exist only on the device. Keys are write-only: no route ever returns one.
@@ -1601,6 +1632,16 @@ A tenant of a host (see [host mode](self-hosting/host-mode.md)) answers like any
 `GET /api/v1/export/archive` (owner, a session or an `admin` token, since the archive holds every account's credentials; a stale session gets `403 reauth_required`, a `full` token `403 insufficient_scope`) streams the whole server as a backup archive (`application/gzip`, the format `opentodo restore` reads) and records `export.requested` with format `archive`. Read and agent tokens get `403 insufficient_scope`. The route does not exist on a self-hosted server.
 
 A tenant's limits refuse changes one at a time. On `/api/v1/sync` a refused op appears in `rejected` with reason `limit_storage`, `limit_ops_hour` or `limit_ops_total`; the rest of the batch is applied, and the server does not send its own value back for it, so the device keeps the change and sends it again later. A REST write answers `403` with the reason as code.
+
+## Task pages
+
+One task published as a page people without an account open at `/t/<secret>[/<label>]` (OpenSpec `task-pages`). The secret is 22 characters (128 bits), stored as a hash; the label is decoration and never used to find the page. A task has at most one active page; publishing again revokes the previous one in the same request. Pages are server data, never ops.
+
+**Publish** — `POST /api/v1/tasks/{id}/page` with `{"rights": "reply", "label": "paint-the-fence", "expiresInDays": 30}`: `rights` is `view`, `reply` or `tick` (tick includes replying), `label` 1–40 lowercase letters, digits and hyphens, `expiresInDays` 1–90 or absent, `includeMap` (default true). For a task of an end-to-end encrypted personal scope the body must also carry `snapshot` (the page encrypted with a per-page share key, at most 256 KB) and `wrappedKey` (that key encrypted with the account key); the device appends the share key to the link after `#`, which browsers never send. A subtask answers 400; an editor or viewer 403 `forbidden`; a stranger 404; an account with 100 active pages 409 `limit_reached`; 20 publishes an hour per account, then 429.
+
+**The page** — `GET /api/v1/pages/{secret}` needs no authentication, ignores a session cookie and sets none. A live page returns `id`, `title`, `description`, `due`, `deadline`, `completed_at`, `subtasks` (three levels, with `depth`), `links`, `files`, `location` (when `includeMap` is set and maps are on) and the `comments` written since publishing (`name`, `guest`, `body`, `createdAt`); never labels, the project, notes, the assignee, emails or account ids. An encrypted page returns `snapshot` and `snapshotAt`. Every unusable page (unknown, revoked, expired, its task deleted, the publisher deactivated or no longer allowed, an encrypted page without a snapshot) answers the same 404 `page_invalid`.
+
+**Guests** — replies (`{name, body}`, 1–40 and 1–4000 characters) become comments by the publisher from the device `page:<page-id>` with `guest_name` and `page_id`; on an encrypted page they are `{ciphertext}` (16 KB at most) kept until a device imports and confirms them. Ticks complete or reopen the task or a subtask; reopening only within 24 hours. Limits per page: 120 reads and 60 ticks a minute, 20 replies an hour; 120 requests a minute per address; unknown secrets count against the address's sign-in limit. Responses carry `X-Robots-Tag: noindex, nofollow`, `Referrer-Policy: no-referrer` and `Cache-Control: no-store`, and the request log redacts the secret.
 
 ## Examples
 

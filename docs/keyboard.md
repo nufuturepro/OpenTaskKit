@@ -121,7 +121,8 @@ On a Mac, use <kbd>⌘</kbd> where this page says <kbd>Ctrl</kbd>, and <kbd>Opti
 | <kbd>Shift+F</kbd> | Manage the custom fields of the current project: add, rename, reorder, delete |
 | <kbd>Shift+P</kbd> | Edit the current project’s note (Esc saves and closes it) |
 | <kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> | Set the priority of the selected task, or of the ticked tasks |
-| <kbd>Shift+L</kbd> | Labels of the selected task, or of the ticked tasks (type to find, Enter adds or creates) |
+| <kbd>Shift+L</kbd> | Labels of the selected task, or of the ticked tasks (type to find, Enter adds or creates); or drag the task onto a label in the sidebar |
+| <kbd>F2</kbd> | Edit the selected task's title in place, with its date, priority, labels and project under it; Enter saves, Esc cancels, Shift+Enter opens the details |
 | <kbd>e</kbd> | Edit the estimate of the selected task (type 20, 45m, 1h30; Enter) |
 | <kbd>y</kbd> | Start or stop tracking time on the selected task |
 | <kbd>d</kbd> | Set the deadline of the selected task (type fri, 2026-11-06; Enter) |
@@ -222,7 +223,8 @@ On a Mac, use <kbd>⌘</kbd> where this page says <kbd>Ctrl</kbd>, and <kbd>Opti
 | Keys | What it does |
 | --- | --- |
 | <kbd>t</kbd> | Due today, then the next task |
-| <kbd>s</kbd> | Schedule: type a date (fri, 3/11) and press Enter, then the next task |
+| <kbd>s</kbd> | Schedule: pick a choice or a day, or type a date (fri, 3/11) and press Enter, then the next task |
+| <kbd>1</kbd> / <kbd>2</kbd> / <kbd>3</kbd> / <kbd>4</kbd> / <kbd>5</kbd> / <kbd>6</kbd> | In the scheduling sheet of a task with a deadline: on the deadline, 1 day, 3 days, 1 week, 2 weeks or 1 month before |
 | <kbd>m</kbd> | Move to a project, then the next task |
 | <kbd>a</kbd> | Delegate: move into a shared project and assign it to someone there, then the next task |
 | <kbd>l</kbd> | Labels (does not move on, so you can add a label and then decide) |
@@ -319,6 +321,7 @@ On a Mac, use <kbd>⌘</kbd> where this page says <kbd>Ctrl</kbd>, and <kbd>Opti
 | --- | --- |
 | <code>tomorrow · next Wed · 3 Feb · at 3pm</code> | Due date and time (6 languages) |
 | <code>#project @label p1 +30m</code> | Project, label, priority, estimate |
+| <code># or @, then a few letters</code> | Suggests projects or labels; Enter or Tab picks, #Home/Docs picks a sub-project |
 | <code>every Monday · remind me 30 min before</code> | Repeat and remind (6 languages) |
 | <code>"quoted text"</code> | Keep text literally |
 | <kbd>Backspace</kbd> then <kbd>×2</kbd> | End of line: highlight, then dismiss the last chip |

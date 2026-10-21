@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/pixari/opentodo/internal/e2ee"
+	"github.com/pixari/opentodo/internal/inbox"
 	"github.com/pixari/opentodo/internal/origin"
 	opsync "github.com/pixari/opentodo/internal/sync"
 	"github.com/pixari/opentodo/internal/timetrack"
@@ -43,13 +44,13 @@ type snapshot struct {
 func (r *Registry) load(ctx context.Context, userID string) (*snapshot, error) {
 	snap := &snapshot{projects: map[string]opsync.Entity{}, labels: map[string]string{}, sections: map[string]string{}, people: map[string]string{}, sectionProject: map[string]string{}, fieldDefs: map[string][]opsync.Entity{}}
 	var err error
-	if snap.projList, err = r.sync.List(ctx, userID, "project", false); err != nil {
+	if snap.projList, err = r.list(ctx, userID, "project", false); err != nil {
 		return nil, err
 	}
 	for _, p := range snap.projList {
 		snap.projects[str(p, "id")] = p
 	}
-	labels, err := r.sync.List(ctx, userID, "label", false)
+	labels, err := r.list(ctx, userID, "label", false)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func (r *Registry) load(ctx context.Context, userID string) (*snapshot, error) {
 	for _, l := range labels {
 		snap.labels[str(l, "id")] = str(l, "name")
 	}
-	sections, err := r.sync.List(ctx, userID, "section", false)
+	sections, err := r.list(ctx, userID, "section", false)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (r *Registry) load(ctx context.Context, userID string) (*snapshot, error) {
 		snap.sections[str(sec, "id")] = str(sec, "name")
 		snap.sectionProject[str(sec, "id")] = rawStr(sec, "project_id")
 	}
-	defs, err := r.sync.List(ctx, userID, "field", false)
+	defs, err := r.list(ctx, userID, "field", false)
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +74,10 @@ func (r *Registry) load(ctx context.Context, userID string) (*snapshot, error) {
 		pid := rawStr(d, "project_id")
 		snap.fieldDefs[pid] = append(snap.fieldDefs[pid], d)
 	}
-	if snap.tasks, err = r.sync.List(ctx, userID, "task", false); err != nil {
+	if snap.tasks, err = r.list(ctx, userID, "task", false); err != nil {
 		return nil, err
 	}
-	entries, err := r.sync.List(ctx, userID, "time_entry", false)
+	entries, err := r.list(ctx, userID, "time_entry", false)
 	if err != nil {
 		return nil, err
 	}
@@ -181,6 +182,36 @@ func plainOrEmpty(e opsync.Entity, field string) string {
 }
 
 func isOpen(t opsync.Entity) bool { return num(t, "completed_at") == 0 }
+
+// inboxTask is the part of a task the Inbox rule reads (internal/inbox).
+func inboxTask(t opsync.Entity) inbox.Task {
+	return inbox.Task{
+		ProjectID: rawStr(t, "project_id"),
+		HasDue:    taskDue(t) != nil,
+		Start:     rawStr(t, "start"),
+		Completed: !isOpen(t),
+		Deleted:   num(t, "deleted_at") != 0,
+		ParentID:  rawStr(t, "parent_id"),
+	}
+}
+
+// inboxRule returns the Inbox rule (internal/inbox, OpenSpec change inbox-means-unplaced)
+// over this snapshot: open, live, not placed, and no placed parent. Build it once per
+// pass; it indexes the snapshot's tasks.
+func (snap *snapshot) inboxRule() func(opsync.Entity) bool {
+	byID := make(map[string]opsync.Entity, len(snap.tasks))
+	for _, t := range snap.tasks {
+		byID[str(t, "id")] = t
+	}
+	parentOf := func(id string) (inbox.Task, bool) {
+		p, ok := byID[id]
+		if !ok {
+			return inbox.Task{}, false
+		}
+		return inboxTask(p), true
+	}
+	return func(t opsync.Entity) bool { return inbox.IsTask(inboxTask(t), parentOf) }
+}
 
 func priority(t opsync.Entity) int {
 	p := int(num(t, "priority"))
@@ -624,39 +655,6 @@ func page[T any](items []keyed[T], cursor string, limit int) ([]T, string, error
 // ---- argument parsing ----
 
 type args map[string]json.RawMessage
-
-// mentions reports whether any object in the arguments, at any depth, has the
-// key name (content fields of encrypted accounts, design D7).
-func (a args) mentions(name string) bool {
-	var walk func(v any) bool
-	walk = func(v any) bool {
-		switch t := v.(type) {
-		case map[string]any:
-			for k, x := range t {
-				if k == name || walk(x) {
-					return true
-				}
-			}
-		case []any:
-			for _, x := range t {
-				if walk(x) {
-					return true
-				}
-			}
-		}
-		return false
-	}
-	for k, raw := range a {
-		if k == name {
-			return true
-		}
-		var v any
-		if json.Unmarshal(raw, &v) == nil && walk(v) {
-			return true
-		}
-	}
-	return false
-}
 
 func (a args) present(name string) bool {
 	raw, ok := a[name]

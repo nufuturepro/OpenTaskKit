@@ -54,7 +54,7 @@ func init() {
 	})
 	register(tool{
 		def: readDef("list_tasks", "List tasks",
-			"List tasks with filters. view: all (default), inbox (no project), today (open tasks due today or overdue, overdue first) or upcoming (open tasks due after today). "+
+			"List tasks with filters. view: all (default), inbox (open tasks without a project that are not scheduled: no do-on date, start date or Someday), today (open tasks due today or overdue, overdue first) or upcoming (open tasks due after today). "+
 				"Tasks of archived projects are left out unless project_id names that project. Results are paged: pass next_cursor back as cursor.",
 			object(nil, map[string]any{
 				"view":              map[string]any{"type": "string", "enum": []string{"all", "inbox", "today", "upcoming"}, "default": "all"},
@@ -95,7 +95,7 @@ func init() {
 	})
 	register(tool{
 		def: readDef("today_summary", "Today summary",
-			"One-call overview of the user's day: overdue tasks, tasks due today, and open task counts for the inbox and each project.",
+			"One-call overview of the user's day: overdue tasks, tasks due today, and open task counts for the Inbox (tasks without a project that are not scheduled) and each project.",
 			object(nil, map[string]any{
 				"timezone": timezoneProp,
 			})),
@@ -137,6 +137,18 @@ type projectOut struct {
 	Fields []fieldOut `json:"fields"`
 }
 
+// inboxCount counts the Inbox tasks (internal/inbox): open, no project, not scheduled.
+func (snap *snapshot) inboxCount() int {
+	n := 0
+	inInbox := snap.inboxRule()
+	for _, t := range snap.tasks {
+		if inInbox(t) {
+			n++
+		}
+	}
+	return n
+}
+
 func (snap *snapshot) openCounts() map[string]int {
 	counts := map[string]int{}
 	for _, t := range snap.tasks {
@@ -172,7 +184,7 @@ func (r *Registry) projectsPayload(snap *snapshot, includeArchived bool) map[str
 	if truncated {
 		list = list[:MaxItems]
 	}
-	out := map[string]any{"projects": list, "inbox_open_count": counts[""], "server_time": r.serverTime()}
+	out := map[string]any{"projects": list, "inbox_open_count": snap.inboxCount(), "server_time": r.serverTime()}
 	if truncated {
 		out["truncated"] = true
 	}
@@ -290,6 +302,7 @@ func (r *Registry) queryTasks(snap *snapshot, q taskQuery) (map[string]any, erro
 		}
 	}
 	items := []keyed[taskOut]{}
+	inInbox := snap.inboxRule()
 	for _, t := range snap.tasks {
 		pid := str(t, "project_id")
 		if q.projectID != "" && pid != q.projectID {
@@ -306,7 +319,7 @@ func (r *Registry) queryTasks(snap *snapshot, q taskQuery) (map[string]any, erro
 		}
 		switch q.view {
 		case "inbox":
-			if pid != "" {
+			if !inInbox(t) {
 				continue
 			}
 		case "today":
@@ -441,7 +454,7 @@ func (r *Registry) taskDetail(ctx context.Context, userID, id string, loc *time.
 	}
 	subtasks, _, _ := page(subs, "", MaxItems)
 	comments := []commentOut{}
-	list, err := r.sync.TaskComments(ctx, userID, id)
+	list, err := r.taskComments(ctx, userID, id)
 	if errors.Is(err, opsync.ErrNotFound) {
 		return nil, ErrTaskNotFound
 	}
@@ -462,7 +475,7 @@ func (r *Registry) taskDetail(ctx context.Context, userID, id string, loc *time.
 		shown[c.ID] = true
 	}
 	attachments := []attachmentOut{}
-	all, err := r.sync.List(ctx, userID, "attachment", false)
+	all, err := r.list(ctx, userID, "attachment", false)
 	if err != nil {
 		return nil, err
 	}
@@ -575,14 +588,15 @@ func (r *Registry) todaySummary(ctx context.Context, userID string, a args) (map
 	var overdueItems, todayItems []keyed[taskOut]
 	inbox := 0
 	perProject := map[string]int{}
+	inInbox := snap.inboxRule()
 	for _, t := range snap.tasks {
 		if !isOpen(t) || !snap.visible(t, false) {
 			continue
 		}
 		pid := str(t, "project_id")
-		if pid == "" {
+		if inInbox(t) {
 			inbox++
-		} else {
+		} else if pid != "" {
 			perProject[pid]++
 		}
 		d := taskDue(t)

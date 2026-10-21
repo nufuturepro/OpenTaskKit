@@ -70,7 +70,7 @@ await pageA.getByText('Hear back from landlord').waitFor()
 
 step('Filter view: run a query, press s, save "Work tomorrow"')
 // The Inbox opens with quick add focused: leave the field so g f is a shortcut, not text.
-await pageA.getByRole('textbox', { name: 'Add a task' }).blur()
+await pageA.getByRole('combobox', { name: 'Add a task' }).blur()
 await pageA.keyboard.press('g'); await pageA.keyboard.press('f')
 const q = pageA.getByLabel('Filter query')
 await q.fill('@work & due <= tomorrow & p1')
@@ -249,7 +249,7 @@ await pageA.getByRole('heading', { name: 'Work tomorrow' }).waitFor()
 await pageB.goto(base)
 await pageB.waitForTimeout(800)
 assert(new URL(pageB.url()).pathname === '/', 'B stays on the Inbox: ' + pageB.url())
-await pageB.getByRole('textbox', { name: 'Add a task' }).waitFor()
+await pageB.getByRole('combobox', { name: 'Add a task' }).waitFor()
 step('B sets its own start view from a view menu')
 await pageB.getByRole('navigation', { name: 'Filters' }).getByLabel('Menu for view Morning').click()
 await pageB.getByRole('menuitemcheckbox', { name: 'Start view on this device' }).click()
@@ -322,6 +322,40 @@ console.log('  A sidebar:', ca.join(' | '))
 console.log('  B sidebar:', cb.join(' | '))
 await shot(pageA, 'views-converged-A.png')
 await shot(pageB, 'views-converged-B.png')
+
+step('one page frame: the header and the content start, and the actions end, at the same place on every page (ux-feedback-2)')
+// app-shell "Page template": Inbox, a project as list, board and timeline, Labels, Trash and Filter.
+const frameEdges = () => pageA.evaluate(() => {
+  const row = document.querySelector('[data-page-header-row]')
+  const body = row?.closest('[data-page-body]')
+  const content = body ? [...body.children].find((c) => !c.matches('[data-page-header]')) : null
+  if (!row || !content) return null
+  const h = row.getBoundingClientRect()
+  return { left: Math.round(h.left), right: Math.round(h.right), content: Math.round(content.getBoundingClientRect().left) }
+})
+const layout = (name) => pageA.getByRole('group', { name: 'Project layout' }).getByRole('button', { name })
+for (const width of [1280, 1440]) {
+  await pageA.setViewportSize({ width, height: 900 })
+  const seen = []
+  const measure = async (label) => {
+    await pageA.locator('[data-page-header-row]').first().waitFor()
+    await pageA.waitForTimeout(150)
+    const e = await frameEdges()
+    assert(e, `${label}: no page header or content at ${width} px`)
+    seen.push([label, e])
+  }
+  for (const path of ['/inbox', '/labels', '/trash', '/filter']) { await pageA.goto(base + path); await measure(path) }
+  await pageA.goto(`${base}/project/${pWork}`)
+  for (const mode of ['List', 'Board', 'Timeline']) { await layout(mode).click(); await measure(`project ${mode}`) }
+  await layout('List').click()
+  const [first] = seen
+  for (const [label, e] of seen) {
+    assert(Math.abs(e.left - first[1].left) <= 1 && Math.abs(e.right - first[1].right) <= 1, `${label} header ${e.left}–${e.right} differs from ${first[0]} ${first[1].left}–${first[1].right} at ${width} px`)
+    assert(Math.abs(e.content - e.left) <= 1, `${label} content starts at ${e.content}, header at ${e.left} (${width} px)`)
+  }
+  console.log(`  ${width} px: header ${first[1].left}–${first[1].right} on ${seen.length} pages`)
+}
+await pageA.setViewportSize({ width: 1280, height: 860 })
 
 step('Help lists the new shortcuts')
 await pageA.locator('body').click({ position: { x: 900, y: 700 } })

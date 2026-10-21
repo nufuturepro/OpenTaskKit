@@ -228,7 +228,7 @@ func TestToolsListShape(t *testing.T) {
 			t.Fatalf("%s schema = %v", tl["name"], tl["inputSchema"])
 		}
 	}
-	if strings.Join(names, ",") != "list_projects,list_tasks,get_task,search_tasks,today_summary,list_time_entries" {
+	if strings.Join(names, ",") != "list_projects,list_tasks,get_task,search_tasks,today_summary,list_icons,list_time_entries" {
 		t.Fatalf("tools = %v", names)
 	}
 }
@@ -321,8 +321,9 @@ func TestListTasksTodayInTimezone(t *testing.T) {
 	if got := strings.Join(titles(ranged["tasks"]), ","); got != "Standup,Water plants,Call dentist" {
 		t.Fatalf("due range = %s", got)
 	}
+	// Inbox view leaves out planned tasks (inbox-means-unplaced): only the undated one is in it.
 	inbox := f.tool("u1", "list_tasks", map[string]any{"view": "inbox"})
-	if len(inbox["tasks"].([]any)) != 4 {
+	if got := strings.Join(titles(inbox["tasks"]), ","); got != "Someday" {
 		t.Fatalf("inbox = %v", titles(inbox["tasks"]))
 	}
 	if r := f.call("u1", "tools/call", map[string]any{"name": "list_tasks", "arguments": map[string]any{"timezone": "Mars/Olympus"}}); errCode(r) != CodeInvalidParams {
@@ -480,7 +481,8 @@ func TestTodaySummaryCounts(t *testing.T) {
 		t.Fatalf("due today = %s", got)
 	}
 	counts := res["counts"].(map[string]any)
-	if counts["overdue"].(float64) != 1 || counts["due_today"].(float64) != 1 || counts["inbox"].(float64) != 2 {
+	// The overdue task without a project is scheduled, so only "Inbox undated" counts (inbox-means-unplaced).
+	if counts["overdue"].(float64) != 1 || counts["due_today"].(float64) != 1 || counts["inbox"].(float64) != 1 {
 		t.Fatalf("counts = %v", counts)
 	}
 	per := counts["per_project"].([]any)
@@ -609,7 +611,8 @@ func ut(m map[string]any) map[string]any {
 }
 
 // TestToolsListReadOnlyUnchanged: every caller without write permission sees
-// exactly the six read tools (time-tracking added list_time_entries),
+// exactly the seven read tools (time-tracking added list_time_entries,
+// mcp-projects list_icons),
 // byte-identical to the golden, however the switches are set.
 func TestToolsListReadOnlyUnchanged(t *testing.T) {
 	f := newFixture(t)
@@ -646,10 +649,10 @@ func TestWriteToolsThroughHandle(t *testing.T) {
 	// Listed with readOnlyHint false; instructions mention undo.
 	r := send(agent, `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
 	tools := r["result"].(map[string]any)["tools"].([]any)
-	if len(tools) != 16 {
+	if len(tools) != 22 {
 		t.Fatalf("tools = %d", len(tools))
 	}
-	for _, tl := range tools[6:] {
+	for _, tl := range tools[7:] {
 		if tl.(map[string]any)["annotations"].(map[string]any)["readOnlyHint"] != false {
 			t.Fatalf("write tool annotations: %v", tl)
 		}

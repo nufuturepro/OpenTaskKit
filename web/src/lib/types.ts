@@ -1,8 +1,8 @@
 // Shared data types. Field names mirror the server op schema exactly
 // (internal/sync/ops.go); never rename a field without a migration plan.
 
-export type Entity = 'project' | 'task' | 'label' | 'view' | 'reminder' | 'section' | 'comment' | 'project_prefs' | 'user_prefs' | 'attachment' | 'field' | 'review' | 'time_entry'
-export const ENTITIES: readonly Entity[] = ['project', 'task', 'label', 'view', 'reminder', 'section', 'comment', 'project_prefs', 'user_prefs', 'attachment', 'field', 'review', 'time_entry']
+export type Entity = 'project' | 'task' | 'label' | 'view' | 'reminder' | 'section' | 'comment' | 'project_prefs' | 'user_prefs' | 'attachment' | 'field' | 'review' | 'time_entry' | 'place'
+export const ENTITIES: readonly Entity[] = ['project', 'task', 'label', 'view', 'reminder', 'section', 'comment', 'project_prefs', 'user_prefs', 'attachment', 'field', 'review', 'time_entry', 'place']
 
 export interface Op {
   id: string
@@ -162,8 +162,51 @@ export interface Task {
    * `lib/taskOrigin.ts`.
    */
   origin?: Origin | string | null
+  /**
+   * Where the task happens (OpenSpec change `task-locations`), or null. One
+   * last-writer-wins value like `origin`; with `place_id` it shows the place's
+   * current members while the place exists. Rows stored before the field read
+   * as undefined, and a value this device could not decrypt is the placeholder
+   * string: read it with `locationOf(task)` from `lib/locations.ts`.
+   */
+  location?: TaskLocation | string | null
   _clock: Clock
   /** Local-only end-to-end encryption bookkeeping (OpenSpec `e2ee`). */
+  _e2ee?: RowEncryption
+}
+
+/**
+ * A task's location (task-locations D1): at least a name, an address or a
+ * coordinate pair; `lat` and `lon` both present or both absent.
+ */
+export interface TaskLocation {
+  name?: string
+  address?: string
+  lat?: number
+  lon?: number
+  place_id?: string
+}
+
+/** A coordinate pair (a place's `geo`). */
+export interface Geo {
+  lat: number
+  lon: number
+}
+
+/**
+ * A saved place (OpenSpec change `task-locations`): personal like a label.
+ * `geo` is one value, so an encrypted account encrypts it whole; a value this
+ * device could not decrypt is the placeholder string.
+ */
+export interface Place {
+  id: string
+  name: string
+  address: string
+  geo: Geo | string | null
+  position: number
+  created_at: number
+  deleted_at: number | null
+  _clock: Clock
   _e2ee?: RowEncryption
 }
 
@@ -218,6 +261,10 @@ export interface Section {
   position: number
   created_at: number
   deleted_at: number | null
+  /** A palette colour, or null (icons-and-section-style). */
+  color?: string | null
+  /** A name from the icon catalogue, or null (icons-and-section-style). */
+  icon?: string | null
   _clock: Clock
 }
 
@@ -326,6 +373,10 @@ export interface Comment {
   created_at: number
   edited_at: number | null
   deleted_at: number | null
+  /** The name a guest typed on a task page (task-pages D6); null for members' comments. */
+  guest_name?: string | null
+  /** The task page a guest reply came through (task-pages D6); null otherwise. */
+  page_id?: string | null
   _clock: Clock
 }
 
@@ -443,6 +494,8 @@ export interface UserPrefs {
   focus_long_break_minutes: number
   focus_long_break_every: number
   focus_break_after_minutes: number
+  /** Maps on this user's devices (task-locations D6): 'off' turns them off; '' and anything else read as on. */
+  maps?: string
   _clock: Clock
 }
 
@@ -467,6 +520,8 @@ export interface Review {
   closed_at: number
   /** The one-line note for tomorrow written at that close; content (encrypted for encrypted accounts). */
   tomorrow_note: string
+  /** The latest carry-over as JSON (ux-feedback-2 D1), "" = none: what Reopen the day puts back. Not content. */
+  carry_over: string
   _clock: Clock
 }
 
@@ -1207,6 +1262,8 @@ export const AUDIT_EVENT_NAMES = [
   'agent.write',
   'email.sent',
   'email.failed',
+  'relay.enabled',
+  'relay.disabled',
 ] as const
 export type AuditEventName = (typeof AUDIT_EVENT_NAMES)[number]
 
@@ -1481,11 +1538,29 @@ export interface UnblockedPayload {
 export interface AppNotification {
   id: string
   kind: string
-  /** AssignedPayload for kind `assigned`, MentionedPayload for `mentioned`, UnblockedPayload for `unblocked`. */
-  payload: AssignedPayload | MentionedPayload | UnblockedPayload
+  /** AssignedPayload for kind `assigned`, MentionedPayload for `mentioned`, UnblockedPayload for `unblocked`, PagePayload for `page_replied` and `page_completed`. */
+  payload: AssignedPayload | MentionedPayload | UnblockedPayload | PagePayload
   createdAt: number
   readAt: number | null
   readPending?: boolean
+}
+
+/**
+ * A guest's reply or completion on one of the user's task pages (OpenSpec task-pages D9).
+ * For an encrypted task the title and the guest's name are absent: the device shows
+ * the title from its own copy.
+ */
+export interface PagePayload {
+  pageId: string
+  taskId: string
+  taskTitle?: string
+  guestName?: string
+  completed?: boolean
+  encrypted?: boolean
+  at: number
+  projectId?: undefined
+  projectName?: undefined
+  actorName?: undefined
 }
 
 /** A public link as its managers see it (OpenSpec `public-links`); never the secret. */
@@ -1500,6 +1575,79 @@ export interface PublicLink {
   expiresAt: number | null
   lastUsedAt: number | null
 }
+
+/** What guests may do on a task page (OpenSpec `task-pages`): read, reply, or reply and tick. */
+export type TaskPageRights = 'view' | 'reply' | 'tick'
+
+/** A publish request; snapshot and wrappedKey only for a task with end-to-end encryption. */
+export interface PublishTaskPageInput {
+  rights: TaskPageRights
+  label?: string
+  expiresInDays?: number
+  includeMap?: boolean
+  snapshot?: string
+  wrappedKey?: string
+}
+
+/** The answer to publishing: the link is returned once. */
+export interface TaskPageCreated {
+  id: string
+  taskId: string
+  rights: TaskPageRights
+  label: string | null
+  includeMap: boolean
+  encrypted: boolean
+  publishedAt: number
+  expiresAt: number | null
+  link: string
+}
+
+/** A task's active page as its publisher, owner and admins see it: never the secret or a key. */
+export interface TaskPageStatus {
+  id: string
+  taskId: string
+  rights: TaskPageRights
+  label: string | null
+  includeMap: boolean
+  createdBy: string
+  publishedAt: number
+  expiresAt: number | null
+  lastOpenedAt: number | null
+  replies: number
+  ticks: number
+  encrypted: boolean
+  snapshotAt: number | null
+  pendingReplies: number
+}
+
+/** One of the user's own pages, with the wrapped share key of an encrypted one (task-pages D3). */
+export interface OwnTaskPage extends Omit<TaskPageStatus, 'encrypted'> {
+  encrypted: boolean
+  snapshotVersion: number
+  wrappedKey?: string
+}
+
+/** What a task page shows (live from the server, or decrypted from a snapshot). */
+export interface TaskPageContent {
+  /** The published task's id: what "Mark as done" ticks. */
+  id: string
+  title: string
+  description: string
+  due: { date: string; time?: string } | null
+  deadline: string | null
+  completed_at: number | null
+  subtasks: { id: string; title: string; completed_at: number | null; depth: number }[]
+  links: { id: string; name: string; url: string }[]
+  files: { id: string; name: string; size: number | null }[]
+  location: TaskLocation | null
+  comments: { id: string; name: string; guest: boolean; body: string; createdAt: number }[]
+}
+
+/** A task page as the guest's browser receives it. */
+export type TaskPageResponse = { rights: TaskPageRights; serverTime: number; label: string | null } & (
+  | ({ mode: 'live' } & TaskPageContent)
+  | { mode: 'encrypted'; snapshot: string; snapshotAt: number | null }
+)
 
 /** What a guest sees through a public link: the project's open tasks (and those completed in the last day). */
 export interface PublicList {

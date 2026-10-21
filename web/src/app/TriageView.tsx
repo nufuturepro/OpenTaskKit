@@ -7,20 +7,21 @@ import { useWithMethod } from './help/MethodLink'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button, ComboboxPanel, EmptyState, Notice, PageBody, PageHeader, Dialog } from '../ui'
-import { formatDate, logicalToday } from '../lib/dates'
+import { formatDate, formatDueLong, logicalToday } from '../lib/dates'
 import { useAllLabels, useMemberships, useProjects, useReminderRows } from '../lib/localData'
 import { moveTaskAcrossScopes } from '../lib/ops'
 import { currentUserId } from '../lib/sharing'
 import { advance, advanceQueue, back, current, positionText, progress, startTriage, type TriageState } from '../lib/triage'
 import { useLiveTasks } from '../lib/liveTasks'
 import type { Membership, Project, Task } from '../lib/types'
-import { DateField } from './datetime/DateField'
 import { LabelPicker } from './LabelPicker'
 import { registerListState } from './listActions'
 import { Markdown } from './Markdown'
 import { setPanelTaskId, usePanelTaskId } from './panel'
 import { ProjectPickerField } from './ProjectPickerField'
+import { ScheduleSheet } from './ScheduleSheet'
 import { navigate } from './router'
+import { useViewerZone } from './useViews'
 import { isActivationTarget, useShortcutScope } from './shortcuts'
 import { selectTask } from './signals'
 import { completeWithUndo, deleteWithUndo, moveWithUndo, parkWithUndo, setDueWithUndo } from './undoable'
@@ -56,6 +57,7 @@ export function delegateEntries(memberships: readonly Membership[], projects: re
 }
 
 export function TriageView() {
+  const zone = useViewerZone()
   const tasks = useLiveTasks()
   const projects = useProjects()
   const labels = useAllLabels()
@@ -228,7 +230,7 @@ export function TriageView() {
       {notice && <div className="mb-3"><Notice>{notice}</Notice></div>}
       {!state ? null : !task ? (
         <div data-empty-state="triage">
-          <EmptyState title={t('Inbox zero: every task has a place.')} action={{ label: t('Back to the Inbox'), onClick: () => navigate({ view: 'inbox' }), shortcut: keysOf('go.inbox') }} />
+          <EmptyState illustration="inbox-zero" title={t('Inbox zero: every task has a place.')} action={{ label: t('Back to the Inbox'), onClick: () => navigate({ view: 'inbox' }), shortcut: keysOf('go.inbox') }} />
         </div>
       ) : (
         <>
@@ -237,7 +239,7 @@ export function TriageView() {
             <h2 className="user-text text-h2 font-semibold text-strong">{task.title || t('Untitled')}</h2>
             {(task.due || task.labels.length > 0 || reminders.some((r) => !r.deleted_at)) && (
               <p className="mt-2 flex flex-wrap gap-2 text-meta text-muted">
-                {task.due && <span>{t('Due {date}', { date: formatDate(task.due.date, 'long') })}{task.due.time ? ` ${task.due.time}` : ''}</span>}
+                {task.due && <span>{t('Due {date}', { date: formatDueLong(task.due, zone) })}</span>}
                 {task.labels.map((l) => <span key={l} className="rounded-chip bg-sunken px-1.5">@{label(l)}</span>)}
                 {reminders.filter((r) => !r.deleted_at).length > 0 && <span>{t('{count} reminder(s)', { count: reminders.filter((r) => !r.deleted_at).length })}</span>}
               </p>
@@ -258,10 +260,7 @@ export function TriageView() {
       )}
 
       {task && picker === 'schedule' && (
-        <Dialog title={t('Schedule')} onClose={() => setPicker(null)} size="sm">
-          <DateField label={t('Due date')} value={task.due?.date ?? null} autoFocus onChange={(iso) => void schedule(iso)} />
-          <p className="mt-2 text-meta text-faint">{t('Type a date such as fri or 3/11 and press Enter. Esc cancels.')}</p>
-        </Dialog>
+        <ScheduleSheet task={task} onPick={(iso) => void schedule(iso)} onClose={() => { setPicker(null); card.current?.focus() }} />
       )}
       {task && picker === 'move' && (
         <Dialog title={t('Move to a project')} onClose={() => setPicker(null)} size="sm">

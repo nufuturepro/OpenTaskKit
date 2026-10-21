@@ -47,11 +47,27 @@ The client SHALL read a configuration file from the platform's user configuratio
 - **THEN** the command exits with code 2 and lists the available project names
 
 ### Requirement: Add and edit tasks
-`ot add <title>` SHALL create a task with optional `--project`, `--due`, `--time`, `--priority 1..4`, repeatable `--label`, `--note`, `--repeat <rule>` and repeatable `--remind <phrase>`, and print its id. `ot edit <ref>` SHALL change the same fields except `--remind`; `none` (or `--note ""`) clears one. `--due` SHALL accept `YYYY-MM-DD`, `today`, `tomorrow` and weekdays. `--repeat` SHALL send the canonical rule; `--remind` SHALL resolve a phrase like `30 min before` against the due date.
+`ot add <title>` SHALL create a task with optional `--project`, `--due`, `--time`, `--priority 1..4`, repeatable `--label`, `--note`, `--repeat <rule>`, repeatable `--remind <phrase>` and `--origin-url <url>`, and print its id. `ot edit <ref>` SHALL change the same fields except `--remind`; `none` (or `--note ""`) clears one. `--due` SHALL accept `YYYY-MM-DD`, `today`, `tomorrow` and weekdays. `--repeat` SHALL send the canonical rule; `--remind` SHALL resolve a phrase like `30 min before` against the due date. `--origin-url` SHALL accept only an `http` or `https` URL, derive the provider and issue id for a recognised host on the client, and send the origin with the task; `ot list` and its siblings SHALL carry `origin` in `--json` output and print the origin's id or host as a column of the table when any listed task has one.
 
 #### Scenario: Add with attributes
 - **WHEN** the user runs `ot add "Call the plumber" --project Home --due tomorrow --time 09:00 --priority 2`
 - **THEN** the created task has that title, project, tomorrow's date, time `09:00`, priority 2, and its id is printed
+
+#### Scenario: Add from an issue
+- **WHEN** the user runs `ot add "Fix the login timeout" --origin-url https://github.com/o/r/issues/7 --json`
+- **THEN** the created task's origin is `{kind: "issue", provider: "github", id: "o/r#7", url: "https://github.com/o/r/issues/7"}`, the JSON output carries it, and no request went to that host
+
+#### Scenario: Add from any page
+- **WHEN** the user runs `ot add "Read this" --origin-url https://example.org/post`
+- **THEN** the task's origin is `{kind: "url", url: "https://example.org/post"}`
+
+#### Scenario: Unsafe origin URL
+- **WHEN** `--origin-url ftp://files.example/x` is given
+- **THEN** the command exits with code 2 before any request is sent
+
+#### Scenario: Clear the origin
+- **WHEN** the user runs `ot edit 8c2a --origin-url none`
+- **THEN** the task's origin is removed and its other fields are kept
 
 #### Scenario: Invalid priority
 - **WHEN** `--priority 7` is given
@@ -220,7 +236,7 @@ Each release SHALL ship `opentodo-agent-skill.zip` containing `SKILL.md`, and `o
 - **THEN** its assets include `opentodo-agent-skill.zip` next to the `ot-<os>-<arch>` binaries
 
 ### Requirement: Natural-language line in `ot add`
-`ot add --natural <line>` SHALL parse the line with the quick-add grammar (dates, times, `#project`, `@label`, priority, estimate, recurrence, reminders) and create the task and its reminders from the result. Languages come from `--lang`, else the process locale, with English always active; numeric dates follow the first language and weeks start on Monday. For every line in the shared quick-add vectors the result SHALL equal the web parser's. Without `--natural` the title is taken verbatim.
+`ot add --natural <line>` SHALL parse the line with the quick-add grammar (dates, times, ordinal weekdays, `#project`, `@label`, priority, estimate, recurrence, reminders) and create the task and its reminders from the result. Languages come from `--lang`, else the process locale, with English always active; numeric dates follow the first language and weeks start on Monday. For every line in the shared quick-add vectors the result SHALL equal the web parser's. Without `--natural` the title is taken verbatim.
 
 #### Scenario: Line with a rule and a reminder
 - **WHEN** the user runs `ot add --natural "Water plants every Monday remind me at 8 #home"` on Friday 2026-10-09 with a project named Home
@@ -229,6 +245,10 @@ Each release SHALL ship `opentodo-agent-skill.zip` containing `SKILL.md`, and `o
 #### Scenario: German line
 - **WHEN** the user runs `ot add --natural --lang de "Zahnarzt nächsten Mittwoch um 15 Uhr erinnere mich 30 Minuten vorher"`
 - **THEN** the task is due next Wednesday at `15:00` with a relative reminder of −30 minutes and the title `Zahnarzt`
+
+#### Scenario: Ordinal weekday line
+- **WHEN** the user runs `ot add --natural "Board every 2nd Tuesday of the month at 10:00"` on Saturday 2026-10-10
+- **THEN** the created task has title `Board`, rule `every 2nd tuesday`, due `{date: "2026-10-13", time: "10:00"}`, and the task id is printed
 
 #### Scenario: Dry run shows every request
 - **WHEN** the user runs `ot add --natural "Flight 3 Nov at 06:00 remind me 1 day before" --dry-run --json`

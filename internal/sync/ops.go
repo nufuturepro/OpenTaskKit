@@ -149,6 +149,13 @@ const (
 	// rule.go (closed key set, enumerations, bounded label lists). Sync checks
 	// the shape only; REST resolves the ids.
 	kRule
+	// kLocation is a task's location (OpenSpec change task-locations, design
+	// D1): null, an encrypted account's ciphertext string, or the object
+	// {name?, address?, lat?, lon?, place_id?} validated by internal/location.
+	kLocation
+	// kGeo is a place's coordinate pair (task-locations D1): null, a ciphertext
+	// string, or {lat, lon} validated by internal/location.
+	kGeo
 )
 
 // FieldValuePrefix starts the name of a task's custom field value op
@@ -328,6 +335,9 @@ var Schema = map[string]map[string]kind{
 		// Where the task came from (OpenSpec change task-origin): one whole-value
 		// register like due, so concurrent origins never mix; additive.
 		"origin": kOrigin,
+		// Where the task happens (OpenSpec change task-locations): one whole-value
+		// register like origin, so concurrent locations never mix; additive.
+		"location": kLocation,
 	},
 	// section: a named, ordered container inside one project (OpenSpec change
 	// board-view). It lives in the sharing scope of its project like a task does;
@@ -339,6 +349,12 @@ var Schema = map[string]map[string]kind{
 		"position":   kNumber,
 		"created_at": kNumber,
 		"deleted_at": kNullableNumber,
+		// A palette colour (#rrggbb) and a name from the icon catalogue, or null
+		// (OpenSpec change icons-and-section-style, design D4–D5). Not user text,
+		// so neither is an encrypted content field. Sync checks the kind only: a
+		// newer client may write an icon this server does not know yet.
+		"color": kNullableString,
+		"icon":  kNullableString,
 	},
 	// field: a custom field definition of one project (OpenSpec change
 	// custom-fields, design D1). Like a section it lives in its project's sharing
@@ -411,6 +427,10 @@ var Schema = map[string]map[string]kind{
 		"created_at": kNumber,
 		"edited_at":  kNullableNumber,
 		"deleted_at": kNullableNumber,
+		// A reply a guest sent through a task page (OpenSpec task-pages, design D6):
+		// the name they typed (content, encrypted for encrypted accounts) and the page.
+		"guest_name": kNullableText,
+		"page_id":    kNullableString,
 	},
 	// attachment: a file or link on a task or one of its comments (OpenSpec change
 	// attachments, design D1). Metadata only: the bytes live under
@@ -444,6 +464,19 @@ var Schema = map[string]map[string]kind{
 		"ended_at":   kInstant,
 		"device_id":  kString,
 		"note":       kString,
+		"created_at": kNumber,
+		"deleted_at": kNullableNumber,
+	},
+	// place: a location the user keeps for reuse (OpenSpec change task-locations,
+	// design D1). Like a label it is personal: it resolves to the author's
+	// personal scope and never reaches other members. geo is the coordinate
+	// pair as one value, so an encrypted account encrypts it whole; name,
+	// address and geo are content fields.
+	"place": {
+		"name":       kString,
+		"address":    kString,
+		"geo":        kGeo,
+		"position":   kNumber,
 		"created_at": kNumber,
 		"deleted_at": kNullableNumber,
 	},
@@ -530,6 +563,9 @@ var Schema = map[string]map[string]kind{
 		"focus_long_break_minutes":  kNumber,
 		"focus_long_break_every":    kNumber,
 		"focus_break_after_minutes": kNumber,
+		// Maps on this user's devices (OpenSpec change task-locations, design
+		// D6): "on" or "off"; clients read an empty or unknown value as "on".
+		"maps": kString,
 	},
 	// review: when the user last finished a weekly review (OpenSpec change
 	// `stats-and-review`, design D4). One row with the entityId "me"; like
@@ -552,6 +588,10 @@ var Schema = map[string]map[string]kind{
 		// with it. The note is user-written content (e2ee.ContentFields).
 		"closed_at":     kNumber,
 		"tomorrow_note": kString,
+		// The latest carry-over (ux-feedback-2 D1): JSON {date, items:[{id, field,
+		// before, after}]} so Reopen the day can put it back on any device; "" =
+		// none. Task ids, field names and dates only, never user-written text.
+		"carry_over": kString,
 	},
 }
 

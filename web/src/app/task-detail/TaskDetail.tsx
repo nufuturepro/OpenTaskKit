@@ -24,9 +24,15 @@ import { TrackMenuItem } from './TimeTab'
 import { FieldsGroup } from './FieldsGroup'
 import { requestAttach } from './attachRequest'
 import { Facets } from './Facets'
+import { TitleField } from '../TitleField'
+import { commitTitleEdit } from '../titleEdit'
+import type { EditPlan } from '../../lib/nlp/edit'
 import { t } from '../../lib/i18n'
 import { act } from '../actionError'
 import { toggleTracking } from '../../lib/timeEntries'
+import { useOnline } from '../../lib/online'
+import { TaskPageDialog } from './TaskPageDialog'
+import { useTaskPageStatus } from './taskPageStatus'
 
 // The rich-text editor and its libraries are a separate chunk, fetched when a
 // note is first opened (collaborative-rich-text, task 3.1).
@@ -63,6 +69,13 @@ export function TaskDetail({ taskId, userId, projects, labelMap, onClose, onOpen
   const series = useTask(task?.series_id)
   const progress = useMemo(() => progressOf({ id: taskId }, children), [taskId, children])
   const memberships = useLiveQuery(() => membershipMap(), [])
+  // Task pages (task-pages): the task's owner, or the owner and admins of its shared
+  // project, publish a top-level task; the status comes from the server when online.
+  const role = memberships ? roleOf(task?.project_id, memberships) : null
+  const canPublish = !!task && !task.parent_id && !readOnly && (role === 'owner' || role === 'admin')
+  const { status: pageStatus } = useTaskPageStatus(taskId, canPublish)
+  const [pageDialog, setPageDialog] = useState(false)
+  const online = useOnline()
   const panel = useRef<HTMLElement>(null)
   // The pinned bottom of the panel: the comment composer renders here while the
   // Comments tab is shown, so it is in view without scrolling (ux-overhaul).
@@ -72,7 +85,9 @@ export function TaskDetail({ taskId, userId, projects, labelMap, onClose, onOpen
   // change from another device does not overwrite a title being typed
   // (client-sync-robustness); the draft is committed on blur as usual.
   const titleBase = useRef('')
-  const titleField = useRef<HTMLTextAreaElement>(null)
+  const titleField = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+  // Labels for `@` in the title (smart-title-tokens).
+  const labelList = useMemo(() => [...labelMap.values()], [labelMap])
   useEffect(() => {
     if (!task) return
     const focused = !!titleField.current && titleField.current === document.activeElement
@@ -125,11 +140,13 @@ export function TaskDetail({ taskId, userId, projects, labelMap, onClose, onOpen
   // assistant-skills: "Break this down" runs the skill with this task as its subject.
   const breakDown = () => openAssistantWith({ skill: 'break-down', text: t('Break down “{title}”', { title: task.title }), selected: [task.id] })
 
-  const commitTitle = () => {
-    const x1 = title.trim()
-    titleBase.current = x1 && x1 !== task.title ? x1 : task.title
-    if (x1 && x1 !== task.title) act(updateTask(task.id, { title: x1 }))
-    else setTitle(task.title)
+  // A committed title (smart-title-tokens D5): a plain rename as before; what the edit typed
+  // (a date, a priority, #project, @label…) applied as one undoable change.
+  const commitTitle = (plan: EditPlan) => {
+    const next = plan.patch.title ?? task.title
+    titleBase.current = next
+    setTitle(next)
+    act(commitTitleEdit(task, plan, labelList, (id) => projects.find((p) => p.id === id)?.name ?? t('the project')).then((id) => { if (id !== task.id) onOpen?.(id) }))
   }
   const toggle = (task: Task) => (onToggleComplete ? onToggleComplete(task) : act(completeWithUndo(task.id, !task.completed_at)))
   const remove = () => { act(deleteWithUndo(task.id)); onClose() }
@@ -161,20 +178,18 @@ export function TaskDetail({ taskId, userId, projects, labelMap, onClose, onOpen
           </span>
         </button>
         {/* The title wraps to at most two lines instead of truncating (task-panel-facets D4); Enter commits. */}
-        <textarea
-          rows={1}
-          className={`min-w-0 flex-1 resize-none overflow-hidden bg-transparent font-semibold leading-snug text-strong focus:outline-none ${page ? 'text-h2' : 'text-h3'} ${done ? 'text-faint line-through' : ''}`}
-          value={title}
-          readOnly={readOnly}
-          onChange={(e) => setTitle(e.target.value.replace(/\n/g, ' '))}
-          ref={titleField}
-          onBlur={commitTitle}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLTextAreaElement).blur() } }}
-          aria-label={t('Title')}
-          data-task-title
-          placeholder={t('Untitled')}
-        />
+        <TitleField multiline title={task.title} value={title} onChange={setTitle} onCommit={commitTitle}
+          projects={projects} labels={labelList} readOnly={readOnly} fieldRef={titleField}
+          className={`block w-full resize-none overflow-hidden bg-transparent font-semibold leading-snug text-strong focus:outline-none ${page ? 'text-h2' : 'text-h3'} ${done ? 'text-faint line-through' : ''}`}
+          ariaLabel={t('Title')} placeholder={t('Untitled')} dataAttrs={{ 'data-task-title': true }} />
         {copied && <span role="status" className="text-meta text-muted">{t('Link copied')}</span>}
+        {pageStatus && (
+          <Tooltip label={t('This task has a page anyone with its link can open')}>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm shrink-0 gap-1 text-meta" onClick={() => setPageDialog(true)} data-page-marker>
+              <Icon name="globe" size="xs" />{t('Published')}
+            </button>
+          </Tooltip>
+        )}
         <Menu kind="menu" label={t('Task actions')} trigger={<Icon name="ellipsis" size="md" />} triggerClassName="ui-btn ui-btn--ghost ui-btn--sm touch-target px-2 py-1.5" width="sm:w-60">
           <MenuItem label={t('Copy link')} icon="link" onSelect={copyLink} />
           <MenuItem label={t('Help')} icon="circle-help" description={t('The guide to the task panel')} onSelect={() => openHelp('task-panel')} />
@@ -183,6 +198,9 @@ export function TaskDetail({ taskId, userId, projects, labelMap, onClose, onOpen
           {series && <MenuItem label={t('Open recurring task')} icon="repeat" onSelect={() => onOpen?.(series.id)} />}
           {!readOnly && <TrackMenuItem task={task} />}
           {!readOnly && !done && <MenuItem label={t('Focus on this task')} icon="clock" description={t('One task, a timer, a break when you need one')} onSelect={() => navigate({ view: 'focus', id: task.id })} />}
+          {canPublish && <MenuItem label={pageStatus ? t('Task page…') : t('Publish task page…')} icon="globe"
+            description={online ? t('A page anyone with the link can open, reply to and tick') : t('Task pages need a connection')}
+            disabled={!online} onSelect={() => setPageDialog(true)} data-publish-page />}
           {!readOnly && <MenuItem label={t('Duplicate')} icon="copy" shortcut={keysOf('list.duplicate')} onSelect={() => void duplicateTask(task.id).then((id) => onOpen?.(id))} />}
           {!readOnly && <MenuItem label={t('Attach')} icon="paperclip" description={t('Or paste or drop files on the task')} onSelect={() => requestAttach(task.id)} />}
           {/* The origin's Remove lives here; its part on the Where line opens the source (task-panel-facets). */}
@@ -263,6 +281,7 @@ export function TaskDetail({ taskId, userId, projects, labelMap, onClose, onOpen
         <ConversationTabs task={task} userId={userId} readOnly={readOnly} onOpen={onOpen} composerHost={footer} page={page} />
       </div>
       <div ref={setFooter} data-panel-footer className={`shrink-0 border-t border-default px-4 py-3 empty:hidden ${page ? 'sticky bottom-0 bg-canvas/95 backdrop-blur-sm' : 'bg-surface'}`} />
+      {pageDialog && <TaskPageDialog task={task} status={pageStatus ?? null} onClose={() => setPageDialog(false)} />}
     </aside>
   )
 }

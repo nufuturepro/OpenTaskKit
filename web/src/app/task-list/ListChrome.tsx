@@ -4,9 +4,11 @@
 // component with props only; TaskListView decides when they show.
 import { DURATION_FILTERS, type DurationFilter } from '../../lib/filters'
 import { msg, t, translatedMap } from '../../lib/i18n'
+import { isPlannedWithoutProject } from '../../lib/inbox'
+import { useOpenTasks } from '../../lib/liveTasks'
 import type { ProjectViewMode } from '../../lib/sections'
 import { keysOf } from '../../lib/shortcuts'
-import type { AccountRole, Label, Project, Task } from '../../lib/types'
+import type { AccountRole, Label, Place, Project, Task } from '../../lib/types'
 import { Button, EmptyState as EmptyStatePattern, type EmptyStateAction, type EmptyStateLink, Icon, IconButton, MenuItem, MenuSeparator, Tooltip } from '../../ui'
 import { TodayAskAction } from '../assistant/AskEntry'
 import { AssigneePicker } from '../AssigneePicker'
@@ -37,11 +39,30 @@ export function LayoutSwitch({ mode, onChoose }: { mode: ProjectViewMode; onChoo
 }
 
 /**
+ * "N planned tasks without a project" next to the Inbox title (inbox-means-unplaced
+ * D4): where scheduled tasks without a project went, opening Filter with `no project`.
+ * Hidden at zero; it sits in the header's meta, so it adds no row of chrome.
+ */
+export function usePlannedWithoutProject(on: boolean): number {
+  const open = useOpenTasks()
+  return on ? open.filter(isPlannedWithoutProject).length : 0
+}
+
+export function PlannedWithoutProject({ count }: { count: number }) {
+  return (
+    <button type="button" className="text-meta text-muted underline-offset-2 hover:text-default hover:underline" data-planned-line
+      onClick={() => navigate({ view: 'filter', q: 'no project' })}>
+      {t('{n, plural, one {# planned task without a project} other {# planned tasks without a project}}', { n: count })}
+    </button>
+  )
+}
+
+/**
  * Page actions (ux-overhaul, task-list-presentation): the header row holds them, so
  * nothing sits between the quick add and the first task. Touch screens have no
  * hover: the Select button shows every checkbox (bulk-edit D3).
  */
-export function ListPageActions({ route, userRole, rowCount, topLevelCount, selectMode, onSelectMode, filterKey, duration, onDuration }: {
+export function ListPageActions({ route, userRole, rowCount, topLevelCount, selectMode, onSelectMode, filterKey, duration, onDuration, planned = 0 }: {
   route: ListRoute
   userRole?: AccountRole
   rowCount: number
@@ -51,10 +72,13 @@ export function ListPageActions({ route, userRole, rowCount, topLevelCount, sele
   filterKey: string | null
   duration: DurationFilter | null
   onDuration: (kind: DurationFilter | null) => void
+  /** Planned tasks without a project: shown here below 768 px, where the header's meta is not. */
+  planned?: number
 }) {
   return (
     <>
       {route.view === 'today' && <TodayAskAction role={userRole} />}
+      {route.view === 'inbox' && planned > 0 && <span className="w-full md:hidden"><PlannedWithoutProject count={planned} /></span>}
       {route.view === 'inbox' && rowCount > 0 && (
         // Process the Inbox one task at a time (inbox-triage); g then p.
         <Tooltip label={t('Process the Inbox')} shortcut="g p">
@@ -105,7 +129,7 @@ function DurationFilterControl({ active, onChange }: { active: DurationFilter | 
   )
 }
 
-export function placeholderFor(route: ListRoute, project?: Project, label?: Label): string {
+export function placeholderFor(route: ListRoute, project?: Project, label?: Label, place?: Place): string {
   switch (route.view) {
     case 'today':
       return t('Add a task for today…')
@@ -119,6 +143,8 @@ export function placeholderFor(route: ListRoute, project?: Project, label?: Labe
       return project?.name ? t('Add a task to {project}…', { project: project.name }) : t('Add a task to this project…')
     case 'label':
       return label?.name ? t('Add a task labelled {label}…', { label: label.name }) : t('Add a task with this label…')
+    case 'place':
+      return place?.name ? t('Add a task at {place}…', { place: place.name }) : t('Add a task at this location…')
     case 'assigned':
       return t('Add a task assigned to you…')
     default:
@@ -132,7 +158,7 @@ export function placeholderFor(route: ListRoute, project?: Project, label?: Labe
 type EmptyView = ListRoute['view']
 interface EmptyCopy { title: string; action: 'add' | 'inbox' | 'today' }
 const EMPTY_COPY: Record<EmptyView, EmptyCopy> = {
-  inbox: { get title() { return t('Your Inbox is empty.') }, action: 'add' },
+  inbox: { get title() { return t('Inbox zero: every task has a place.') }, action: 'add' },
   today: { get title() { return t('Nothing due today.') }, action: 'add' },
   upcoming: { get title() { return t('Nothing scheduled yet.') }, action: 'add' },
   anytime: { get title() { return t('Nothing waiting for a free moment.') }, action: 'add' },
@@ -140,6 +166,7 @@ const EMPTY_COPY: Record<EmptyView, EmptyCopy> = {
   assigned: { get title() { return t('Nothing is assigned to you.') }, action: 'inbox' },
   project: { get title() { return t('This project has no open tasks.') }, action: 'add' },
   label: { get title() { return t('No open task carries this label.') }, action: 'add' },
+  place: { get title() { return t('No open task happens at this location.') }, action: 'add' },
   completed: { get title() { return t('Nothing completed yet.') }, action: 'today' },
 }
 
@@ -173,7 +200,8 @@ export function EmptyState({ view, waiting = 0, readOnly = false, completed = 0,
         : undefined
   return (
     <div data-empty-state={view}>
-      <EmptyStatePattern title={blocked ? t('Nothing is ready to start today.') : copy.title} action={action} secondary={secondary} />
+      <EmptyStatePattern title={blocked ? t('Nothing is ready to start today.') : copy.title} action={action} secondary={secondary}
+        illustration={view === 'inbox' ? 'inbox-zero' : undefined} />
     </div>
   )
 }
@@ -188,12 +216,14 @@ export function FilteredEmpty({ onClear }: { onClear: () => void }) {
 }
 
 /** A project or label route whose target is gone. */
-export function MissingTarget({ kind }: { kind: 'project' | 'label' }) {
+export function MissingTarget({ kind }: { kind: 'project' | 'label' | 'place' }) {
   return (
     <div className="p-6 text-body text-muted">
       {kind === 'project'
         ? <>{t('This project no longer exists.')}{' '}<button className="underline" onClick={() => navigate({ view: 'inbox' })}>{t('Go to Inbox')}</button></>
-        : <>{t('This label no longer exists.')}{' '}<button className="underline" onClick={() => navigate({ view: 'labels' })}>{t('All labels')}</button></>}
+        : kind === 'place'
+          ? <>{t('This saved location no longer exists.')}{' '}<button className="underline" onClick={() => navigate({ view: 'places' })}>{t('All locations')}</button></>
+          : <>{t('This label no longer exists.')}{' '}<button className="underline" onClick={() => navigate({ view: 'labels' })}>{t('All labels')}</button></>}
     </div>
   )
 }

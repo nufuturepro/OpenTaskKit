@@ -188,6 +188,7 @@ export const SETTINGS_COPY = {
     rows: {
       hints: { label: msg('Show shortcut hints'), description: msg('Print the keys in the app itself, not only in tooltips. This device only.') },
       vim: { label: msg('Vim keybindings'), description: msg('Normal, Insert and Command modes with counts, {kbd}, {kbd2} and {kbd3}. This device only.') },
+      rowClick: { label: msg('Click a task to'), description: msg('Edit its title in place, or open its details beside the list. This device only.') },
     },
   },
   focus: {
@@ -349,6 +350,17 @@ export const SETTINGS_COPY = {
       titlesEncrypted: msg('Titles appear as “Encrypted item” in calendar apps: the server cannot read them.'),
     },
   },
+  // Task locations (task-locations D6): the owner's switch and providers, and each user's own switch.
+  'maps-server': {
+    title: msg('Maps'),
+    description: msg('Maps and address search from the provider below, always through this server.'),
+    learnMore: 'locations',
+  },
+  'maps-user': {
+    title: msg('Maps'),
+    description: msg('Off: no maps or address search on your devices; locations still work.'),
+    learnMore: 'locations',
+  },
   issues: {
     title: msg('Issues'),
     description: msg('Open GitHub and GitLab issues assigned to you become tasks that follow them.'),
@@ -437,6 +449,14 @@ export const SETTINGS_COPY = {
       },
       url: { label: msg('Endpoint') },
       token: { label: msg('Token for an assistant'), description: msg('Creates an API token to paste into the assistant. Read-only is the safe default.') },
+      // Device relay (mcp-device-relay): the trust model in plain words.
+      relay: {
+        label: msg('Answer AI connectors here'),
+        description: msg('Lets connectors such as Claude.ai read and write your encrypted text through this device.'),
+      },
+      relayConfirm: { label: msg('Confirm changes first'), description: msg('Each change an AI connector asks for shows here before it is written.') },
+      relayDevices: { label: msg('Devices that answer') },
+      relayRecent: { label: msg('Recent requests'), description: msg('What this device answered, without the text.') },
     },
     notices: { offline: msg('Offline: these settings live on the server; this is the last state fetched.') },
   },

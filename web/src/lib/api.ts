@@ -6,12 +6,14 @@ import type { AgentAccess, ApiToken, McpStatus, TokenScope } from './assistants'
 import type { AssistantStatus } from './assistantStatus'
 import type { AssistantOwnerSettings, AssistantMemberSettings, AssistantSettingsInput, AssistantTestDraft, AssistantTestResult, MyAssistantTestDraft, AssistantUsage, MyAssistantInput } from './assistantTypes'
 import type { KeyRecord } from './crypto'
+import type { RelayDevice } from './relay'
 import type { AssertionJSON, CreationOptionsJSON, RegistrationJSON, RequestOptionsJSON } from './passkeys'
 import type {
   ConfigWarning,
   AppPassword, CaldavSetting, EmailDigest, EmailDigestInput, EmailInbox,
   AccountRole, ActivityPage, AttachmentLimits, AttachmentSettings, CalendarEvent, CalendarFeed, CalendarSubscription, AdminUser, AppNotification, AuditEvent, AuditFilters, AuditSettings, AuthStatus, LinkedIdentity, OidcSettings, OidcSettingsInput, OidcStatus, OidcTestResult, BackupSecretFlags, BackupSecretUpdate, BackupSettings, BackupStatus, RestoreArchive, RestoreSource, RestoreState, StagedRestore, ImportJob, ImportOptions, ImportPreview, Invitation, InvitationPreview, LoginResult, HistoryPage, PendingSignup, SmtpSettings, SmtpSettingsInput, SmtpTestResult, Membership, MfaPolicy, ProjectInvite, ProjectInvitePreview, MfaStatus, Op, Passkey, ProjectRole, PurgeCounts, PushSubscriptionStatus, PushTestResponse, ResetPreview, SyncResponse, TrustedDevice, User, PublicLink, PublicList,
   Webhook, WebhookDelivery, WebhookEvent, WebhookInput, IssueActionResult, IssueConnection, IssueConnectionInput,
+  OwnTaskPage, PublishTaskPageInput, TaskPageCreated, TaskPageStatus,
 } from './types'
 
 export { fetchWithTimeout, isTransientNetworkError, NetworkError, RequestTimeoutError, setRequestTimeouts, transferTimeoutMs } from './http'
@@ -40,6 +42,23 @@ export class ApiError extends Error {
 
 /** Resolves true once the user re-authenticated, false when they cancelled. */
 export type ReauthHandler = () => Promise<boolean>
+
+/** One address the map proxy found (task-locations "Setting a location"). */
+export interface MapResult {
+  name: string
+  address: string
+  lat: number
+  lon: number
+}
+
+/** The owner's map switch and providers; `locked` names fields set by an OPENTODO_MAPS* variable. */
+export interface MapsSetting {
+  enabled: boolean
+  tiles_url: string
+  geocoder_url: string
+  locked: string[]
+  defaults: { tiles_url: string; geocoder_url: string }
+}
 let reauthHandler: ReauthHandler | null = null
 let reauthInFlight: Promise<boolean> | null = null
 const enrolmentListeners = new Set<() => void>()
@@ -220,7 +239,7 @@ export const api = {
   reauth: (input: { password: string } | { code: string }) =>
     request<{ reauthAt: number; validForMs: number }>('POST', '/api/v1/auth/reauth', input, true),
   /** `config_warnings` is present for the owner's session only (trusted-proxies-lenient). */
-  me: () => request<{ user: User; mfa: MfaStatus; config_warnings?: ConfigWarning[]; attachments?: AttachmentLimits }>('GET', '/api/v1/me'),
+  me: () => request<{ user: User; mfa: MfaStatus; config_warnings?: ConfigWarning[]; attachments?: AttachmentLimits; maps?: boolean }>('GET', '/api/v1/me'),
   mfaStatus: () => request<{ mfa: MfaStatus }>('GET', '/api/v1/mfa'),
   enrollTotp: () => request<{ secret: string; uri: string; expiresAt: number }>('POST', '/api/v1/mfa/totp/enroll', {}),
   confirmTotp: (code: string) => request<{ recoveryCodes: string[]; mfa: MfaStatus }>('POST', '/api/v1/mfa/totp/confirm', { code }),
@@ -299,6 +318,11 @@ export const api = {
   /** The user's own "Allow AI assistants to make changes" switch. */
   getAgentAccess: () => request<AgentAccess>('GET', '/api/v1/me/agent-access'),
   setAgentAccess: (allowWrites: boolean) => request<AgentAccess>('PUT', '/api/v1/me/agent-access', { allow_writes: allowWrites }),
+  // Device relay for encrypted accounts' AI connectors (mcp-device-relay).
+  relayDevices: () => request<{ devices: RelayDevice[] }>('GET', '/api/v1/relay/devices'),
+  relayOptIn: (device: string, label: string) => request<void>('PUT', `/api/v1/relay/devices/${encodeURIComponent(device)}`, { label }),
+  relayOptOut: (device: string, reason: 'user' | 'locked' = 'user') => request<void>('DELETE', `/api/v1/relay/devices/${encodeURIComponent(device)}?reason=${reason}`),
+  relayAnswer: (id: string, box: string) => request<void>('POST', `/api/v1/relay/answers/${encodeURIComponent(id)}`, { box }),
   deleteToken: (id: string) => request<void>('DELETE', `/api/v1/tokens/${id}`),
   // CalDAV (OpenSpec change `caldav`): the owner toggle and per-user app passwords.
   // End-to-end encryption (OpenSpec `e2ee`): only wrapped key material ever goes here.
@@ -351,6 +375,18 @@ export const api = {
     request<PublicLink & { link: string }>('POST', `/api/v1/projects/${encodeURIComponent(projectId)}/public-links`, input),
   revokePublicLink: (projectId: string, id: string) =>
     request<void>('DELETE', `/api/v1/projects/${encodeURIComponent(projectId)}/public-links/${encodeURIComponent(id)}`),
+  // Task pages (OpenSpec `task-pages`): one task published as a page; the link is returned once.
+  publishTaskPage: (taskId: string, input: PublishTaskPageInput) =>
+    request<TaskPageCreated>('POST', `/api/v1/tasks/${encodeURIComponent(taskId)}/page`, input),
+  taskPageStatus: (taskId: string) => request<TaskPageStatus>('GET', `/api/v1/tasks/${encodeURIComponent(taskId)}/page`),
+  revokeTaskPage: (taskId: string) => request<void>('DELETE', `/api/v1/tasks/${encodeURIComponent(taskId)}/page`),
+  myTaskPages: () => request<{ pages: OwnTaskPage[] }>('GET', '/api/v1/task-pages'),
+  putTaskPageSnapshot: (taskId: string, input: { ciphertext: string; version: number; wrappedKey?: string }) =>
+    request<{ ok: true }>('PUT', `/api/v1/tasks/${encodeURIComponent(taskId)}/page/snapshot`, input),
+  taskPageReplies: (taskId: string) =>
+    request<{ replies: { id: string; ciphertext: string; createdAt: number }[] }>('GET', `/api/v1/tasks/${encodeURIComponent(taskId)}/page/replies`),
+  confirmTaskPageReply: (taskId: string, replyId: string) =>
+    request<void>('DELETE', `/api/v1/tasks/${encodeURIComponent(taskId)}/page/replies/${encodeURIComponent(replyId)}`),
   previewProjectInvite: (token: string) => request<ProjectInvitePreview>('GET', `/api/v1/project-invites/${encodeURIComponent(token)}`),
   acceptProjectInvite: (token: string) =>
     request<{ projectId: string; role: ProjectRole }>('POST', `/api/v1/project-invites/${encodeURIComponent(token)}/accept`, {}),
@@ -437,6 +473,13 @@ export const api = {
   rotateCalendarFeed: () => request<{ feed: CalendarFeed; url: string }>('POST', '/api/v1/calendar-feeds/feed'),
   revokeCalendarFeed: () => request<void>('DELETE', '/api/v1/calendar-feeds/feed'),
   // Issue import (OpenSpec issue-connections): connections are server data, never ops.
+  /** Maps (task-locations): address search and reverse search through the server's map proxy. */
+  mapSearch: (q: string, lang: string) =>
+    request<{ results: MapResult[] }>('GET', `/api/v1/maps/search?q=${encodeURIComponent(q)}&lang=${encodeURIComponent(lang)}&limit=5`),
+  mapReverse: (lat: number, lon: number, lang: string) =>
+    request<{ result: MapResult | null }>('GET', `/api/v1/maps/reverse?lat=${lat}&lon=${lon}&lang=${encodeURIComponent(lang)}`),
+  getMapsSetting: () => request<MapsSetting>('GET', '/api/v1/settings/maps'),
+  putMapsSetting: (s: { enabled: boolean; tiles_url?: string; geocoder_url?: string }) => request<MapsSetting>('PUT', '/api/v1/settings/maps', s),
   getIssuesSetting: () => request<{ enabled: boolean }>('GET', '/api/v1/settings/issues'),
   putIssuesSetting: (enabled: boolean) => request<{ enabled: boolean }>('PUT', '/api/v1/settings/issues', { enabled }),
   listIssueConnections: () => request<{ connections: IssueConnection[] }>('GET', '/api/v1/issues/connections'),

@@ -13,7 +13,7 @@
 // says (`implied`, `omitLabel`), colours only what needs attention, shows labels as
 // dots (LabelDots) and moves the counts into a quiet trailing group (`rowCounts`).
 import { Icon, LabelChip, LabelDots, NeutralChip, ReadAs, ToneText, type IconName, type Tone } from '../ui'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, type ReactNode, useEffect, useRef, useState } from 'react'
 import { useRowDetail, type RowDetail } from '../lib/appearance'
 import type { RowImplied } from '../lib/listGroups'
 import { describeDeadline, describeDue, formatDate, localDueOf, logicalToday, zoneHint } from '../lib/dates'
@@ -33,6 +33,7 @@ import { t } from '../lib/i18n'
 import { originOf } from '../lib/taskOrigin'
 import { trackedLabel, trackedText } from '../lib/time'
 import { useTaskTracked } from '../lib/timeEntries'
+import { isInboxTask } from '../lib/inbox'
 import { OriginChip } from './OriginChip'
 
 /** Field badges shown on a row before the rest collapse into "+n" (custom-fields). */
@@ -189,6 +190,8 @@ export interface TaskRowProps {
   omitLabel?: string
   /** Every member's tracked minutes on the task, when it has entries (time-tracking D4); a running entry counts to the minute. */
   tracked?: number
+  /** The inline editor in place of the title and metadata (inline-task-editing). */
+  inline?: ReactNode
 }
 
 /**
@@ -196,7 +199,7 @@ export interface TaskRowProps {
  * props changes, so callers pass stable handlers and per-row values (`selected` is a
  * boolean, not the list's selected id).
  */
-export const TaskRow = memo(function TaskRow({ task, project, labels = [], assignee, assignedToMe = false, selected, showProject, depth = 0, progress, blockedBy = 0, habit = null, breadcrumb, hasChildren = false, collapsed = false, readOnly = false, onToggle, onOpen, onToggleCollapse, card = false, onPointerDown, dropKey, dropIndicator = null, dragging = false, ticked = false, showCheckbox = false, onTick, hideFieldBadges = false, posInSet, setSize, detail: detailProp, implied, omitLabel, tracked: trackedProp }: TaskRowProps) {
+export const TaskRow = memo(function TaskRow({ task, project, labels = [], assignee, assignedToMe = false, selected, showProject, depth = 0, progress, blockedBy = 0, habit = null, breadcrumb, hasChildren = false, collapsed = false, readOnly = false, onToggle, onOpen, onToggleCollapse, card = false, onPointerDown, dropKey, dropIndicator = null, dragging = false, ticked = false, showCheckbox = false, onTick, hideFieldBadges = false, posInSet, setSize, detail: detailProp, implied, omitLabel, tracked: trackedProp, inline }: TaskRowProps) {
   // One shared, ticking map for every row (time-tracking D4); stories and tests may pass the figure.
   const trackedLive = useTaskTracked(task.id)
   const tracked = trackedProp ?? trackedLive
@@ -309,7 +312,7 @@ export const TaskRow = memo(function TaskRow({ task, project, labels = [], assig
       {!calm && counts.filter((c) => c !== progressCount).map((c) => <CountChip key={c.key} c={c} />)}
       {calm ? <LabelDots labels={shownLabels} /> : labels.map((l) => <LabelChip key={l.id} name={l.name} color={l.color} />)}
       {showProject && project && <NeutralChip dot={project.color} data-project="">{project.name}</NeutralChip>}
-      {showProject && !project && !task.project_id && <NeutralChip data-project="">{t('Inbox')}</NeutralChip>}
+      {showProject && !project && !task.project_id && isInboxTask(task) && <NeutralChip data-project="">{t('Inbox')}</NeutralChip>}
       {card && quiet}
     </div>
   )
@@ -329,7 +332,7 @@ export const TaskRow = memo(function TaskRow({ task, project, labels = [], assig
       aria-setsize={card ? undefined : setSize}
       onPointerDown={onPointerDown}
       style={depth ? { paddingLeft: `${Math.min(depth, MAX_INDENT) * 1.5 + 0.5}rem` } : undefined}
-      className={`group relative flex items-start gap-2 rounded-control px-2 transition-[opacity,transform] duration-(--duration-emphasis) ease-calm ${card ? 'py-2 border border-default bg-surface shadow-1' : 'row-pad'} ${dropIndicator === 'inside' ? feedback.inside : ''} ${ticked ? 'bg-accent-soft' : selected ? (card ? 'ring-1 ring-accent/50' : 'row-selected') : card ? '' : 'hover:bg-canvas dark:hover:bg-raised'} ${completing ? 'opacity-50' : ''} ${lift}`}
+      className={`group relative flex items-start gap-2 rounded-control px-2 transition-[opacity,transform] duration-(--duration-emphasis) ease-calm ${card ? 'py-2 border border-default bg-surface shadow-1' : 'row-pad'} ${dropIndicator === 'inside' ? feedback.inside : ''} ${ticked ? 'bg-accent-soft' : selected ? (card ? 'ring-1 ring-accent/50' : 'row-selected') : card ? '' : 'row-hover'} ${completing ? 'opacity-50' : ''} ${lift}`}
     >
       {(dropIndicator === 'before' || dropIndicator === 'after') && (
         // The drop position: a line with a dot at its start (task-list-presentation "Drag feedback").
@@ -377,7 +380,7 @@ export const TaskRow = memo(function TaskRow({ task, project, labels = [], assig
           </label>
         )}
       </span>
-      <button type="button" className="min-w-0 flex-1 text-left" data-row-open
+      {inline ?? <button type="button" className="flex min-w-0 flex-1 flex-col text-left" data-row-open
         onClick={(e) => {
           // Shift+click extends, Ctrl/⌘+click toggles the tick instead of opening (bulk-edit D3).
           if (onTick && !readOnly && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); onTick(e.shiftKey); return }
@@ -393,7 +396,7 @@ export const TaskRow = memo(function TaskRow({ task, project, labels = [], assig
           )}
         </div>
         {meta}
-      </button>
+      </button>}
       {originChip
         ? <span className="ml-auto flex shrink-0 items-start gap-2" data-row-trailing>{originChip}{!card && quiet}</span>
         : !card && quiet}

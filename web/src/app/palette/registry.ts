@@ -19,8 +19,9 @@ import type { ActionGroup, ActionItem } from '../menus/ActionMenu'
 import { projectMenuGroups, type MoveTarget } from '../ProjectHeader'
 import { navigate, type Route } from '../router'
 import { sectionMenuGroups } from '../Sections'
+import { requestTemplateDialog } from '../TemplateDialogs'
 import { visibleSections } from '../settingsSections'
-import { blockedByFocus, deadlineFocus, deferFocus, estimateFocus, placeInDay, sidebarFind } from '../signals'
+import { blockedByFocus, deadlineFocus, deferFocus, estimateFocus, locationFocus, placeInDay, sidebarFind } from '../signals'
 import { setVimEnabled } from '../vim/prefs'
 import { viewMenuGroups } from '../ViewsView'
 import type { Entry, Step } from './entries'
@@ -83,6 +84,8 @@ const ROUTES: RouteCommand[] = translatedList<RouteCommand, 'label'>([
   { label: msg('Go to Filter'), route: { view: 'filter' }, icon: 'filter', shortcut: keysOf('go.filter') },
   { label: msg('Go to Filters'), route: { view: 'views' }, icon: 'list', shortcut: keysOf('go.views'), keywords: 'views saved filters boards dashboards' },
   { label: msg('Go to Trash'), route: { view: 'trash' }, icon: 'trash-2', shortcut: keysOf('go.trash') },
+  // Saved locations (task-locations D7): a command without a default key.
+  { label: msg('Go to Locations'), route: { view: 'places' }, icon: 'map-pin', keywords: 'places map addresses' },
   { label: msg('Go to Updates'), route: { view: 'feed' }, icon: 'newspaper', shortcut: keysOf('go.feed'), keywords: 'activity feed changes' },
   { label: msg('Go to Ask'), route: { view: 'ask' }, icon: 'message-circle', shortcut: keysOf('go.ask') },
   { label: msg('Open Help'), route: { view: 'help' }, icon: 'list', shortcut: keysOf('go.help') },
@@ -101,9 +104,12 @@ const prompt = (title: string, label: string, initial: string, onSubmit: (v: str
 
 /** Commands from an object menu: every enabled item, run as the menu runs it. */
 function fromMenu(prefix: string, groups: ActionGroup[], idPrefix: string): Command[] {
-  return groups.flatMap((g) => g.items).filter((i) => !i.disabled).map((i: ActionItem): Command => ({
-    id: `${idPrefix}:${i.id}`, label: t('{object}: {action}', { object: prefix, action: i.label.replace(/…$/, '') }), icon: i.icon, shortcut: i.shortcut, menuLabel: i.label,
-    run: () => (i.kind === 'picker' ? { kind: 'picker', picker: i.picker } as Step : i.kind === 'confirm' ? { kind: 'confirm', confirm: i.confirm } as Step : i.onSelect()),
+  // A step (the icon grid, the colour swatches) runs here as its Combobox form; one without it is not listed.
+  return groups.flatMap((g) => g.items).filter((i) => !i.disabled && (i.kind !== 'step' || i.step.palette)).map((i: ActionItem): Command => ({
+    id: `${idPrefix}:${i.id}`, label: t('{object}: {action}', { object: prefix, action: i.label.replace(/…$/, '') }), icon: i.icon, shortcut: i.shortcut, menuLabel: i.kind === 'step' ? `${i.label}…` : i.label,
+    run: () => (i.kind === 'picker' ? { kind: 'picker', picker: i.picker } as Step
+      : i.kind === 'step' ? { kind: 'picker', picker: i.step.palette! } as Step
+        : i.kind === 'confirm' ? { kind: 'confirm', confirm: i.confirm } as Step : i.onSelect()),
   }))
 }
 
@@ -143,6 +149,7 @@ export function commands(ctx: PaletteContext): Command[] {
         { id: 'task:estimate', label: t('Edit the estimate of {title}', { title }), icon: 'clock', shortcut: keysOf('list.estimate'), run: () => { estimateFocus.request(tk.id); list.open(tk.id) } },
         { id: 'task:deadline', label: t('Set the deadline of {title}', { title }), icon: 'hourglass', shortcut: keysOf('list.deadline'), run: () => { deadlineFocus.request(tk.id); list.open(tk.id) } },
         { id: 'task:blocked-by', label: t('Choose what {title} waits for', { title }), icon: 'lock', shortcut: keysOf('list.blocked-by'), keywords: 'blocked by depends dependency', run: () => { blockedByFocus.request(tk.id); list.open(tk.id) } },
+        { id: 'task:location', label: t('Set the location of {title}', { title }), icon: 'map-pin', keywords: 'place address map where', run: () => { locationFocus.request(tk.id); list.open(tk.id) } },
         { id: 'task:defer', label: t('Defer {title}', { title }), icon: 'calendar-days', shortcut: keysOf('list.defer'), keywords: 'start later', run: () => { deferFocus.request(tk.id); list.open(tk.id) } },
         tk.start === 'someday'
           ? { id: 'task:unpark', label: t('Bring back {title} from Someday', { title }), icon: 'archive', shortcut: keysOf('list.park'), run: () => unparkTask(tk.id) }
@@ -196,6 +203,7 @@ export function commands(ctx: PaletteContext): Command[] {
   if (ctx.section) {
     const s = ctx.section
     out.push(...fromMenu(t('Section “{name}”', { name: s.row.name }), sectionMenuGroups(s.row.name, s, {
+      section: s.row,
       rename: () => prompt(t('Rename section'), t('Section name'), s.row.name, (n) => renameSection(s.row.id, n)),
       move: (d) => reorderSection(s.row.id, d),
       remove: () => deleteSection(s.row.id),
@@ -213,6 +221,7 @@ export function commands(ctx: PaletteContext): Command[] {
   out.push(
     { id: 'new:task', label: t('Quick add a task'), icon: 'plus', shortcut: keysOf('list.quick-add'), keywords: 'new task add create', run: () => { if (!ctx.focusQuickAdd()) navigate({ view: 'inbox' }) } },
     { id: 'new:project', label: t('New project'), icon: 'plus', keywords: 'add create', run: () => prompt(t('New project'), t('Project name'), '', async (name) => navigate({ view: 'project', id: await createProject({ name }) })) },
+    { id: 'new:from-template', label: t('New project from a template'), icon: 'copy', keywords: t('template library add create'), run: () => requestTemplateDialog() },
     { id: 'new:label', label: t('New label'), icon: 'tag', keywords: 'add create', run: () => prompt(t('New label'), t('Label name'), '', async (name) => navigate({ view: 'label', id: await createLabel({ name }) })) },
     { id: 'new:dashboard', label: t('New dashboard'), icon: 'list', keywords: 'add create', run: () => prompt(t('New dashboard'), t('Dashboard name'), '', async (name) => navigate({ view: 'view', id: await createView({ name, kind: 'dashboard' }) })) },
     ...ROUTES.map((r): Command => ({ id: `go:${r.route.view}${'step' in r.route && r.route.step ? `:${r.route.step}` : ''}`, label: r.label, icon: r.icon, shortcut: r.shortcut, keywords: r.keywords, run: () => navigate(r.route) })),

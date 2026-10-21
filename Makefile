@@ -7,7 +7,7 @@ EXT_ZIP := dist/opentodo-browser-extension.zip
 SKILL_ZIP := dist/opentodo-agent-skill.zip
 EXT_FILES := manifest.json background.js share-url.js options.html options.js icons/icon-16.png icons/icon-48.png icons/icon-128.png _locales
 
-.PHONY: site-bundle all web server cli cli-release cli-smoke skill extension build run dev test test-go test-web test-extension check lint staticcheck clean docker openspec-validate layout-check docs docs-check docs-screenshots screens docs-site-check coolify-check coolify-smoke deploy-check storybook ui-check ui-baselines ui-lint web-lint i18n-check repo-check fmt-check ci-checks e2e
+.PHONY: site-bundle all web server cli cli-release cli-smoke skill extension build run dev test test-go test-web test-extension check lint staticcheck clean docker openspec-validate layout-check docs docs-check templates templates-check docs-screenshots screens docs-site-check coolify-check coolify-smoke deploy-check storybook ui-check ui-baselines ui-lint web-lint i18n-check repo-check fmt-check ci-checks e2e
 
 all: build
 
@@ -133,8 +133,19 @@ openspec-validate:
 ## Everything CI runs.
 ## Documentation (user-documentation): build the docs site into dist/docs-site, regenerate the in-app help
 ## bundle web/src/generated/help.json and the keyboard guide's tables from docs/.
-docs:
+docs: templates
 	cd web && npm run docs:build
+
+## The template library (template-library): templates/ compiled into
+## web/src/generated/templates.json for the app and the site bundle.
+templates:
+	node scripts/templates-build.mjs
+
+## Every template valid (templates/README.md), its tests, and the compiled file current.
+templates-check:
+	node --test scripts/templates-check.test.mjs
+	node scripts/templates-check.mjs
+	node scripts/templates-build.mjs --check
 
 ## Front matter, links, anchors, images, spec coverage, help ids, generated files.
 docs-check:
@@ -186,29 +197,32 @@ deploy-check:
 repo-check:
 	node --test scripts/repo-checks.test.mjs
 
-check: lint web-lint staticcheck test fmt-check ui-lint i18n-check docs-check openspec-validate deploy-check repo-check
+check: lint web-lint staticcheck test fmt-check ui-lint i18n-check docs-check templates-check openspec-validate deploy-check repo-check
 
 ## The parts of `make check` that CI runs in its Checks job (the others run in the web,
 ## server and extension jobs; scripts/repo-checks.test.mjs keeps the two lists whole).
-ci-checks: fmt-check ui-lint i18n-check openspec-validate deploy-check repo-check
+ci-checks: fmt-check ui-lint i18n-check templates-check openspec-validate deploy-check repo-check
 
 ## gofmt gate: no Go file may need formatting.
 fmt-check:
 	@out=$$(gofmt -l cmd internal skills); if [ -n "$$out" ]; then echo "gofmt needed:"; echo "$$out"; exit 1; fi
 
-## Browser end-to-end checks (two devices, offline edits converging, saved views) against
-## a throwaway server on :18081 each. Expects `make build`; needs Playwright with Chromium.
-e2e:
-	@for s in e2e-smoke e2e-views; do \
+## Browser end-to-end checks (two devices, offline edits converging, saved views, the
+## decrypting MCP bridge) against a throwaway server on :18081 each. Expects `make build`
+## (it builds bin/ot itself); needs Playwright with Chromium.
+e2e: cli
+	@for s in e2e-smoke e2e-views e2e-mcp-decrypt; do \
 	  d=$$(mktemp -d); OPENTODO_DATA_DIR=$$d OPENTODO_ADDR=127.0.0.1:18081 ./bin/opentodo >$$d/server.log 2>&1 & pid=$$!; \
 	  for i in $$(seq 1 30); do curl -fsS 127.0.0.1:18081/healthz >/dev/null 2>&1 && break; sleep 0.3; done; \
 	  echo "== $$s"; OPENTODO_URL=http://127.0.0.1:18081 node scripts/$$s.mjs; st=$$?; kill $$pid; wait $$pid 2>/dev/null; \
 	  if [ $$st -ne 0 ]; then cat $$d/server.log; rm -rf $$d; exit $$st; fi; rm -rf $$d; \
 	done
+	@echo "== e2e-network"; OPENTODO_BIN=./bin/opentodo node scripts/e2e-network.mjs
 
 ## Design-system check (ui-primitives): stories for every shared component, no
 ## emoji or glyph icons in web/src/app.
 ui-lint:
+	node --test scripts/ui-check.test.mjs
 	node scripts/ui-check.mjs
 
 ## React hooks lint (web-lint-and-test-hygiene): Rules of Hooks and effect

@@ -28,12 +28,14 @@ export const CLIENT_VERSION = 1
  */
 export const CONTENT_FIELDS: Partial<Record<Entity, readonly string[]>> = {
   // A task's origin is an object, serialised and encrypted whole (task-origin D2).
-  task: ['title', 'description', 'ical_extra', 'notes_doc', 'origin'],
+  // A task's location is an object too (task-locations D1).
+  task: ['title', 'description', 'ical_extra', 'notes_doc', 'origin', 'location'],
   project: ['name', 'description', 'notes_doc'],
   label: ['name'],
   section: ['name'],
   view: ['name', 'query'],
-  comment: ['body'],
+  // A guest's typed name on a task page reply (task-pages D6).
+  comment: ['body', 'guest_name'],
   // Attachments (OpenSpec attachments D8): the file bytes are an OTAT1 envelope too.
   attachment: ['name', 'mime', 'url'],
   // Custom field definitions (OpenSpec custom-fields, design D4).
@@ -42,6 +44,8 @@ export const CONTENT_FIELDS: Partial<Record<Entity, readonly string[]>> = {
   time_entry: ['note'],
   // The review record's line for tomorrow (OpenSpec close-the-day, design D5); its times and focus stay plaintext.
   review: ['tomorrow_note'],
+  // A place (task-locations D1): its coordinates are one object; position and times stay plaintext.
+  place: ['name', 'address', 'geo'],
 }
 
 /**
@@ -60,7 +64,7 @@ export function isContentField(entity: Entity, field: string): boolean {
 }
 
 /** Content values that are objects on the device and one encrypted JSON string on the wire (task-origin D2). */
-const OBJECT_CONTENT: Partial<Record<Entity, readonly string[]>> = { task: ['origin'] }
+const OBJECT_CONTENT: Partial<Record<Entity, readonly string[]>> = { task: ['origin', 'location'], place: ['geo'] }
 
 function isObjectContent(entity: Entity, field: string): boolean {
   return OBJECT_CONTENT[entity]?.includes(field) ?? false

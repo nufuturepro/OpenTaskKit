@@ -60,6 +60,9 @@ const (
 	// Public links (OpenSpec `public-links`).
 	PublicLinkCreatedName Name = "public_link.created"
 	PublicLinkRevokedName Name = "public_link.revoked"
+	// Task pages (OpenSpec `task-pages`).
+	TaskPagePublishedName Name = "task_page.published"
+	TaskPageRevokedName   Name = "task_page.revoked"
 	RoleChangedName       Name = "role.changed"
 	SettingsChangedName   Name = "settings.changed"
 	IdentityLinkedName    Name = "identity.linked"
@@ -89,6 +92,10 @@ const (
 	// Outgoing email (OpenSpec `outgoing-email`): a message sent or refused.
 	EmailSentName   Name = "email.sent"
 	EmailFailedName Name = "email.failed"
+	// A device of an encrypted account opted in to answer AI connectors, and
+	// opted out (mcp-device-relay): never a relayed value.
+	RelayEnabledName  Name = "relay.enabled"
+	RelayDisabledName Name = "relay.disabled"
 )
 
 // Names lists the whole catalogue in a stable order (used by the API docs, the
@@ -105,6 +112,7 @@ var Names = []Name{
 	InvitationCreatedName, InvitationAcceptedName, InvitationRevokedName,
 	ProjectInviteCreatedName, ProjectInviteRevokedName, ProjectInviteAcceptedName,
 	PublicLinkCreatedName, PublicLinkRevokedName,
+	TaskPagePublishedName, TaskPageRevokedName,
 	RoleChangedName, SettingsChangedName,
 	IdentityLinkedName, IdentityUnlinkedName,
 	ExportRequestedName, AuditExportedName,
@@ -116,6 +124,7 @@ var Names = []Name{
 	OwnerTransferredName,
 	AgentWriteName,
 	EmailSentName, EmailFailedName,
+	RelayEnabledName, RelayDisabledName,
 }
 
 // PersonalNames are the events a user sees about themselves in
@@ -133,6 +142,7 @@ var PersonalNames = []Name{
 	PasswordResetCompletedName, PasswordChangedName,
 	SignedOutEverywhereName,
 	AgentWriteName,
+	RelayEnabledName, RelayDisabledName,
 }
 
 // Known reports whether n is in the catalogue.
@@ -199,12 +209,17 @@ var allowedDetailKeys = map[string]bool{
 	"reset_id":          true, // id of a password reset link (never its secret)
 	"email_kind":        true, // kind of an outgoing message: verify_signup, password_reset, invitation, project_invite, test
 	"public_link_id":    true, // id of a public link (never its secret)
-	"link_rights":       true, // view | tick
+	"link_rights":       true, // view | tick; view | reply | tick for a task page
+	"task_page_id":      true, // id of a task page (never its secret, label or share key)
 	// Sign out everywhere (route-authorization-policy): how much it ended.
 	"session_count":      true,
 	"device_count":       true,
 	"token_count":        true,
 	"app_password_count": true,
+	// Device relay (mcp-device-relay): the device that answers AI connectors.
+	// Not "device_id", which is an op field name.
+	"relay_device_id":    true,
+	"relay_device_label": true,
 }
 
 // Event is one security-relevant occurrence. Build it with a constructor.
@@ -317,6 +332,18 @@ func TokenCreatedScoped(userID, tokenID, name, scope string) Event {
 // Failed(reason) and count 0.
 func AgentWrite(userID, tool, tokenID, tokenName string, count int) Event {
 	return ev(AgentWriteName, Success, userID, "", "tool", tool, "token_id", tokenID, "token_name", tokenName, "count", strconv.Itoa(count))
+}
+
+// RelayEnabled records that a device of an encrypted account opted in to
+// answer AI connectors (mcp-device-relay D3); never a relayed value.
+func RelayEnabled(userID, deviceID, label string) Event {
+	return ev(RelayEnabledName, Success, userID, "", "relay_device_id", deviceID, "relay_device_label", label)
+}
+
+// RelayDisabled records the end of a device's opt-in and why: user, locked,
+// signed_out or encryption_off.
+func RelayDisabled(userID, deviceID, label, reason string) Event {
+	return ev(RelayDisabledName, Success, userID, "", "relay_device_id", deviceID, "relay_device_label", label, "reason", reason)
 }
 
 // TokenRevoked records a revoked API token.
@@ -565,4 +592,17 @@ func PublicLinkCreated(actorID, linkID, projectID, rights string) Event {
 // PublicLinkRevoked records a public link being revoked.
 func PublicLinkRevoked(actorID, linkID, projectID string) Event {
 	return ev(PublicLinkRevokedName, Success, actorID, "", "public_link_id", linkID, "shared_project_id", projectID)
+}
+
+// ---- task pages (task-pages) ----
+
+// TaskPagePublished records one task published as a page; never the secret, the
+// label, the task's content or a share key.
+func TaskPagePublished(actorID, pageID, rights string) Event {
+	return ev(TaskPagePublishedName, Success, actorID, "", "task_page_id", pageID, "link_rights", rights)
+}
+
+// TaskPageRevoked records a task page being revoked (or replaced by a new one).
+func TaskPageRevoked(actorID, pageID string) Event {
+	return ev(TaskPageRevokedName, Success, actorID, "", "task_page_id", pageID)
 }

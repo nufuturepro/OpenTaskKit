@@ -188,7 +188,8 @@ export const SHORTCUTS: Shortcut[] = [
   // The project note (project-notes D4): Shift+P is free in every scope a project hosts; Shift+N defers a task.
   { id: 'project.note', keys: ['Shift+P'], description: 'Edit the current project’s note (Esc saves and closes it)', section: 'tasks', scope: 'view', views: ['project'] },
   { id: 'list.priority', keys: ['1', '2', '3', '4'], description: 'Set the priority of the selected task, or of the ticked tasks', section: 'tasks', scope: 'list' },
-  { id: 'list.labels', keys: ['Shift+L'], description: 'Labels of the selected task, or of the ticked tasks (type to find, Enter adds or creates)', section: 'tasks', scope: 'list' },
+  { id: 'list.labels', keys: ['Shift+L'], description: 'Labels of the selected task, or of the ticked tasks (type to find, Enter adds or creates); or drag the task onto a label in the sidebar', section: 'tasks', scope: 'list' },
+  { id: 'list.edit-inline', keys: ['F2'], label: 'Edit in place', description: 'Edit the selected task\'s title in place, with its date, priority, labels and project under it; Enter saves, Esc cancels, Shift+Enter opens the details', section: 'tasks', scope: 'list' },
   { id: 'list.estimate', keys: ['e'], description: 'Edit the estimate of the selected task (type 20, 45m, 1h30; Enter)', section: 'tasks', scope: 'list' },
   // Time tracking (time-tracking D5): `y` is free in the list scope; the Inbox
   // triage's `y` is a view entry on a route without a task list.
@@ -307,7 +308,8 @@ export const SHORTCUTS: Shortcut[] = [
 
   // ---- Process the Inbox (inbox-triage): one Inbox task at a time, a key per decision; every decision but Labels moves on to the next task.
   { id: 'triage.today', keys: ['t'], description: 'Due today, then the next task', section: 'triage', scope: 'view', views: ['triage'] },
-  { id: 'triage.schedule', keys: ['s'], description: 'Schedule: type a date (fri, 3/11) and press Enter, then the next task', section: 'triage', scope: 'view', views: ['triage'] },
+  { id: 'triage.schedule', keys: ['s'], description: 'Schedule: pick a choice or a day, or type a date (fri, 3/11) and press Enter, then the next task', section: 'triage', scope: 'view', views: ['triage'] },
+  { id: 'triage.relative', keys: ['1', '2', '3', '4', '5', '6'], description: 'In the scheduling sheet of a task with a deadline: on the deadline, 1 day, 3 days, 1 week, 2 weeks or 1 month before', section: 'triage', scope: 'view', views: ['triage'], dialog: true, overrides: ['vim.priority'] },
   { id: 'triage.move', keys: ['m'], description: 'Move to a project, then the next task', section: 'triage', scope: 'view', views: ['triage'] },
   { id: 'triage.delegate', keys: ['a'], description: 'Delegate: move into a shared project and assign it to someone there, then the next task', section: 'triage', scope: 'view', views: ['triage'] },
   { id: 'triage.labels', keys: ['l'], description: 'Labels (does not move on, so you can add a label and then decide)', section: 'triage', scope: 'view', views: ['triage'] },
@@ -380,6 +382,7 @@ export const SHORTCUTS: Shortcut[] = [
 export const QUICK_ADD_SYNTAX: [string, string][] = [
   ['tomorrow · next Wed · 3 Feb · at 3pm', 'Due date and time (6 languages)'],
   ['#project @label p1 +30m', 'Project, label, priority, estimate'],
+  ['# or @, then a few letters', 'Suggests projects or labels; Enter or Tab picks, #Home/Docs picks a sub-project'],
   ['every Monday · remind me 30 min before', 'Repeat and remind (6 languages)'],
   ['"quoted text"', 'Keep text literally'],
   ['Backspace ×2 (end of line)', 'Highlight, then dismiss the last chip'],

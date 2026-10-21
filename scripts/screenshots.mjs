@@ -44,6 +44,7 @@ const at = (n, hhmm) => new Date(`${iso(n)}T${hhmm}:00Z`).getTime()
 const NOW = at(0, '08:40')
 const mk = async (o = {}, time = NOW) => {
   const c = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1.5, colorScheme: 'light', timezoneId: 'UTC', locale: 'en-GB', ...o })
+  await c.addInitScript(() => { try { localStorage.setItem('opentodo.rowClick', 'open') } catch {} })  // click opens the panel, as these flows expect (inline-task-editing)
   await c.clock.setFixedTime(time)
   // The owner's "Set up the assistant" line on Today (assistant-skills) is off-topic in product shots.
   await c.addInitScript(() => {
@@ -86,7 +87,7 @@ async function signIn(page, email) {
   await page.goto(base)
   await page.getByLabel('Email').fill(email); await page.getByLabel(/Password/).fill(PASSWORD)
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
-  await page.getByRole('textbox', { name: 'Add a task' }).waitFor({ timeout: 15000 })
+  await page.getByRole('combobox', { name: 'Add a task' }).waitFor({ timeout: 15000 })
 }
 
 
@@ -94,7 +95,7 @@ const ctx = await mk(); const page = await ctx.newPage()
 await page.goto(base)
 await page.getByLabel('Name').fill('Ada Lovelace'); await page.getByLabel('Email').fill('ada@example.com'); await page.getByLabel(/Password/).fill(PASSWORD)
 await page.getByRole('button', { name: 'Create owner account' }).click()
-await page.getByRole('textbox', { name: 'Add a task' }).waitFor()
+await page.getByRole('combobox', { name: 'Add a task' }).waitFor()
 const A = (m, p, b) => api(ctx, m, p, b)
 
 async function member(name, email) {
@@ -265,7 +266,7 @@ await go(page, '/today', () => page.getByRole('heading', { name: 'Overdue' }).wa
 await shot(page, 'today')
 
 // Natural-language quick add: chips under the input as you type
-const qa = page.getByRole('textbox', { name: 'Add a task' })
+const qa = page.getByRole('combobox', { name: 'Add a task' })
 await qa.click(); await qa.pressSequentially('Call Sarah about the offsite next Wed at 3pm #Work @call p1 30m', { delay: 8 })
 await settle(page, 500); await shot(page, 'quick-add')
 await qa.fill(''); await page.keyboard.press('Escape')

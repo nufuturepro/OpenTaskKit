@@ -14,7 +14,7 @@ import { ProjectPickerField } from './ProjectPickerField'
 import { ShareCapture, setPendingShare } from './ShareCapture'
 
 const settle = () => act(async () => { for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 20)) })
-const field = () => document.querySelector<HTMLInputElement>('input[role="combobox"]')!
+const field = () => document.querySelector<HTMLInputElement>('[data-overlay] input[role="combobox"]') ?? document.querySelectorAll<HTMLInputElement>('input[role="combobox"]:not([aria-label="Task title"])')[0]!
 const project = (id: string, name: string, parent_id: string | null = null): Project =>
   ({ id, name, color: '#16a34a', position: 1, archived: false, parent_id, created_at: 0, deleted_at: null, _clock: {} })
 
@@ -32,7 +32,7 @@ describe('ShareCapture project picker', () => {
     setPendingShare(parseShare('?title=Interesting%20article&url=https://example.org/post'))
     const view = await render(<ShareCapture />)
     await settle()
-    const button = document.querySelector<HTMLButtonElement>('button[aria-label="Project: Inbox"]')!
+    const button = document.querySelector<HTMLButtonElement>('button[aria-label="Project: No project"]')!
     expect(button).not.toBeNull()
     await click(button)
     await type(field(), 'read')
@@ -57,6 +57,7 @@ describe('ProjectPickerField', () => {
     const options = [...document.querySelectorAll('[role="option"]')].map((o) => o.textContent?.trim())
     expect(options[0]).toContain('Top level')
     expect(options.join('|')).not.toContain('Inbox')
+    expect(options.join('|')).not.toContain('No project')
     expect(options.join('|')).not.toContain('Old')
     await type(field(), 'acme')
     expect(document.querySelector('[role="option"]')?.textContent).toContain('Work')

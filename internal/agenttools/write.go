@@ -56,7 +56,7 @@ func init() {
 	register(tool{def: func(Caller) Definition {
 		item := object([]string{"title"}, map[string]any{
 			"title": titleProp, "description": descProp,
-			"project_id":       map[string]any{"type": "string", "description": "Project id (see list_projects); omit for the inbox."},
+			"project_id":       map[string]any{"type": "string", "description": "Project id (see list_projects); omit for no project (the Inbox while the task is not scheduled)."},
 			"section_id":       map[string]any{"type": "string", "description": "Section id inside that project."},
 			"parent_id":        map[string]any{"type": "string", "description": "Parent task id to create a subtask; without project_id the subtask goes in the parent's project."},
 			"priority":         priorityProp,
@@ -66,6 +66,7 @@ func init() {
 			"recurrence":       recurProp,
 			"fields":           fieldsProp,
 			"origin_url":       originURLProp,
+			"id":               chosenIDProp,
 		})
 		return writeDef("create_tasks", "Create tasks",
 			fmt.Sprintf("Create up to %d tasks in one call. Returns their ids in order.", PerCall),
@@ -84,10 +85,10 @@ func init() {
 			"recurrence":       map[string]any{"type": []string{"string", "null"}, "maxLength": recurrence.MaxLen, "description": "Recurrence rule, or null to stop repeating."},
 			"fields":           fieldsProp,
 		}
-		desc := fmt.Sprintf("Change the priority, labels, estimate, recurrence or custom field values of up to %d tasks", PerCall)
+		props["title"] = titleProp
+		props["description"] = descProp
+		desc := fmt.Sprintf("Change the title, description, priority, labels, estimate, recurrence or custom field values of up to %d tasks", PerCall)
 		if !c.Encrypted {
-			props["title"] = titleProp
-			props["description"] = descProp
 			props["origin_url"] = originURLClearProp
 			desc = fmt.Sprintf("Change the title, description, priority, labels, estimate, recurrence, origin or custom field values of up to %d tasks", PerCall)
 		}
@@ -111,10 +112,10 @@ func init() {
 
 	register(tool{def: func(Caller) Definition {
 		return writeDef("move_tasks", "Move tasks",
-			"Move tasks to another project (or the inbox with project_id null) and optionally a section. Tasks cannot move between projects that are shared differently.",
+			"Move tasks to another project (or to no project with project_id null: the Inbox while not scheduled) and optionally a section. Tasks cannot move between projects that are shared differently.",
 			object([]string{"ids", "project_id"}, map[string]any{
 				"ids":        idsProp,
-				"project_id": map[string]any{"type": []string{"string", "null"}, "description": "Target project id, or null for the inbox."},
+				"project_id": map[string]any{"type": []string{"string", "null"}, "description": "Target project id, or null for no project (the Inbox while the task is not scheduled)."},
 				"section_id": map[string]any{"type": []string{"string", "null"}, "description": "Section of the target project, or null for no section."},
 			}), true, true, nil, false)
 	}, plan: (*Registry).planMoveTasks})
@@ -134,8 +135,10 @@ func init() {
 			object([]string{"name"}, map[string]any{
 				"name":              map[string]any{"type": "string", "minLength": 1, "maxLength": 200, "description": "Project name."},
 				"color":             map[string]any{"type": "string", "description": "Colour as #rrggbb, optional."},
+				"icon":              iconProp,
 				"parent_id":         map[string]any{"type": "string", "description": "Parent project id, optional."},
 				"client_request_id": requestIDProp,
+				"id":                chosenIDProp,
 			}), false, false, []string{"name"}, true)
 	}, plan: (*Registry).planCreateProject})
 
@@ -145,6 +148,7 @@ func init() {
 				"name":              map[string]any{"type": "string", "minLength": 1, "maxLength": 100, "description": "Label name."},
 				"color":             map[string]any{"type": "string", "description": "Colour as #rrggbb, optional."},
 				"client_request_id": requestIDProp,
+				"id":                chosenIDProp,
 			}), false, true, []string{"name"}, true)
 	}, plan: (*Registry).planCreateLabel})
 
@@ -155,6 +159,7 @@ func init() {
 				"task_id":   map[string]any{"type": "string", "description": "Task id."},
 				"body":      map[string]any{"type": "string", "minLength": 1, "maxLength": 10000, "description": "Comment text (Markdown)."},
 				"parent_id": map[string]any{"type": "string", "description": "Comment id to reply to (same task), optional."},
+				"id":        chosenIDProp,
 			}), false, false, []string{"body"}, true)
 	}, plan: (*Registry).planAddComment})
 

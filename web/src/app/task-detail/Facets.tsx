@@ -7,8 +7,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { facetsOf, type FacetId, type FacetPart, type WhenSegmentId } from '../../lib/facets'
 import { removeLabel } from '../../lib/labels'
-import { createProject, unparkTask, updateTask } from '../../lib/ops'
-import { INBOX_KEY, NONE_KEY, sectionSource, type PickerItem } from '../../lib/pickerSources'
+import { createProject, setRecurrence, unparkTask, updateTask } from '../../lib/ops'
+import { INBOX_KEY, itemKeywords, NONE_KEY, sectionSource, type PickerItem } from '../../lib/pickerSources'
 import { moveTaskToSection } from '../../lib/sections'
 import { keysOf } from '../../lib/shortcuts'
 import { openOrigin, originOf } from '../../lib/taskOrigin'
@@ -20,6 +20,9 @@ import { useDateTimeFormat } from '../DateTimePrefsProvider'
 import { EstimateField } from '../EstimateField'
 import { LabelChip, LabelPicker } from '../LabelPicker'
 import { originText } from '../OriginChip'
+import { LocationEditor, useShownLocation } from '../locations/LocationEditor'
+import { LocationPreview } from '../locations/LocationPreview'
+import { setTaskLocation, locationLabel } from '../../lib/locations'
 import { setDueWithUndo } from '../undoable'
 import { requestAttach } from './attachRequest'
 import { FacetEditor } from './FacetEditor'
@@ -59,7 +62,7 @@ const itemPath = (i: PickerItem) => i.path
 const itemMeta = (i: PickerItem) => i.meta
 
 /** The parts that are optional (revealed by Add, removed when left empty); the rest are fixed. */
-const OPTIONAL = new Set<string>(['deadline', 'when', 'evening', 'reminders', 'estimate', 'repeat', 'labels', 'assignee', 'blocked-by', 'parent', 'section'])
+const OPTIONAL = new Set<string>(['deadline', 'when', 'evening', 'reminders', 'estimate', 'repeat', 'labels', 'assignee', 'blocked-by', 'parent', 'section', 'location'])
 /** The When segment a part opens on. */
 const SEGMENT_OF: Record<string, WhenSegmentId> = { due: 'due', evening: 'due', repeat: 'repeat', deadline: 'deadline', when: 'start', reminders: 'reminders' }
 
@@ -83,6 +86,7 @@ export function Facets(props: PropertiesProps) {
   const setEditing = (id: string, on: boolean) => (OPTIONAL.has(id) ? ed.chipProps(id as Optional) : ed.fixedChip(id)).onEditingChange(on)
   const close = () => { if (ed.editing) setEditing(ed.editing, false) }
   const origin = originOf(task)
+  const shownLocation = useShownLocation(task)
 
   const revealed = useMemo(() => {
     const ids = new Set<string>()
@@ -99,6 +103,7 @@ export function Facets(props: PropertiesProps) {
     originText: origin ? originText(origin) : null,
     originTitle: origin?.title ?? null,
     originLinked: !!origin?.url,
+    locationText: shownLocation ? locationLabel(shownLocation) || t('Location') : null,
     labels: m.labels,
     reminders: m.reminders,
     blockerTitles: m.blockers.map((b) => b.title),
@@ -127,6 +132,7 @@ export function Facets(props: PropertiesProps) {
       {line('when', 'calendar-days', t('When'), facets.when)}
       {line('how', 'flag', t('How'), facets.how)}
       {facets.who.length > 0 && line('who', 'users', t('Who'), facets.who)}
+      <LocationPreview shown={shownLocation} />
       {!readOnly && <AddMenu task={task} userId={userId} m={m} />}
       {!readOnly && ed.editing && (
         <PartEditor id={ed.editing} props={props} m={m} anchor={anchor} segment={segment} onSegment={setSegment} onClose={close} />
@@ -155,9 +161,10 @@ function PartEditor({ id, props, m, anchor, segment, onSegment, onClose }: {
       due: task.due ? () => act(setDueWithUndo(task.id, null)) : undefined,
       start: task.start ? () => void unparkTask(task.id) : undefined,
       deadline: task.deadline ? () => act(updateTask(task.id, { deadline: null })) : undefined,
+      repeat: task.recurrence ? () => act(setRecurrence(task.id, null)) : undefined,
     }
     return frame('calendar-days', t('When'), <WhenControl task={task} readOnly={readOnly} segment={segment} onOpen={onOpen} />, clear[segment],
-      { header: <WhenSegmentPicker value={segment} onChange={onSegment} />, width: 'sm:w-96' })
+      { header: <WhenSegmentPicker value={segment} onChange={onSegment} />, width: 'sm:w-[28rem]' })
   }
 
   switch (id) {
@@ -166,7 +173,7 @@ function PartEditor({ id, props, m, anchor, segment, onSegment, onClose }: {
         <div className="space-y-2">
           {childCount > 0 && <p className="text-meta text-muted">{t('{n, plural, one {Moving this task moves its subtask too.} other {Moving this task moves its subtasks too.}}', { n: childCount })}</p>}
           <ComboboxPanel<PickerItem> label={t('Project')} placeholder={t('Find or create a project…')} source={m.projectItems}
-            getKey={itemKey} getLabel={itemLabel} getPath={itemPath} getSecondary={itemMeta}
+            getKey={itemKey} getLabel={itemLabel} getPath={itemPath} getSecondary={itemMeta} getKeywords={itemKeywords}
             pinned={m.projectPins} selected={[m.currentProject?.key ?? INBOX_KEY]} rankContext="task.project"
             renderLeading={(i) => (i.key === INBOX_KEY ? <Icon name="inbox" className="text-faint" /> : <Dot color={i.color} />)}
             onPick={async (i) => { await m.moveTo(i.value); onClose() }}
@@ -192,6 +199,9 @@ function PartEditor({ id, props, m, anchor, segment, onSegment, onClose }: {
           {m.parentError && <p role="alert" className="text-meta text-danger">{m.parentError}</p>}
         </div>
       ), task.parent_id ? () => void m.changeParent(null) : undefined)
+    case 'location':
+      return frame('map-pin', t('Location'), <LocationEditor task={task} onClose={onClose} />,
+        task.location != null ? () => act(setTaskLocation(task.id, null)) : undefined, { width: 'sm:w-[26rem]' })
     case 'priority':
       return frame('flag', t('Priority'), (
         <div className="flex gap-1.5" role="group" aria-label={t('Priority')}>
@@ -248,6 +258,7 @@ function AddMenu({ task, userId, m }: { task: Task; userId?: string; m: Properti
     { title: t('Where'), offers: [
       { id: 'section', label: t('Section'), icon: 'kanban', when: offerSection },
       { id: 'parent', label: t('Parent task'), icon: 'corner-down-right' },
+      { id: 'location', label: t('Location'), icon: 'map-pin' },
     ] },
     { title: t('When'), offers: [
       { id: 'deadline', label: t('Deadline'), icon: 'hourglass', shortcut: keysOf('list.deadline') },

@@ -49,6 +49,7 @@ func (s *Server) registerAccountRoutes(mux *routes) {
 	s.registerDigestRoutes(mux)
 	s.registerSignupRoutes(mux)
 	s.registerPublicLinkRoutes(mux)
+	s.registerTaskPageRoutes(mux)
 
 	mux.handle("GET /api/v1/me", signedIn, s.handleMe)
 	mux.handle("GET /api/v1/tokens", signedIn, s.handleListTokens)
@@ -119,6 +120,8 @@ func (s *Server) registerFeatureRoutes(mux *routes) {
 	s.registerCalendarFeedRoutes(mux)
 	// Issue import (OpenSpec `issue-connections`); before MCP, whose resource reads it.
 	s.registerIssueRoutes(mux)
+	// Map proxy and its switches (OpenSpec `task-locations`).
+	s.registerMapRoutes(mux)
 	// Comments and activity (OpenSpec `comments-and-activity`).
 	s.registerCommentRoutes(mux)
 	s.registerTimeEntryRoutes(mux)
@@ -126,6 +129,8 @@ func (s *Server) registerFeatureRoutes(mux *routes) {
 	s.registerEncryptionRoutes(mux)
 	// Read-only MCP endpoint and its owner toggle (OpenSpec `mcp-server`).
 	s.registerMCPRoutes(mux)
+	// Device relay for encrypted accounts' MCP calls (OpenSpec `mcp-device-relay`).
+	s.registerRelayRoutes(mux)
 	// In-app assistant (OpenSpec `in-app-assistant`): settings, consent, usage
 	// and the turn route over the same tool registry.
 	s.registerAssistantRoutes(mux)
@@ -172,6 +177,14 @@ func (s *Server) registerWebAppRoutes(mux *routes, web http.Handler) {
 			w.Header().Set("X-Robots-Tag", "noindex, nofollow")
 			w.Header().Set("Referrer-Policy", "no-referrer")
 			web.ServeHTTP(w, r)
+		})
+		// A task page (task-pages D8): its own small document, t.html, never the
+		// app; no indexing, no referrer, never stored by a cache, no cookie.
+		mux.handle("GET /t/", public("a task page; its data comes from the task page API"), func(w http.ResponseWriter, r *http.Request) {
+			publicHeaders(w)
+			r2 := r.Clone(r.Context())
+			r2.URL.Path = "/t.html"
+			web.ServeHTTP(noStoreWriter{w}, r2)
 		})
 	}
 }

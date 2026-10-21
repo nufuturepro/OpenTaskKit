@@ -26,10 +26,12 @@ import (
 	"github.com/pixari/opentodo/internal/importer"
 	"github.com/pixari/opentodo/internal/issues"
 	"github.com/pixari/opentodo/internal/mail"
+	"github.com/pixari/opentodo/internal/maps"
 	"github.com/pixari/opentodo/internal/mcp"
 	"github.com/pixari/opentodo/internal/notify"
 	"github.com/pixari/opentodo/internal/oidc"
 	"github.com/pixari/opentodo/internal/push"
+	"github.com/pixari/opentodo/internal/relay"
 	"github.com/pixari/opentodo/internal/settings"
 	opsync "github.com/pixari/opentodo/internal/sync"
 	"github.com/pixari/opentodo/internal/webhook"
@@ -91,6 +93,8 @@ type Server struct {
 	smtpTestLimiter *rateLimiter
 	// public holds the public-link limiters (OpenSpec `public-links`).
 	public publicLimiters
+	// pages limits task pages (OpenSpec task-pages), see taskpages.go.
+	pages taskPageLimiters
 	// importer previews, runs and undoes file imports (OpenSpec `data-import`).
 	importer *importer.Service
 	// hooks manages outbound webhooks; nil when not wired (routes answer 503).
@@ -122,6 +126,10 @@ type Server struct {
 	issuesOn     caldavState
 	issueWorker  *issues.Worker
 	issueLimiter *rateLimiter
+	// maps is the map proxy and mapsLimiter the per-user search limit (OpenSpec
+	// `task-locations`); see maps.go.
+	maps        *maps.Service
+	mapsLimiter *rateLimiter
 	// mcpSettings is the owner's AI assistants toggle and mcp the read-only MCP
 	// server behind /mcp (OpenSpec `mcp-server`); see mcp.go.
 	mcpSettings *mcp.Settings
@@ -130,6 +138,10 @@ type Server struct {
 	// users' "Allow AI assistants to make changes" switches (mcp-write-tools).
 	agentTools  *agenttools.Registry
 	agentAccess *agenttools.Access
+	// relayStore and relayHub let an encrypted account's opted-in device answer
+	// MCP tool calls (mcp-device-relay); see relay.go.
+	relayStore *relay.Store
+	relayHub   *relay.Hub
 	// email is email capture (OpenSpec `email-to-task`); emailLimiter caps
 	// inbox changes and rotations per account (30/hour).
 	email        *email.Service

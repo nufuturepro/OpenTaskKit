@@ -1,4 +1,4 @@
-import { Button, Icon, IconButton, type IconName, isIconName, MenuItem, MenuSeparator, ReadAs, SidebarGroup, SidebarGroupAction, SidebarItem, StatusDot, Menu, Tooltip, useMediaQuery, useScrollEdges } from '../ui'
+import { Button, CatalogueIcon, Icon, IconButton, type IconName, isCatalogueIcon, MenuItem, MenuSeparator, ReadAs, SidebarGroup, SidebarGroupAction, SidebarItem, StatusDot, Menu, Tooltip, useMediaQuery, useScrollEdges } from '../ui'
 import { keysOf, SHORTCUTS } from '../lib/shortcuts'
 import { useShortcutHints } from './shortcuts/hints'
 
@@ -17,7 +17,7 @@ import { dailyDue, dayClosed, monthlyDue, reviewAgo, reviewDue } from '../lib/re
 import { formatInstant } from '../lib/dates'
 import { readMethodMode, type MethodMode } from '../lib/method/mode'
 import { SidebarFooter } from './SidebarFooter'
-import { buildProjectTree, collapseAllProjects, expandAllProjects, expandAncestorsOf, openCountsByProject, readCollapsed, siblingEdges, toggleCollapsedProject, visibleProjects, type ProjectNode } from '../lib/projects'
+import { buildProjectTree, collapseAllProjects, expandAllProjects, expandAncestorsOf, openCountsByProject, projectPath, readCollapsed, siblingEdges, toggleCollapsedProject, visibleProjects, type ProjectNode } from '../lib/projects'
 import { flattenTree } from '../lib/tree'
 import type { Label, Project, Review, Task, User, View } from '../lib/types'
 import { useTrackedTotals } from '../lib/timeEntries'
@@ -30,16 +30,18 @@ import { useFavourites } from './useFavourites'
 import { useToday, useViewerZone, useViews } from './useViews'
 import { MAX_INDENT } from './TaskRow'
 import { navigate, type Route } from './router'
-import { useOpenTasks } from '../lib/liveTasks'
+import { useLiveTasks, useOpenTasks } from '../lib/liveTasks'
 import { beginDrag } from '../lib/dnd'
 import { moveProjectBy, moveProjectTo } from '../lib/move'
-import { canEditProject, roleOf } from '../lib/sharing'
+import { canEditProject, canEditTasks, roleOf } from '../lib/sharing'
+import { taskDrop } from './taskDrop'
 import { dropTarget, sameDrop, zoneUnder, type DropAt } from './listDrop'
 import { formatUnread, unreadCounts, type UnreadCounts } from '../lib/feed'
 import { matchSidebar } from '../lib/sidebarFind'
 import { sidebarFind } from './signals'
 import { t } from '../lib/i18n'
 import { act } from './actionError'
+import { countInbox } from '../lib/inbox'
 
 
 /**
@@ -49,8 +51,28 @@ import { act } from './actionError'
  */
 export const MORE_MENU_QUERY = '(min-width: 768px) and (pointer: fine)'
 
-/** Indentation per level in the sidebar; capped so a deep tree still fits a 360 px screen. */
-const INDENT_REM = 0.75
+/** Indentation per level in the sidebar (16 px, ux-feedback-2 D6); capped so a deep tree still fits a 360 px screen. */
+const INDENT_REM = 1
+/** The Inbox destination takes dropped tasks (ux-feedback-2 D4): a task dropped on it leaves its project. */
+const INBOX_DROP = { 'data-task-drop': taskDrop.inbox, className: 'data-drop-active:ring-2 data-drop-active:ring-accent' }
+
+/** 2 px between project rows; 6 px after the last row of an expanded top-level project's subtree (ux-feedback-2 D6). */
+const rowGap = (rows: readonly { depth: number }[], i: number) => (rows[i].depth > 0 && (rows[i + 1]?.depth ?? 0) === 0 ? 'mb-1.5' : 'mb-0.5')
+
+/** One guide line per ancestor level beside a sub-project's row, bridging the 2 px gap below it; decoration only. */
+function GuideLines({ levels }: { levels: number }) {
+  return <>{Array.from({ length: levels }, (_, a) => (
+    <span key={a} aria-hidden="true" data-guide-line={a} className="pointer-events-none absolute -bottom-0.5 top-0 w-px bg-(--ot-border)"
+      style={{ left: `calc(${a * INDENT_REM}rem + ${GUIDE_OFFSET_PX}px)` }} />
+  ))}</>
+}
+
+/**
+ * Where an ancestor's guide line runs, from the row's left edge at that ancestor's
+ * indentation (ux-feedback-2 D6): past the chevron slot (16 px) and the item's
+ * padding (8 px), at the centre of its 20 px leading dot or icon.
+ */
+const GUIDE_OFFSET_PX = 34
 
 /**
  * Whether a group is open on this device (app-shell "Sidebar structure"): More is closed
@@ -125,6 +147,7 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
   // Live projects (archived included) for saved views; the tree shows the visible ones.
   const allProjects = useProjects()
   const projects = useMemo(() => visibleProjects(allProjects), [allProjects])
+  const projectById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects])
   // Shared projects carry a badge (project-sharing); read from the cached memberships.
   const memberMap = useMembershipMap()
   const sharedIds = useMemo(() => new Set(memberMap.keys()), [memberMap])
@@ -152,23 +175,22 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
   const unread = useLiveQuery(() => unreadCounts(), [], { byProject: new Map(), total: 0 } as UnreadCounts)
 
   const openTasks = useOpenTasks()
+  const liveTasks = useLiveTasks()
   const zone = useViewerZone()
   // Re-read every minute, so the counts move to the new day at midnight.
   const today = useToday()
   const counts = useMemo(() => {
-    let inbox = 0
     let due = 0
     let assigned = 0
     // Deferred and parked tasks are not counted (someday-and-evening D2).
     const active = openTasks.filter((tk) => openCount(tk, today))
     for (const task of active) {
-      if (task.project_id === null) inbox++
       if (task.assignee_id === user.id) assigned++
     }
     for (const item of openTasks) if (inToday(item, today)) due++
-    return { inbox, today: due, assigned, byProject: openCountsByProject(active, tree, collapsed_) }
+    return { inbox: countInbox(openTasks, liveTasks ?? openTasks), today: due, assigned, byProject: openCountsByProject(active, tree, collapsed_) }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- zone: a zone change re-groups zoned dues (absolute-datetimes)
-  }, [openTasks, tree, collapsed_, user.id, zone, today])
+  }, [openTasks, liveTasks, tree, collapsed_, user.id, zone, today])
 
   // Navigating to a sub-project reveals it: its ancestors leave the collapsed set.
   // Only on a real route change, not on mount or on project edits, so a reload (or a
@@ -335,7 +357,7 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
     const active = calendar(r.view) ? calendar(route.view) : JSON.stringify(r) === JSON.stringify(route)
     // With "Show shortcut hints" on, the destination prints its `g` key (keyboard-shortcuts "Hints preference").
     const go = hints && !collapsed && badge == null ? GO_KEYS[r.view] : undefined
-    const node = <SidebarItem key={label} icon={icon} label={label} count={count} countLabel={openTasksLabel(count)} badge={go ? <kbd className="ui-kbd" data-go-hint>{go}</kbd> : badge} active={active} collapsed={collapsed} onClick={() => navigate(r)} data-destination={r.view} aria-description={tip && badge == null ? tip : undefined} />
+    const node = <SidebarItem key={label} icon={icon} label={label} count={count} countLabel={openTasksLabel(count)} badge={go ? <kbd className="ui-kbd" data-go-hint>{go}</kbd> : badge} active={active} collapsed={collapsed} onClick={() => navigate(r)} data-destination={r.view} aria-description={tip && badge == null ? tip : undefined} {...(r.view === 'inbox' ? INBOX_DROP : {})} />
     return tip && !collapsed ? <Tooltip key={label} label={tip} side="right">{node}</Tooltip> : node
   }
 
@@ -349,23 +371,7 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
   const { due, text: reviewText, marker: reviewDot } = reviewMarker(review, method, today)
   // Each More destination once, as data: an item in the inline group, or a menu item
   // (with its badge as the item's description) in the desktop menu.
-  const moreEntries: MoreEntry[] = [
-    // The Open Loops views (open-loops-method D7, D9), in every mode.
-    { id: 'loop', route: { view: 'loop' }, label: t('Loop home'), icon: 'rotate-ccw' },
-    { id: 'next', route: { view: 'next' }, label: t('Next', { context: 'method' }), icon: 'arrow-right' },
-    { id: 'waiting', route: { view: 'waiting' }, label: t('Waiting', { context: 'method' }), icon: 'hourglass' },
-    { id: 'anytime', route: { view: 'anytime' }, label: t('Anytime'), icon: 'layers' },
-    { id: 'someday', route: { view: 'someday' }, label: t('Someday'), icon: 'archive' },
-    // Assigned to me only where tasks can be assigned: when the account shares a project.
-    ...(sharedIds.size > 0 ? [{ id: 'assigned' as const, route: { view: 'assigned' } as Route, label: t('Assigned to me'), icon: 'user-check' as IconName }] : []),
-    { id: 'completed', route: { view: 'completed' }, label: t('Completed'), icon: 'circle-check-big' },
-    { id: 'review', route: { view: 'review' }, label: t('Review'), icon: 'clipboard-check', badge: reviewDot, note: reviewText, tip: reviewText },
-    { id: 'stats', route: { view: 'stats' }, label: t('Statistics'), icon: 'chart-column' },
-    ...(sharedIds.size > 0 ? [{ id: 'feed' as const, route: { view: 'feed' } as Route, label: t('Updates'), icon: 'newspaper' as IconName, badge: unreadBadge, note: unread.total > 0 ? `${formatUnread(unread.total)} ${t('unread updates')}` : undefined }] : []),
-    { id: 'trash', route: { view: 'trash' }, label: t('Trash'), icon: 'trash-2' },
-    { id: 'filter', route: { view: 'filter' }, label: t('Filter'), icon: 'filter' },
-    ...(assistant?.available ? [{ id: 'ask' as const, route: { view: 'ask' } as Route, label: t('Ask'), icon: 'message-circle' as IconName }] : []),
-  ]
+  const moreEntries = moreEntriesOf({ shared: sharedIds.size > 0, reviewDot, reviewText, unreadBadge, unreadTotal: unread.total, ask: !!assistant?.available })
   const first = method === 'first'
   const calendarMode = readCalendarMode()
   const moreList = first ? firstModeMore(moreEntries, calendarMode) : moreEntries
@@ -432,17 +438,19 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
         </Menu>
       </>)}>
         <ul role="tree">
-          {shownRows.map((n) => {
+          {shownRows.map((n, i) => {
             const p = n.item
+            const levels = collapsed ? 0 : Math.min(n.depth, MAX_INDENT)
             const has = n.children.length > 0
             const isCollapsed = collapsed_.has(n.id)
             const count = counts.byProject.get(n.id)
             const drop = dropAt?.id === n.id ? dropAt.zone : null
             return (
               <li key={n.id} role="treeitem" aria-level={n.depth + 1} aria-expanded={has ? !isCollapsed : undefined}
-                data-project-row={n.id} data-drop-target={`project:${n.id}`}
+                data-project-row={n.id} data-drop-target={`project:${n.id}`} data-task-drop={canEditTasks(roleOf(n.id, memberMap)) ? taskDrop.project(n.id) : undefined}
                 onPointerDown={movable(n.id) ? (e) => startDrag(e, n) : undefined}
-                className={`group relative flex items-center rounded-control ${drop === 'inside' ? 'ring-2 ring-accent' : ''}`} style={{ paddingLeft: collapsed ? 0 : `${Math.min(n.depth, MAX_INDENT) * INDENT_REM}rem` }}>
+                className={`group relative flex items-center rounded-control data-drop-active:ring-2 data-drop-active:ring-accent ${rowGap(shownRows, i)} ${drop === 'inside' ? 'ring-2 ring-accent' : ''}`} style={{ paddingLeft: collapsed ? 0 : `${levels * INDENT_REM}rem` }}>
+                <GuideLines levels={levels} />
                 {(drop === 'before' || drop === 'after') && (
                   <span aria-hidden="true" data-drop-indicator={drop}
                     className={`pointer-events-none absolute inset-x-0 h-0.5 rounded-control bg-accent ${drop === 'before' ? '-top-px' : '-bottom-px'}`} />
@@ -468,6 +476,7 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
                   onClick={() => navigate({ view: 'project', id: n.id })}
                   onKeyDown={(e: KeyboardEvent<HTMLButtonElement>) => onRowKey(e, n)}
                   label={p.name}
+                  title={collapsed ? undefined : projectPath(p, projectById)}
                   leading={<ProjectMark project={p} />}
                   badge={<>
                     {sharedIds.has(n.id) && <span className="text-faint"><Icon name="users" size={14} /><span className="sr-only">{t('Shared project')}</span></span>}
@@ -528,8 +537,10 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
 
 /** A project's mark: its icon in its colour, or the colour dot (project-organization "Project icon"). */
 export function ProjectMark({ project, size = 'sm' }: { project: Pick<Project, 'color' | 'icon'>; size?: 'sm' | 'md' }) {
-  if (project.icon && isIconName(project.icon)) return <span style={{ color: project.color }} className="flex items-center"><Icon name={project.icon} size={size === 'md' ? 'md' : 'sm'} /></span>
-  return <span className={`inline-block shrink-0 rounded-full ${size === 'md' ? 'h-3 w-3' : 'h-2.5 w-2.5'}`} style={{ backgroundColor: project.color }} />
+  const dot = <span className={`inline-block shrink-0 rounded-full ${size === 'md' ? 'h-3 w-3' : 'h-2.5 w-2.5'}`} style={{ backgroundColor: project.color }} />
+  // A catalogue icon (icons-and-section-style); the dot while the catalogue loads and for a name this device does not know.
+  if (!project.icon || !isCatalogueIcon(project.icon)) return dot
+  return <span style={{ color: project.color }} className="flex items-center"><CatalogueIcon name={project.icon} size={size === 'md' ? 'md' : 'sm'} fallback={dot} /></span>
 }
 
 /** Unread activity count (activity-feed): others' changes since the project's activity was last seen. */
@@ -543,7 +554,30 @@ function UnreadBadge({ n, label }: { n: number; label: string }) {
 
 /** More as a menu (sidebar-compact-desktop): one row after the primary destinations, its badge on the row, each destination a menu item. */
 // Each More destination once, as data: an item in the inline group, or a menu item.
-type MoreEntry = { id: Promotable | 'ask' | 'review' | 'stats' | 'upcoming' | 'calendar'; route: Route; label: string; icon: IconName; badge?: ReactNode; note?: string; tip?: string }
+type MoreEntry = { id: Promotable | 'ask' | 'review' | 'stats' | 'upcoming' | 'calendar' | 'places'; route: Route; label: string; icon: IconName; badge?: ReactNode; note?: string; tip?: string }
+
+/** The More group's destinations, each once, as data (app-shell "Sidebar structure"). */
+function moreEntriesOf(o: { shared: boolean; reviewDot: ReactNode; reviewText: string; unreadBadge: ReactNode; unreadTotal: number; ask: boolean }): MoreEntry[] {
+  return [
+    // The Open Loops views (open-loops-method D7, D9), in every mode.
+    { id: 'loop', route: { view: 'loop' }, label: t('Loop home'), icon: 'rotate-ccw' },
+    { id: 'next', route: { view: 'next' }, label: t('Next', { context: 'method' }), icon: 'arrow-right' },
+    { id: 'waiting', route: { view: 'waiting' }, label: t('Waiting', { context: 'method' }), icon: 'hourglass' },
+    { id: 'anytime', route: { view: 'anytime' }, label: t('Anytime'), icon: 'layers' },
+    { id: 'someday', route: { view: 'someday' }, label: t('Someday'), icon: 'archive' },
+    // Assigned to me only where tasks can be assigned: when the account shares a project.
+    ...(o.shared ? [{ id: 'assigned' as const, route: { view: 'assigned' } as Route, label: t('Assigned to me'), icon: 'user-check' as IconName }] : []),
+    { id: 'completed', route: { view: 'completed' }, label: t('Completed'), icon: 'circle-check-big' },
+    { id: 'review', route: { view: 'review' }, label: t('Review'), icon: 'clipboard-check', badge: o.reviewDot, note: o.reviewText, tip: o.reviewText },
+    { id: 'stats', route: { view: 'stats' }, label: t('Statistics'), icon: 'chart-column' },
+    ...(o.shared ? [{ id: 'feed' as const, route: { view: 'feed' } as Route, label: t('Updates'), icon: 'newspaper' as IconName, badge: o.unreadBadge, note: o.unreadTotal > 0 ? `${formatUnread(o.unreadTotal)} ${t('unread updates')}` : undefined }] : []),
+    // Saved locations (task-locations "Locations page"): in More in every mode, never primary.
+    { id: 'places', route: { view: 'places' }, label: t('Locations'), icon: 'map-pin' },
+    { id: 'trash', route: { view: 'trash' }, label: t('Trash'), icon: 'trash-2' },
+    { id: 'filter', route: { view: 'filter' }, label: t('Filter'), icon: 'filter' },
+    ...(o.ask ? [{ id: 'ask' as const, route: { view: 'ask' } as Route, label: t('Ask'), icon: 'message-circle' as IconName }] : []),
+  ]
+}
 
 /**
  * The Review entry's marker (weekly-review "Rhythm markers", quiet-sidebar D4): the

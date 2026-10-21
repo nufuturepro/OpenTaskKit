@@ -323,6 +323,16 @@ export function describeDue(due: Due | null, today = logicalToday(), zone?: stri
   return { label: `${formatDate(local.date, 'compact', p, today)}${time}`, tone: 'later', time: at }
 }
 
+/**
+ * A due as one phrase in the long style ("Wed 21 Oct 3:00 PM"), in the
+ * viewer's zone and the user's date and time formats (ux-feedback-2 D3): the one
+ * way a scheduling surface shows a due with its time, never `due.time` raw.
+ */
+export function formatDueLong(due: Due, zone?: string, p: ResolvedDateTime = current): string {
+  const local = localDueOf(due, zone)
+  return local.time ? `${formatDate(local.date, 'long', p)} ${formatTime(local.time, p)}` : formatDate(local.date, 'long', p)
+}
+
 /** Whole days from calendar date `from` to `to` (both `YYYY-MM-DD`; negative when `to` is earlier). */
 export function daysBetweenISO(from: string, to: string): number {
   const utc = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
@@ -588,4 +598,48 @@ export function weekStartOf(iso: string, p: ResolvedDateTime = current): string 
 export function weekDays(iso: string, p: ResolvedDateTime = current): string[] {
   const start = weekStartOf(iso, p)
   return Array.from({ length: 7 }, (_, i) => addDaysISO(start, i))
+}
+
+/** A quick choice of the When popover's date segments (task-panel-polish D2). */
+export interface QuickChoice {
+  id: string
+  label: string
+  /** The date it means, `null` for "No date", `'someday'` for Someday. */
+  date: string | null | 'someday'
+}
+
+/**
+ * The quick choices of a date segment, from one table so the words match the row and
+ * the quick-add parser: Do on (Today, Tomorrow, This weekend, Next week, No date),
+ * Start (Today, Tomorrow, Next week, Someday) and Deadline (End of week, End of
+ * month, In 2 weeks). Weeks follow the user's first day of the week.
+ */
+export function quickChoices(kind: 'due' | 'start' | 'deadline', today = logicalToday(), p: ResolvedDateTime = current): QuickChoice[] {
+  const weekStart = weekStartOf(today, p)
+  const nextWeek = addDaysISO(weekStart, 7)
+  // This weekend: the coming Saturday, or today on a weekend day.
+  const dow = dateOf(today).getDay()
+  const weekend = dow === 6 || dow === 0 ? today : addDaysISO(today, 6 - dow)
+  const [y, m] = today.split('-').map(Number)
+  const endOfMonth = `${today.slice(0, 7)}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`
+  switch (kind) {
+    case 'due': return [
+      { id: 'today', label: t('Today'), date: today },
+      { id: 'tomorrow', label: t('Tomorrow'), date: addDaysISO(today, 1) },
+      { id: 'weekend', label: t('This weekend'), date: weekend },
+      { id: 'next-week', label: t('Next week'), date: nextWeek },
+      { id: 'none', label: t('No date'), date: null },
+    ]
+    case 'start': return [
+      { id: 'today', label: t('Today'), date: today },
+      { id: 'tomorrow', label: t('Tomorrow'), date: addDaysISO(today, 1) },
+      { id: 'next-week', label: t('Next week'), date: nextWeek },
+      { id: 'someday', label: t('Someday'), date: 'someday' },
+    ]
+    case 'deadline': return [
+      { id: 'end-of-week', label: t('End of week'), date: addDaysISO(weekStart, 6) },
+      { id: 'end-of-month', label: t('End of month'), date: endOfMonth },
+      { id: 'two-weeks', label: t('In 2 weeks'), date: addDaysISO(today, 14) },
+    ]
+  }
 }
