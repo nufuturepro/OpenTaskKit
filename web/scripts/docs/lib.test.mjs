@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { fileURLToPath } from 'node:url'
 import { createSlugger, parseFrontMatter, renderPage, resolveLink, sanitizeHtml, validateFrontMatter } from './lib.mjs'
 import { keysHtml, loadShortcuts, shortcutsMarkdown, splitContext, START, END } from './shortcuts.mjs'
 import { QUICK_ADD_SYNTAX, SHORTCUTS, SHORTCUT_SECTIONS } from '../../src/lib/shortcuts.ts'
@@ -48,8 +49,8 @@ describe('link rewriting', () => {
     const site = renderPage(md, ctx, 'site').html
     expect(site).toContain('<a href="/docs/filters/#saved-views">Filters</a>')
     expect(site).toContain('<a href="/docs/self-hosting/docker/">Docker</a>')
-    expect(site).toContain('<a href="https://github.com/pixari/opentodo/blob/main/README.md#configuration" rel="noopener">Readme</a>')
-    expect(site).toContain('href="https://github.com/pixari/opentodo/tree/main/extension"')
+    expect(site).toContain('<a href="https://github.com/nufuturepro/OpenTaskKit/blob/main/README.md#configuration" rel="noopener">Readme</a>')
+    expect(site).toContain('href="https://github.com/nufuturepro/OpenTaskKit/tree/main/extension"')
     expect(site).toContain('<a href="https://example.com" rel="noopener">web</a>')
     const app = renderPage(md, ctx, 'app').html
     expect(app).toContain('<a href="/docs/filters/#saved-views" data-doc="filters">Filters</a>')
@@ -88,7 +89,7 @@ describe('inline HTML allow-list', () => {
 
 describe('keyboard guide', () => {
   it('lists every listed shortcut of the registry once, under its section (hidden rows left out)', async () => {
-    const { rows, quickAdd, sections } = await loadShortcuts(new URL('../../..', import.meta.url).pathname)
+    const { rows, quickAdd, sections } = await loadShortcuts(fileURLToPath(new URL('../../..', import.meta.url)))
     const md = shortcutsMarkdown({ rows, quickAdd, sections })
     expect(md.startsWith(START) && md.endsWith(END)).toBe(true)
     const tableRows = md.split('\n').filter((l) => l.startsWith('| ') && !l.startsWith('| Keys') && !l.startsWith('| Type') && !l.startsWith('| ---'))
