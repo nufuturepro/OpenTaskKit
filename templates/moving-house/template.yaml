@@ -1,4 +1,4 @@
-# Moving house: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Moving house: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Moving house
 summary: Everything from notice periods to the last box, in sections you can share with everyone who is moving.
 description: |
@@ -16,7 +16,7 @@ makeItYours:
 category: home
 icon: car
 layout: board
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - sharing.md

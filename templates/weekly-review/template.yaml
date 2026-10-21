@@ -1,4 +1,4 @@
-# Weekly review: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Weekly review: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Weekly review
 summary: A thirty-minute Friday ritual that empties your inboxes, looks back at the week and plans the next one.
 description: |
@@ -18,7 +18,7 @@ makeItYours:
 category: method
 icon: book-open
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - recurrence.md
@@ -41,7 +41,7 @@ projects:
             subtasks:
               - title: Paper notes and receipts
               - title: Email flagged for follow-up
-              - title: Inbox in OpenTodo
+              - title: Inbox in OpenTaskKit
           - title: Close open loops from meetings
             due: +0d
             recurrence: every friday

@@ -1,7 +1,7 @@
 // Package maps is the server's map proxy (OpenSpec change task-locations,
 // design D3, D4, D6): it serves a map style, vector tiles, fonts and sprites
 // from the configured tile provider and address search from a Photon-compatible
-// geocoder, so a browser only ever talks to the OpenTodo server. Requests go
+// geocoder, so a browser only ever talks to the OpenTaskKit server. Requests go
 // out with an identifying User-Agent and nothing of the viewer's: no cookie, no
 // token, no client address. Tiles, fonts and sprites are cached on disk.
 package maps
@@ -87,7 +87,7 @@ type upstream struct {
 // New wires the proxy. client must time out and not follow redirects blindly.
 func New(store *settings.Store, env config.MapsConfig, demo bool, client *http.Client, cache *Cache, version string) *Service {
 	return &Service{store: store, env: env, demo: demo, client: client, cache: cache, now: time.Now,
-		ua: "OpenTodo/" + version + " (+https://open-todo.app)"}
+		ua: "OpenTaskKit/" + version + " (+https://open-todo.app)"}
 }
 
 // Effective reads the owner's settings with the variable overrides applied.

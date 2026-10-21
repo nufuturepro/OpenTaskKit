@@ -1,6 +1,6 @@
 # The template library
 
-Every folder here is one project template that ships with OpenTodo. In the app it appears under **From a template…** in the sidebar, offline, in the reader's language when a translation exists. The website shows the same library from the release's site bundle.
+Every folder here is one project template that ships with OpenTaskKit. In the app it appears under **From a template…** in the sidebar, offline, in the reader's language when a translation exists. The website shows the same library from the release's site bundle.
 
 Anyone can propose a template with one pull request: add a folder, run the check, open the pull request. This page is the whole format.
 

@@ -1,4 +1,4 @@
-# Study plan: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Study plan: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Study plan
 summary: Weekly study blocks, revision and exam dates for a course or certification.
 description: |
@@ -13,7 +13,7 @@ makeItYours:
   - Add a `@revise` label and a saved view for the last two weeks.
 category: study
 icon: graduation-cap
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - time-blocking.md

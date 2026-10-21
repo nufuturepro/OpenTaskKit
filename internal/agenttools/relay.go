@@ -248,7 +248,7 @@ func relayToolErr(err error) error {
 	}
 	switch re.Code {
 	case relay.CodeUnavailable:
-		return toolErr(re.Code, "no device that answers AI connectors is online: open OpenTodo on a device where \"Answer AI connectors from this device\" is on, and unlock it")
+		return toolErr(re.Code, "no device that answers AI connectors is online: open OpenTaskKit on a device where \"Answer AI connectors from this device\" is on, and unlock it")
 	case relay.CodeTimeout:
 		return toolErr(re.Code, "the user's device did not answer in time; nothing was changed")
 	case relay.CodeBusy:

@@ -1,8 +1,8 @@
-# Getting Things Done setup: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Getting Things Done setup: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Getting Things Done setup
 summary: Contexts, a waiting-for list and a someday list, ready for the GTD method in a few minutes.
 description: |
-  Getting Things Done works with any tool that has an inbox, contexts and lists. In OpenTodo, contexts are [labels](https://open-todo.app/docs/labels-and-filters/) and each list is a saved filter.
+  Getting Things Done works with any tool that has an inbox, contexts and lists. In OpenTaskKit, contexts are [labels](https://open-todo.app/docs/labels-and-filters/) and each list is a saved filter.
 
   The template creates the [labels](https://open-todo.app/docs/labels-and-filters/) `@home`, `@computer`, `@phone`, `@errand`, `@waiting` and `@someday`, a GTD project with sections for next actions, waiting-for and someday, and a weekly reminder to check every project for a next action.
 
@@ -18,7 +18,7 @@ makeItYours:
 category: method
 icon: lightbulb
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - labels-and-filters.md

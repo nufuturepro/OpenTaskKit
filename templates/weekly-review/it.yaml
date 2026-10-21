@@ -1,5 +1,5 @@
 # Revisione settimanale: Italian text for templates/weekly-review/template.yaml (templates/README.md, "Translations").
-sourceHash: sha-0853977b9182
+sourceHash: sha-e07082345544
 title: "Revisione settimanale"
 summary: "Un rituale del venerdì di trenta minuti che svuota le inbox, guarda indietro alla settimana e pianifica la prossima."
 description: "Una revisione settimanale mantiene affidabile una lista di attività. Una volta a settimana togli tutto dalla testa, guardi cosa è successo e decidi cosa conta adesso.\n\nQuesto modello ti dà un progetto con tre sezioni che si ripetono [ogni venerdì](https://open-todo.app/docs/recurrence/). Ogni attività ha una piccola stima, così l'intera revisione sta in circa trenta minuti nei [calendari giornaliero e settimanale](https://open-todo.app/docs/time-blocking/).\n\nAbbinalo a una vista salvata come `@revisione & due <= today`, fissata nella barra laterale, e hai una dashboard di revisione a un clic. La [guida ai filtri](https://open-todo.app/docs/filters/) spiega il linguaggio delle query.\n"
@@ -15,7 +15,7 @@ projects.0.sections.0.name: "Fare chiarezza"
 projects.0.sections.0.tasks.0.title: "Svuotare la inbox"
 projects.0.sections.0.tasks.0.subtasks.0.title: "Appunti di carta e scontrini"
 projects.0.sections.0.tasks.0.subtasks.1.title: "Email segnate da seguire"
-projects.0.sections.0.tasks.0.subtasks.2.title: "Inbox di OpenTodo"
+projects.0.sections.0.tasks.0.subtasks.2.title: "Inbox di OpenTaskKit"
 projects.0.sections.0.tasks.1.title: "Chiudere i punti aperti delle riunioni"
 projects.0.sections.1.name: "Guardare indietro"
 projects.0.sections.1.tasks.0.title: "Scorrere cosa hai completato questa settimana"

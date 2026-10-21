@@ -1,4 +1,4 @@
-# Meal planning: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Meal planning: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Meal planning
 summary: A weekly rhythm for choosing meals, writing the shopping list and prepping ahead.
 description: |
@@ -16,7 +16,7 @@ makeItYours:
 category: home
 icon: shopping-cart
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - recurrence.md

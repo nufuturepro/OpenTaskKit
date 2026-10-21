@@ -1,4 +1,4 @@
-# First 90 days in a new job: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# First 90 days in a new job: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: First 90 days in a new job
 summary: A plan for your first three months, split into learn, contribute and lead.
 description: |
@@ -14,7 +14,7 @@ makeItYours:
 category: work
 icon: briefcase
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - tasks-and-projects.md

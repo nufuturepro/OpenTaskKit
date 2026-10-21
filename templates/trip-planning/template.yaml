@@ -1,4 +1,4 @@
-# Trip planning: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Trip planning: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Trip planning
 summary: Bookings, documents and a packing list with subtasks, for a holiday or a work trip.
 description: |
@@ -16,7 +16,7 @@ makeItYours:
 category: personal
 icon: plane
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - tasks-and-projects.md

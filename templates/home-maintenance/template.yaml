@@ -1,4 +1,4 @@
-# Home maintenance: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Home maintenance: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Home maintenance
 summary: The yearly and seasonal jobs every home needs, repeating so you never have to remember them.
 description: |
@@ -14,7 +14,7 @@ makeItYours:
 category: home
 icon: wrench
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - recurrence.md

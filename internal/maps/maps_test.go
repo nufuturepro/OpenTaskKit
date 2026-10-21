@@ -126,7 +126,7 @@ func TestStyleIsRewrittenToTheServer(t *testing.T) {
 	if err != nil || string(sp) != "sprite:/sprites/ofm@2x.png" {
 		t.Fatalf("sprite = %q %v", sp, err)
 	}
-	if ua, _ := f.lastUA.Load().(string); !strings.HasPrefix(ua, "OpenTodo/test (+https://open-todo.app)") {
+	if ua, _ := f.lastUA.Load().(string); !strings.HasPrefix(ua, "OpenTaskKit/test (+https://open-todo.app)") {
 		t.Fatalf("user agent = %q", ua)
 	}
 	if f.sawCreds.Load() {

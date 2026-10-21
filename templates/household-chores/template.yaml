@@ -1,4 +1,4 @@
-# Household chores: a template of the OpenTodo library (templates/README.md). Licence: CC BY 4.0.
+# Household chores: a template of the OpenTaskKit library (templates/README.md). Licence: CC BY 4.0.
 title: Household chores
 summary: Daily, weekly and monthly chores on repeat, ready to share and assign in a household.
 description: |
@@ -16,7 +16,7 @@ makeItYours:
 category: home
 icon: house
 layout: list
-author: OpenTodo
+author: OpenTaskKit
 reviewed: 2026-10-15
 docs:
   - recurrence.md
