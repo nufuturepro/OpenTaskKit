@@ -16,7 +16,7 @@
 //     not text, and module-level text already goes through msg().
 // scripts/i18n/allow.txt lists permanent exceptions by file and literal.
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, sep } from 'node:path'
 import { calleeName, isSource, parse, rel, repo, ts, walk } from './source.mjs'
 
 export const PROPS = new Set([
@@ -50,13 +50,16 @@ const allowed = (allow, file, text) => allow.has(`${file}\u0000${text}`) || allo
 
 /** Problems in one file's text: "path:line: text". */
 export function untranslatedProblems(path, text, allow = new Set()) {
-  const sf = parse(path.endsWith('.tsx') ? path : `${path}.tsx`, text)
+  // The allow-list is written with forward slashes; normalise so a backslash
+  // path (Windows) matches the same entries, and reports read the same, everywhere.
+  const p = path.split(sep).join('/')
+  const sf = parse(p.endsWith('.tsx') ? p : `${p}.tsx`, text)
   const out = []
   const report = (node, shown) => {
     const t = shown.trim().replace(/\s+/g, ' ')
-    if (allowed(allow, path, t)) return
+    if (allowed(allow, p, t)) return
     const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf))
-    out.push(`${path}:${line + 1}: ${t.slice(0, 100)}`)
+    out.push(`${p}:${line + 1}: ${t.slice(0, 100)}`)
   }
   const inMessageCall = (n) => {
     for (let p = n.parent; p; p = p.parent) {

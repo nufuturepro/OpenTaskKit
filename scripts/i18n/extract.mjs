@@ -13,7 +13,7 @@
 // name is a product name and stays untranslated).
 // A context option makes the key `message|context`.
 import { readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { calleeName, contextOf, isSource, literalsOf, parse, rel, repo, ts, walk } from './source.mjs'
 
@@ -96,7 +96,7 @@ export function extract(root = repo) {
   const found = []
   for (const f of walk(join(root, 'web/src')).filter(isSource)) {
     const text = readFileSync(f, 'utf8')
-    if (f.endsWith('web/src/lib/shortcuts.ts')) found.push(...shortcutMessages(f, text))
+    if (f.split(sep).join('/').endsWith('web/src/lib/shortcuts.ts')) found.push(...shortcutMessages(f, text))
     found.push(...messagesIn(f, text))
   }
   const sw = join(root, 'web/public/push-sw.js')

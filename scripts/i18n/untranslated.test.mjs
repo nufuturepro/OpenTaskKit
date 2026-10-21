@@ -1,6 +1,7 @@
 // node --test scripts/i18n/untranslated.test.mjs (run by `make i18n-check`)
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { sep } from 'node:path'
 import { untranslated, untranslatedProblems } from './untranslated.mjs'
 
 const file = 'web/src/app/Fixture.tsx'
@@ -37,4 +38,12 @@ test('an allow-listed literal passes', () => {
 
 test('the app and shared UI are clean', () => {
   assert.deepEqual(untranslated(), [])
+})
+
+test('a platform-native path matches the allow-list and reports with forward slashes', () => {
+  const native = ['web', 'src', 'app', 'Fixture.tsx'].join(sep)
+  const allow = new Set([`web/src/app/Fixture.tsx\u0000Save`])
+  const src = "export const X = () => (\n  <div>\n    <button>Save</button>\n  </div>\n)\n"
+  assert.deepEqual(untranslatedProblems(native, src, allow), [])
+  assert.deepEqual(untranslatedProblems(native, src), ['web/src/app/Fixture.tsx:3: Save'])
 })
