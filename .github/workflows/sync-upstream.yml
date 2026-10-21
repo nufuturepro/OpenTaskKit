@@ -1,0 +1,84 @@
+# Opens a "Sync upstream vX.Y.Z" pull request when pixari/OpenTodo has a release this
+# repository has not merged yet (FORKING.md → Syncing an upstream release). Conflicts
+# cannot be resolved here, so they become an issue for a manual `scripts/sync-upstream.sh`.
+name: sync-upstream
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Upstream tag to sync (empty = latest release)'
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Find the latest upstream release
+        id: latest
+        run: |
+          set -eu
+          tag='${{ inputs.tag }}'
+          if [ -z "$tag" ]; then
+            tag=$(gh api repos/pixari/OpenTodo/releases/latest --jq .tag_name)
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if git rev-parse --verify --quiet "refs/tags/upstream-$tag" >/dev/null; then
+            echo "synced=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "synced=no" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Merge the release into a sync branch
+        if: steps.latest.outputs.synced == 'no'
+        run: |
+          set -eu
+          tag='${{ steps.latest.outputs.tag }}'
+          base=$(git rev-parse HEAD)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898009+github-actions[bot]@users.noreply.github.com"
+          git tag "upstream-$tag" "$tag"
+          git checkout -b "sync/upstream-$tag"
+          if ! git merge --no-ff "$tag" -m "Merge upstream $tag"; then
+            gh issue create -R "$GITHUB_REPOSITORY" \
+              --title "Sync upstream $tag needs a manual merge (conflicts)" \
+              --body "The automated sync hit conflicts. Resolve locally with \`scripts/sync-upstream.sh $tag\`; see FORKING.md for the brand overlay."
+            exit 1
+          fi
+          # Re-apply the brand sweep to what the merge brought in (FORKING.md → brand overlay).
+          git diff --name-only "$base" HEAD \
+            | grep -vE '^(docs/|skills/|openspec/|web/src/generated/)' \
+            | xargs -r grep -rlI 'OpenTodo' 2>/dev/null \
+            | xargs -r sed -i 's/OpenTodo/OpenTaskKit/g'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "brand: re-apply OpenTaskKit after upstream $tag"
+          fi
+          git push origin "sync/upstream-$tag"
+      - name: Open the sync PR
+        if: steps.latest.outputs.synced == 'no'
+        env:
+          TAG: ${{ steps.latest.outputs.tag }}
+        run: |
+          set -eu
+          gh pr create -R "$GITHUB_REPOSITORY" --base main --head "sync/upstream-$TAG" \
+            --title "Sync upstream $TAG" \
+            --body "Automated merge of upstream $TAG ([pixari/OpenTodo](https://github.com/pixari/OpenTodo)) with the brand sweep re-applied. The merged release is marked by the tag \`upstream-$TAG\`. Review the brand overlay files first; see FORKING.md." \
+            || echo "PR already open"
