@@ -203,7 +203,7 @@ function screens(ids) {
     { name: 'plan', path: '/plan', ready: (p) => p.locator('[data-plan-grid], [data-plan-agenda]').first().waitFor() },
     { name: 'completed', path: '/completed', ready: row('Submit expense report') },
     { name: 'filter', path: '/filter', ready: (p) => p.getByLabel('Filter query').waitFor() },
-    { name: 'ask', path: '/ask', ready: heading('Ask OpenTodo') },
+    { name: 'ask', path: '/ask', ready: heading('Ask OpenTaskKit') },
     { name: 'trash', path: '/trash', ready: (p) => p.getByText('Old shopping list').first().waitFor() },
     { name: 'updates', path: '/updates', ready: heading('Updates') },
     // The old address still opens Updates (ux-overhaul vocabulary).
