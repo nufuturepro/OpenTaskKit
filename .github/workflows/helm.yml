@@ -2,7 +2,7 @@ name: Helm chart
 
 # The Kubernetes chart in deploy/helm/opentodo (docs/self-hosting/kubernetes.md).
 # Pull requests that touch it: lint and render it. Release tags (v*, not release
-# candidates): publish it as an OCI artifact at oci://ghcr.io/pixari/charts/opentodo,
+# candidates): publish it as an OCI artifact at oci://ghcr.io/nufuturepro/charts/opentaskkit,
 # with the Artifact Hub metadata beside it. The chart's version and appVersion are the
 # release; node scripts/deploy-check.mjs keeps them on the latest release in CHANGELOG.md.
 on:
@@ -45,7 +45,7 @@ jobs:
       - run: node --test scripts/deploy/helm.test.mjs
 
   publish:
-    name: Publish to ghcr.io/pixari/charts
+    name: Publish to ghcr.io/nufuturepro/charts
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
     runs-on: ubuntu-latest
     # Waits up to 90 minutes for the release image (published only after every CI gate).

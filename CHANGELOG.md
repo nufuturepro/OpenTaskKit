@@ -2,6 +2,8 @@
 
 All notable changes to OpenTodo are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+> **OpenTaskKit note.** This repository is a distribution of [OpenTodo](https://github.com/pixari/opentodo). The entries below are upstream's; the distribution is currently identical to upstream v0.8.0 apart from the OpenTaskKit branding (see FORKING.md for what the brand touches). Releases of this repository are tagged `opentaskkit-<upstream version>-otk.<n>`; its version string also carries the git-describe suffix.
+
 ## [Unreleased]
 
 ### Added
