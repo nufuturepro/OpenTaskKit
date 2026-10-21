@@ -8,7 +8,7 @@
 // are on) and the Locations page, and checks:
 //   - every browser request goes to that server's origin;
 //   - maps off: the fake provider receives nothing at all;
-//   - maps on: the fake receives the style, tiles and the search, with OpenTodo's
+//   - maps on: the fake receives the style, tiles and the search, with the server's
 //     User-Agent and none of the viewer's cookies, tokens or address.
 //
 //   node scripts/e2e-network.mjs        (after `make web` and building bin/opentodo)
@@ -145,7 +145,7 @@ async function audit(name, env, mapsOn) {
     assert(paths.some((p) => p.startsWith('/planet/v1/')), `${name}: no tile request (${paths.join(', ')})`)
     assert(paths.includes('/api'), `${name}: no search request (${paths.join(', ')})`)
     assert(received.every((h) => !h.creds), `${name}: a provider request carried the viewer's cookie, token or address`)
-    assert(received.every((h) => /OpenTodo/i.test(h.ua)), `${name}: a provider request without OpenTodo's User-Agent: ${received.map((h) => h.ua).join(' | ')}`)
+    assert(received.every((h) => /OpenTaskKit/i.test(h.ua)), `${name}: a provider request without the server's User-Agent: ${received.map((h) => h.ua).join(' | ')}`)
     console.log(`  provider requests: ${received.length} (${[...new Set(paths.map((p) => p.split('/').slice(0, 2).join('/')))].join(', ')})`)
   }
   console.log(`  browser requests outside ${base}: 0`)
