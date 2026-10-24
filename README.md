@@ -15,7 +15,7 @@ Plan your day, keep projects in order, set reminders and share lists with your f
 
 ## What this is
 
-OpenTaskKit is a **distribution of [OpenTodo](https://github.com/pixari/opentodo)**, in the relationship Debian has with Ubuntu:
+OpenTaskKit is a **distribution of [OpenTodo](https://github.com/pixari/opentodo)**, with some in-house updates:
 
 - **Upstream:** all features and bug fixes come from [pixari/OpenTodo](https://github.com/pixari/opentodo), a great task manager built in the open with specs. Use its [demo](https://demo.open-todo.app), its [documentation](https://open-todo.app/docs/) and its [issue tracker](https://github.com/pixari/opentodo/issues) — that is where the project lives, and general bug fixes belong there.
 - **This repository** carries the OpenTaskKit branding and will carry this distribution's own defaults and features. It merges upstream releases regularly (see [FORKING.md](FORKING.md) for the exact workflow, branch scheme and the list of files the brand touches).
