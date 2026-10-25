@@ -4,6 +4,8 @@
 // from DisplayScreen so the public page does not pull the local database in.
 import { useOverlayDepth } from '../../ui'
 import { useEffect, useState } from 'react'
+// The leaf module, not lib/appearance: this hook is shared with the public list page.
+import { syncRootMotion } from '../../lib/rootMotion'
 import { useShortcutScope } from '../shortcuts'
 import { isActivationTarget } from '../shortcuts/dispatch'
 import type { DisplayOptions } from './displayOptions'
@@ -17,7 +19,8 @@ export function useRootPresentation(options: Pick<DisplayOptions, 'contrast' | '
     if (options.motion === 'none') root.setAttribute('data-motion', 'none')
     return () => {
       root.removeAttribute('data-contrast')
-      root.removeAttribute('data-motion')
+      // Restore the account's motion preference instead of a bare root (task-menu-refinement).
+      syncRootMotion()
     }
   }, [options.contrast, options.motion, active])
 }

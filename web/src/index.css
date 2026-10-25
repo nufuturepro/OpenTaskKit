@@ -844,3 +844,17 @@ select.ui-input { @apply truncate; contain: layout paint; }
 /* The sequence spotlight (shortcut-spotlight D2) fades in; reduced motion makes it instant. */
 .spotlight-in { animation: dialog-sheet-fade 120ms var(--ease-calm, ease-out) both; }
 }
+
+/* Overlay entrances (OpenSpec change task-menu-refinement, "Entrance motion"):
+   one short fade with a 4 px rise and a 0.98 scale for menus, popovers, pickers
+   and dialog cards, over --duration-ui under the calm easing. There is no exit
+   animation: an overlay closes at once so the chosen action's effect shows.
+   The reduced-motion media rule above runs it in 0.01 ms and data-motion="none"
+   in 0, so both presentations stay instant. */
+@layer components {
+@keyframes overlay-in { from { opacity: 0; transform: translateY(4px) scale(0.98); } to { opacity: 1; transform: none; } }
+.overlay-in { animation: overlay-in var(--duration-ui) var(--ease-calm, ease-out) both; }
+/* The dialog card from 640 px; the phone sheet keeps dialog-sheet-up, which is
+   unanimated from 640 px up — this rule comes after it and wins there. */
+@media (min-width: 640px) { .dialog-card-in { animation: overlay-in var(--duration-ui) var(--ease-calm, ease-out) both; } }
+}

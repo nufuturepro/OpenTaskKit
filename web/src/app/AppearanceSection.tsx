@@ -33,6 +33,8 @@ export interface AppearanceViewProps {
   onDensity?: (d: Density) => void
   /** Row detail (calm-rows D8): Calm or Detailed. */
   onDetail?: (d: RowDetail) => void
+  /** Motion preference (task-menu-refinement): on or off; off applies the root no-motion presentation. */
+  onMotion?: (m: 'on' | 'off') => void
 }
 
 /** Roving focus over a radio group: arrows move and select, Home and End jump. */
@@ -67,7 +69,7 @@ function Segmented<T extends string>({ label, items, labels, value, onChange, te
   )
 }
 
-export function AppearanceView({ value, onMode, onAccent, onDensity, onDetail }: AppearanceViewProps) {
+export function AppearanceView({ value, onMode, onAccent, onDensity, onDetail, onMotion }: AppearanceViewProps) {
   const tileRefs = useRef<(HTMLButtonElement | null)[]>([])
   const ids = ACCENTS.map((a) => a.id)
   return (
@@ -110,6 +112,11 @@ export function AppearanceView({ value, onMode, onAccent, onDensity, onDetail }:
         <SettingRow id="appearance-rows" {...rowCopy('appearance', 'rows')}
           control={<Segmented label={t('Rows')} items={DETAILS} labels={DETAIL_LABEL} value={value.detail ?? 'calm'} onChange={onDetail} testId="appearance-rows" />} />
       )}
+      {onMotion && (
+        <SettingRow id="appearance-motion" {...rowCopy('appearance', 'motion')} htmlFor="appearance-motion-switch"
+          control={<Switch id="appearance-motion-switch" checked={(value.motion ?? 'on') !== 'off'}
+            onChange={(on) => onMotion(on ? 'on' : 'off')} label={t('Animate menus and dialogs')} hideLabel />} />
+      )}
     </SettingsSection>
   )
 }
@@ -135,7 +142,8 @@ export function AppearanceSection() {
   const row = usePrefsRow()
   const value = readAppearance(row)
   return <AppearanceView value={value} onMode={(m) => act(setAppearance('theme_mode', m))} onAccent={(a) => act(setAppearance('theme_accent', a))}
-    onDensity={(d) => act(setAppearance('density', d))} onDetail={(d) => act(setAppearance('row_detail', d))} />
+    onDensity={(d) => act(setAppearance('density', d))} onDetail={(d) => act(setAppearance('row_detail', d))}
+    onMotion={(m) => act(setAppearance('motion', m === 'off' ? 'none' : ''))} />
 }
 
 export function SidebarSection() {

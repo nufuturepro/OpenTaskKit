@@ -32,7 +32,7 @@ describe('Dialog', () => {
 describe('Dialog placement (lean-chrome D3)', () => {
   it('center renders exactly as before: a full-screen card below 640 px', () => {
     const html = renderToStaticMarkup(<Dialog title="Rename" onClose={() => {}}>x</Dialog>)
-    expect(html).toContain('class="h-fit min-h-full w-full bg-surface outline-none sm:surface-overlay sm:my-auto sm:min-h-0 sm:max-w-sm"')
+    expect(html).toContain('class="dialog-card-in h-fit min-h-full w-full bg-surface outline-none sm:surface-overlay sm:my-auto sm:min-h-0 sm:max-w-sm"')
     expect(html).toContain('pt-[env(safe-area-inset-top)]')
     expect(html).not.toContain('data-placement')
     expect(html).toBe(renderToStaticMarkup(<Dialog title="Rename" onClose={() => {}} placement="center">x</Dialog>))

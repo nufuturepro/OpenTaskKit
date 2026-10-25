@@ -124,6 +124,70 @@ describe('ActionMenu', () => {
   })
 })
 
+describe('a panel item (task-menu-refinement D2)', () => {
+  function panelGroups(calls: string[]): ActionGroup[] {
+    return [
+      { items: [
+        { kind: 'action', id: 'rename', label: 'Rename', icon: 'pencil', onSelect: () => { calls.push('rename') } },
+        { kind: 'panel', id: 'pick', label: 'Pick a date…', icon: 'calendar-days', panel: {
+          title: 'Pick a date',
+          render: (close) => <div data-panel-content><button type="button" data-pick onClick={() => { calls.push('picked'); close() }}>20 October</button></div>,
+        } },
+      ] },
+    ]
+  }
+
+  async function openPanel(calls: string[]) {
+    const r = await render(<ActionMenu label="Menu for thing" groups={panelGroups(calls)} />)
+    const trigger = r.container.querySelector('button')!
+    trigger.focus()
+    await click(trigger)
+    await flush(20)
+    await click(items().find((b) => b.getAttribute('data-menu-label') === 'Pick a date…')!)
+    await flush(20)
+    return r
+  }
+
+  it('extends the overlay beside the still-visible items; the first Escape goes back to the item, the second closes', async () => {
+    const calls: string[] = []
+    const r = await openPanel(calls)
+    expect(document.querySelector('[data-menu-extended]')).toBeTruthy()
+    expect(document.querySelector('[data-panel-content]')).toBeTruthy()
+    expect(items().map((b) => b.getAttribute('data-menu-label'))).toEqual(['Rename', 'Pick a date…'])
+    await key(document, 'Escape')
+    await flush(20)
+    expect(document.querySelector('[data-panel-content]')).toBeNull()
+    expect(document.querySelector('[data-menu-extended]')).toBeNull()
+    expect(items().length).toBe(2)
+    expect(document.activeElement?.getAttribute('data-menu-label')).toBe('Pick a date…')
+    await key(document, 'Escape')
+    await flush(20)
+    expect(document.querySelector('[data-overlay-root]')).toBeNull()
+    expect(calls).toEqual([])
+    await r.unmount()
+  })
+
+  it('an item clicked while the panel is open applies it and closes the whole menu', async () => {
+    const calls: string[] = []
+    const r = await openPanel(calls)
+    await click(items().find((b) => b.getAttribute('data-menu-label') === 'Rename')!)
+    await flush(20)
+    expect(calls).toEqual(['rename'])
+    expect(document.querySelector('[data-overlay-root]')).toBeNull()
+    await r.unmount()
+  })
+
+  it('a pick inside the panel runs its close: the action applies and the menu goes', async () => {
+    const calls: string[] = []
+    const r = await openPanel(calls)
+    await click(document.querySelector<HTMLElement>('[data-pick]')!)
+    await flush(20)
+    expect(calls).toEqual(['picked'])
+    expect(document.querySelector('[data-overlay-root]')).toBeNull()
+    await r.unmount()
+  })
+})
+
 describe('useConfirm', () => {
   it('Escape resolves without running the action', async () => {
     const calls: string[] = []

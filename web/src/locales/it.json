@@ -665,7 +665,6 @@
   "Date": "Data",
   "Date and time": "Data e ora",
   "Date changed": "Data modificata",
-  "Date for {tasks}": "Data per {tasks}",
   "Date format": "Formato della data",
   "Date removed": "Data rimossa",
   "Day": "Giorno",
@@ -4485,5 +4484,10 @@
   "through the task page": "dalla pagina dell’attività",
   "{n, plural, one {# reply} other {# replies}} from guests": "{n, plural, one {# risposta} other {# risposte}} da ospiti",
   "{name} (guest)": "{name} (ospite)",
-  "{name} (guest, task page)": "{name} (ospite, pagina dell’attività)"
+  "{name} (guest, task page)": "{name} (ospite, pagina dell’attività)",
+  "Motion": "Animazioni",
+  "Off makes menus, dialogs and changes instant.": "Disattivato rende menu, finestre di dialogo e modifiche istantanee.",
+  "Instant overlays when off": "Senza animazione, tutto è immediato",
+  "Pick a date": "Scegliere una data",
+  "Animate menus and dialogs": "Animare menu e finestre di dialogo"
 }

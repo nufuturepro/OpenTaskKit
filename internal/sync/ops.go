@@ -525,6 +525,11 @@ var Schema = map[string]map[string]kind{
 		// Row detail (OpenSpec change calm-rows, design D1): "calm" or
 		// "detailed"; an unknown or empty value reads as calm.
 		"row_detail": kString,
+		// Motion preference (OpenSpec change task-menu-refinement): "" (default,
+		// motion on) or "none" (every entrance, transition and animation instant).
+		// Not restricted here; clients read an unknown value as on and keep the
+		// stored value unchanged.
+		"motion": kString,
 		// Favourites (OpenSpec change sidebar-favourites, design D1): an ordered,
 		// comma-separated list of kind:id entries (project:<id>, label:<id>,
 		// view:<id>) shown in the sidebar's Favourites group. Ids only, never

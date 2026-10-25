@@ -3,9 +3,9 @@
 // order, icons, disabled reasons and confirmations cannot drift apart. A picker item
 // swaps the items for a Combobox inside the same overlay; a confirm item closes the
 // menu and opens a confirmation dialog.
-import { useContext, useEffect, useState, type ReactNode } from 'react'
+import { useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Icon, type IconName, Menu } from '../../ui'
-import { Tooltip } from '../../ui'
+import { Tooltip, useWide, type CompactSpec } from '../../ui'
 import { MenuCloseContext, MenuGroup, MenuItem, MenuSeparator } from '../../ui'
 import { ComboboxPanel } from '../../ui'
 import type { ComboboxConfig } from '../../ui'
@@ -22,6 +22,8 @@ interface ItemBase {
   disabled?: boolean
   reason?: string
   tone?: 'danger'
+  /** Render as a compact glyph button in a `layout: 'row'` group (the priority digits). */
+  compact?: CompactSpec
 }
 
 export interface ConfirmSpec {
@@ -55,6 +57,16 @@ export type ActionItem =
   // A step swaps the items for its own content in the same overlay (the icon picker,
   // a colour palette); `done` closes the menu, `back` returns to the items.
   | (ItemBase & { kind: 'step'; step: StepSpec })
+  // A panel extends the same overlay *beside* the items (the date calendar) from
+  // 640 px up, and fills it under the back header on a phone (task-menu-refinement
+  // "Date picker alongside the menu"); `close` closes the whole menu.
+  | (ItemBase & { kind: 'panel'; panel: PanelSpec })
+
+export interface PanelSpec {
+  title: string
+  /** The panel content; `close` closes the menu entirely (a picked date applies and closes). */
+  render: (close: () => void) => ReactNode
+}
 
 export interface StepSpec {
   title: string
@@ -66,6 +78,8 @@ export interface StepSpec {
 
 export interface ActionGroup {
   label?: string
+  /** One flex row of compact items instead of stacked rows (the priority strip). */
+  layout?: 'row'
   items: ActionItem[]
 }
 
@@ -82,38 +96,47 @@ function NoClose({ children }: { children: ReactNode }) {
   return <MenuCloseContext.Provider value={() => {}}>{children}</MenuCloseContext.Provider>
 }
 
-function Items({ groups, onPicker, onStep, onConfirm }: {
+function Items({ groups, onPicker, onStep, onConfirm, onPanel }: {
   groups: ActionGroup[]
   // `any`: a menu mixes pickers of different item types.
   onPicker: (p: PickerSpec<any>) => void
   onStep: (s: StepSpec) => void
   onConfirm: (c: ConfirmSpec) => void
+  onPanel: (panel: PanelSpec, label: string) => void
 }) {
   const close = useContext(MenuCloseContext)
+  const renderItem = (item: ActionItem) => {
+    const common = {
+      label: item.label, icon: item.icon, shortcut: item.shortcut, disabled: item.disabled,
+      description: item.disabled ? item.reason : undefined, danger: item.tone === 'danger', compact: item.compact,
+    }
+    switch (item.kind) {
+      case 'action':
+        return <MenuItem key={item.id} {...common} onSelect={() => void item.onSelect()} />
+      case 'check':
+        return <MenuItem key={item.id} {...common} checked={item.checked} onSelect={() => void item.onSelect()} />
+      case 'picker':
+        return <NoClose key={item.id}><MenuItem {...common} label={`${item.label}…`} onSelect={() => onPicker(item.picker)} /></NoClose>
+      case 'confirm':
+        return <NoClose key={item.id}><MenuItem {...common} label={`${item.label}…`} onSelect={() => { close?.(); onConfirm(item.confirm) }} /></NoClose>
+      case 'step':
+        return <NoClose key={item.id}><MenuItem {...common} label={`${item.label}…`} onSelect={() => onStep(item.step)} /></NoClose>
+      case 'panel':
+        // Label as given (it carries its own ellipsis); NoClose because the
+        // panel opens inside this overlay and Escape, not the item, leaves it.
+        return <NoClose key={item.id}><MenuItem {...common} onSelect={() => onPanel(item.panel, item.label)} /></NoClose>
+    }
+  }
   return (
     <>
       {orderGroups(groups).map((g, gi) => (
         <div key={gi}>
           {gi > 0 && <MenuSeparator />}
           <MenuGroup label={g.label}>
-            {g.items.map((item) => {
-              const common = {
-                label: item.label, icon: item.icon, shortcut: item.shortcut, disabled: item.disabled,
-                description: item.disabled ? item.reason : undefined, danger: item.tone === 'danger',
-              }
-              switch (item.kind) {
-                case 'action':
-                  return <MenuItem key={item.id} {...common} onSelect={() => void item.onSelect()} />
-                case 'check':
-                  return <MenuItem key={item.id} {...common} checked={item.checked} onSelect={() => void item.onSelect()} />
-                case 'picker':
-                  return <NoClose key={item.id}><MenuItem {...common} label={`${item.label}…`} onSelect={() => onPicker(item.picker)} /></NoClose>
-                case 'confirm':
-                  return <NoClose key={item.id}><MenuItem {...common} label={`${item.label}…`} onSelect={() => { close?.(); onConfirm(item.confirm) }} /></NoClose>
-                case 'step':
-                  return <NoClose key={item.id}><MenuItem {...common} label={`${item.label}…`} onSelect={() => onStep(item.step)} /></NoClose>
-              }
-            })}
+            {g.layout === 'row'
+              // A strip of compact items (the priorities): one line instead of one row each.
+              ? <div className="flex items-center gap-1 px-1.5 pb-1">{g.items.map(renderItem)}</div>
+              : g.items.map(renderItem)}
           </MenuGroup>
         </div>
       ))}
@@ -148,15 +171,32 @@ function PickerStep({ picker, onBack, onDone, onConfirm }: { picker: PickerSpec<
 function StepFrame({ step, onBack, onDone }: { step: StepSpec; onBack: () => void; onDone: () => void }) {
   return (
     <div className="space-y-1 p-1" data-menu-step>
-      <div className="flex items-center gap-1">
-        <Tooltip label={t('Back')} shortcut="Esc">
-          <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm touch-target px-1.5 py-1" aria-label={t('Back')} onClick={onBack}>
-            <Icon name="arrow-left" />
-          </button>
-        </Tooltip>
-        <span className="text-meta font-semibold text-muted">{step.title}</span>
-      </div>
+      <PanelHead title={step.title} onBack={onBack} />
       {step.render(onDone, onBack)}
+    </div>
+  )
+}
+
+/** The title row of a step or a panel: back to the items, Escape hinted. */
+function PanelHead({ title, onBack }: { title: string; onBack: () => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <Tooltip label={t('Back')} shortcut="Esc">
+        <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm touch-target px-1.5 py-1" aria-label={t('Back')} onClick={onBack}>
+          <Icon name="arrow-left" />
+        </button>
+      </Tooltip>
+      <span className="text-meta font-semibold text-muted">{title}</span>
+    </div>
+  )
+}
+
+/** A panel below 640 px: it replaces the items in the sheet, with the back header. */
+function PanelFrame({ spec, onBack, onClose }: { spec: PanelSpec; onBack: () => void; onClose: () => void }) {
+  return (
+    <div className="space-y-1 p-1" data-menu-panel>
+      <PanelHead title={spec.title} onBack={onBack} />
+      {spec.render(onClose)}
     </div>
   )
 }
@@ -204,6 +244,33 @@ export function ActionMenu({ label, title, groups, header, trigger, triggerClass
   const [picker, setPicker] = useState<PickerSpec<any> | null>(null)
   const [confirm, setConfirm] = useState<ConfirmSpec | null>(null)
   const [step, setStep] = useState<StepSpec | null>(null)
+  const [panel, setPanel] = useState<PanelSpec | null>(null)
+  const wide = useWide()
+  // Focus goes back to the item that opened the panel once it closes (back or Escape),
+  // found by its label: on a phone the items unmounted while the panel filled the sheet.
+  const panelLabel = useRef<string | null>(null)
+  const restoreFocus = useRef(false)
+  useEffect(() => {
+    if (!restoreFocus.current || panel) return
+    restoreFocus.current = false
+    const label = panelLabel.current
+    panelLabel.current = null
+    if (!label) return
+    const escaped = label.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+    document.querySelector<HTMLElement>(`[data-menu-label="${escaped}"]`)?.focus()
+  }, [panel])
+  const openPanel = (spec: PanelSpec, label: string) => { panelLabel.current = label; setPanel(spec) }
+  /** Step back from the panel to the items, returning focus to the item that opened it. */
+  const clearPanel = () => { if (!panel) return; restoreFocus.current = true; setPanel(null) }
+  /** An item or a pick inside the panel: close everything at once. */
+  const closeAll = () => {
+    setPicker(null)
+    setStep(null)
+    setPanel(null)
+    panelLabel.current = null
+    restoreFocus.current = false
+    setOpen(false)
+  }
   const setOpen = (v: boolean) => {
     if (openProp === undefined) setOwnOpen(v)
     onOpenChange?.(v)
@@ -216,25 +283,48 @@ export function ActionMenu({ label, title, groups, header, trigger, triggerClass
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the menu opens with a requested picker; groups is rebuilt every render
   }, [open, startPicker])
   const current = picker
+  const panelOpen = panel !== null
+  const items = (
+    <MenuCloseContext.Provider value={closeAll}>
+      {header}{header && <MenuSeparator />}
+      <Items groups={groups} onPicker={setPicker} onStep={setStep} onConfirm={setConfirm} onPanel={openPanel} />
+    </MenuCloseContext.Provider>
+  )
   return (
     <>
-      <Menu label={label} title={title} kind={current || step ? 'dialog' : 'menu'} align={align} width={width} className="p-1"
+      <Menu label={label} title={title} kind={current || step || panelOpen ? 'dialog' : 'menu'} align={align}
+        // Beside the items the overlay grows to fit both columns; the sheet ignores it.
+        width={panelOpen && wide ? 'sm:w-fit' : width} className="p-1"
         trigger={trigger ?? <Icon name="ellipsis" />}
         triggerClassName={triggerClassName ?? 'ui-btn ui-btn--ghost ui-btn--sm touch-target px-1.5 py-0.5 text-faint'}
         triggerProps={triggerProps}
         open={open}
         onOpenChange={(v) => {
-          // The first Escape (or outside tap) in a picker step goes back to the items.
-          if (!v && (current || step)) { setPicker(null); setStep(null); return }
+          // The first Escape (or outside tap) in a picker step or panel goes back to the items.
+          if (!v && (current || step || panel)) { setPicker(null); setStep(null); clearPanel(); return }
           setPicker(null)
           setStep(null)
+          setPanel(null)
           setOpen(v)
         }}>
         {current
           ? <PickerStep picker={current} onBack={() => setPicker(null)} onDone={() => { setPicker(null); setOpen(false) }} onConfirm={setConfirm} />
           : step
             ? <StepFrame step={step} onBack={() => setStep(null)} onDone={() => { setStep(null); setOpen(false) }} />
-            : <>{header}{header && <MenuSeparator />}<Items groups={groups} onPicker={setPicker} onStep={setStep} onConfirm={setConfirm} /></>}
+            : panel && !wide
+              ? <PanelFrame spec={panel} onBack={clearPanel} onClose={closeAll} />
+              : panel
+                ? (
+                  // The panel extends the menu's own overlay beside the items (D2).
+                  <div className="sm:flex" data-menu-extended>
+                    <div className={`${width} shrink-0`}>{items}</div>
+                    <div className="w-72 shrink-0 border-l border-default p-1 pl-2" data-menu-panel>
+                      <PanelHead title={panel.title} onBack={clearPanel} />
+                      {panel.render(closeAll)}
+                    </div>
+                  </div>
+                )
+                : items}
       </Menu>
       {confirm && <Confirmation spec={confirm} onClose={() => setConfirm(null)} />}
     </>

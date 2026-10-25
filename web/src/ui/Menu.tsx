@@ -19,13 +19,52 @@ export interface MenuItemProps {
   disabled?: boolean
   /** Checkable item (pin, start view): announced as checked or not. */
   checked?: boolean
+  /**
+   * Compact glyph button instead of a row (task-menu-refinement: the priority
+   * strip): `glyph` is the whole visible content, the accessible name stays the
+   * full `label`, and checked fills the button with the accent.
+   */
+  compact?: CompactSpec
   /** Test and script hooks (`data-help-button`). */
   [hook: `data-${string}`]: string | boolean | undefined
 }
 
-export function MenuItem({ label, onSelect, icon, shortcut, description, danger, disabled, checked, ...hooks }: MenuItemProps) {
+export interface CompactSpec {
+  /** The visible glyph — the digit. */
+  glyph: string
+  /** Its tint: the p1–p4 tones. */
+  tint?: 'p1' | 'p2' | 'p3' | 'p4'
+}
+
+/** Literal class names so the utility scanner sees them. */
+const TINT: Record<NonNullable<CompactSpec['tint']>, string> = { p1: 'text-p1', p2: 'text-p2', p3: 'text-p3', p4: 'text-p4' }
+
+export function MenuItem({ label, onSelect, icon, shortcut, description, danger, disabled, checked, compact, ...hooks }: MenuItemProps) {
   const close = useContext(MenuCloseContext)
   const id = useId()
+  if (compact) {
+    return (
+      <button
+        {...hooks}
+        type="button"
+        role={checked === undefined ? 'menuitem' : 'menuitemcheckbox'}
+        aria-checked={checked}
+        aria-label={label}
+        aria-describedby={description ? `${id}-d` : undefined}
+        aria-keyshortcuts={shortcut}
+        disabled={disabled}
+        data-menu-label={label}
+        onClick={() => { onSelect(); close?.() }}
+        className={`flex h-7 min-w-7 items-center justify-center rounded-control px-1.5 text-body font-semibold tabular-nums outline-none transition duration-(--duration-ui)
+          hover:bg-sunken focus-visible:bg-sunken dark:hover:bg-raised dark:focus-visible:bg-raised
+          disabled:cursor-not-allowed disabled:text-faint disabled:hover:bg-transparent
+          ${checked ? 'bg-accent text-on-accent' : compact.tint ? TINT[compact.tint] : 'text-default'}`}
+      >
+        {compact.glyph}
+        {description && <span id={`${id}-d`} aria-hidden className="sr-only">{description}</span>}
+      </button>
+    )
+  }
   const describedBy = [shortcut && `${id}-k`, description && `${id}-d`].filter(Boolean).join(' ') || undefined
   // The name comes from the visible label (WCAG 2.5.3 Label in Name); the description and
   // the shortcut hint are hidden from the name and announced as the item's description.

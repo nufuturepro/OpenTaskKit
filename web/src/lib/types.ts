@@ -470,6 +470,8 @@ export interface UserPrefs {
   density: string
   /** Row detail (calm-rows): calm (default) or detailed; unknown values read as calm. */
   row_detail: string
+  /** Motion (task-menu-refinement): "" (default, motion on) or "none"; unknown values read as on. */
+  motion: string
   /** Favourites (sidebar-favourites D1): ordered, comma-separated `kind:id` entries; unknown kinds and missing items are ignored. */
   favourites: string
   /** The first-run card (ux-overhaul, first-run): "done" once finished or skipped on any device. */

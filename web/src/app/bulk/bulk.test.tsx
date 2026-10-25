@@ -144,6 +144,28 @@ describe('actions (2.5, 3.3, 4.2)', () => {
     for (const id of ids) expect((await db.tasks.get(id))!.due).toEqual({ date: '2026-10-15' })
   })
 
+  it('the Priority group is one strip of four digits with full accessible names, the shared one checked', async () => {
+    const { ids } = await inbox('One', 'Two')
+    await updateTask(ids[0], { priority: 2 })
+    await updateTask(ids[1], { priority: 2 })
+    await key(document.body, 'j'); await key(document.body, 'x')
+    await key(document.body, 'ArrowDown', { shiftKey: true })
+    await key(document.body, '.')
+    await waitFor(() => document.querySelectorAll('[role="menuitem"]').length > 0)
+    const digits = [...document.querySelectorAll('[role="menuitemcheckbox"]')].filter((b) => /^Priority [1-4]$/.test(b.getAttribute('aria-label') ?? ''))
+    // Four buttons showing only their digit, all in one row under the group label.
+    expect(digits.map((d) => d.textContent)).toEqual(['1', '2', '3', '4'])
+    expect(new Set(digits.map((d) => d.parentElement)).size).toBe(1)
+    // The shared priority is checked; a diverging task unchecks it live.
+    await waitFor(() => digits[1].getAttribute('aria-checked') === 'true')
+    expect(digits.map((d) => d.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false', 'false'])
+    await updateTask(ids[1], { priority: 4 })
+    await waitFor(() => digits.every((d) => d.getAttribute('aria-checked') === 'false'))
+    // Type-ahead "pri" still lands on the strip.
+    await key(digits[0], 'p'); await key(digits[0], 'r'); await key(digits[0], 'i')
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^Priority [1-4]$/)
+  })
+
   it('L then "errand" adds it to the tasks lacking it and the picker stays open', async () => {
     const l = await createLabel({ name: 'errand' })
     const { ids } = await inbox('One', 'Two', 'Three')

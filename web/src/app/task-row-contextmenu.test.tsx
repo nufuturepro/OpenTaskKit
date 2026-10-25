@@ -6,7 +6,7 @@ import 'fake-indexeddb/auto'
 import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { db } from '../lib/db'
-import { createTask, resetDeviceId } from '../lib/ops'
+import { createProject, createTask, resetDeviceId } from '../lib/ops'
 import type { Task } from '../lib/types'
 import { flush, mockFetch, noPublicLinks, render } from '../ui/test-utils'
 import { TaskListView } from './TaskListView'
@@ -118,6 +118,27 @@ describe('right-click in a list', () => {
     await rightClickUntilMenu(() => row('c'), r.container, 30, 40)
     expect(menuButton(r.container)!.getAttribute('aria-label')).toBe('Actions for 1 task')
     expect([...bulk!.selection.ticked]).toEqual(['a', 'b'])
+    await r.unmount()
+  })
+
+  // task-menu-refinement D1: the host used to unmount the menu the moment it closed,
+  // taking the review dialog's state with it — the right-click review never appeared.
+  it('a move chosen from the right-click menu still shows its review dialog', async () => {
+    await createProject({ name: 'Travel' })
+    await createTask({ title: 'Call mum' })
+    const r = await render(<TaskListView route={{ view: 'inbox' }} />)
+    await waitFor(() => r.container.textContent!.includes('Call mum'))
+    await rightClickUntilMenu(() => r.container.querySelector('[data-task-id]'), r.container, 90, 150)
+    await act(async () => {
+      ;[...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find((m) => m.textContent?.includes('Move to project'))?.click()
+    })
+    await waitFor(() => !!document.querySelector('[data-picker-step]'))
+    await act(async () => {
+      ;[...document.querySelectorAll<HTMLElement>('[data-picker-step] [role="option"]')].find((o) => o.textContent?.includes('Travel'))?.click()
+    })
+    // The menu closes, but the review must still mount (it was the casualty).
+    await waitFor(() => !!document.querySelector('[data-testid="bulk-review"]'))
+    expect(document.body.textContent).toContain('Travel')
     await r.unmount()
   })
 })

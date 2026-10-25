@@ -105,11 +105,14 @@ const prompt = (title: string, label: string, initial: string, onSubmit: (v: str
 /** Commands from an object menu: every enabled item, run as the menu runs it. */
 function fromMenu(prefix: string, groups: ActionGroup[], idPrefix: string): Command[] {
   // A step (the icon grid, the colour swatches) runs here as its Combobox form; one without it is not listed.
-  return groups.flatMap((g) => g.items).filter((i) => !i.disabled && (i.kind !== 'step' || i.step.palette)).map((i: ActionItem): Command => ({
+  // A panel (the date calendar beside the menu) has no palette form: it lives in the menu's own overlay.
+  return groups.flatMap((g) => g.items).filter((i) => !i.disabled && i.kind !== 'panel' && (i.kind !== 'step' || i.step.palette)).map((i: ActionItem): Command => ({
     id: `${idPrefix}:${i.id}`, label: t('{object}: {action}', { object: prefix, action: i.label.replace(/…$/, '') }), icon: i.icon, shortcut: i.shortcut, menuLabel: i.kind === 'step' ? `${i.label}…` : i.label,
     run: () => (i.kind === 'picker' ? { kind: 'picker', picker: i.picker } as Step
       : i.kind === 'step' ? { kind: 'picker', picker: i.step.palette! } as Step
-        : i.kind === 'confirm' ? { kind: 'confirm', confirm: i.confirm } as Step : i.onSelect()),
+        : i.kind === 'confirm' ? { kind: 'confirm', confirm: i.confirm } as Step
+          // Filtered above; the union still needs the arm to narrow to onSelect.
+          : i.kind === 'panel' ? undefined : i.onSelect()),
   }))
 }
 

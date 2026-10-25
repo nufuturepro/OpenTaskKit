@@ -74,13 +74,20 @@ function useListUi() {
   /** Section whose quick add is open ('' = "No section"), board-view. */
   const [addingTo, setAddingTo] = useState<string | null>(null)
   const openActions = useCallback((picker: string | null = null) => { setActionsPicker(picker); setActionsOpen(true) }, [])
-  const onActionsOpen = useCallback((v: boolean) => { setActionsOpen(v); if (!v) setActionsPicker(null) }, [])
-  /** Right-click (task-row-context-menu): the actions menu at the pointer. */
-  const [ctxMenu, setCtxMenu] = useState<{ ids: string[]; x: number; y: number } | null>(null)
-  const openContextMenu = useCallback((ids: string[], x: number, y: number) => setCtxMenu({ ids, x, y }), [])
-  const closeContextMenu = useCallback((v: boolean) => { if (!v) setCtxMenu(null) }, [])
+  /** Keeps the `.`-cursor menu mounted while a review it opened is on screen (task-menu-refinement D1). */
+  const [actionsHold, setActionsHold] = useState(false)
+  const releaseActions = useCallback(() => { setActionsOpen(false); setActionsHold(false); setActionsPicker(null) }, [])
+  const onActionsOpen = useCallback((v: boolean) => {
+    setActionsOpen(v)
+    if (!v) { setActionsPicker(null); setActionsHold(true) }
+  }, [])
+  /** Right-click (task-row-context-menu): the actions menu at the pointer. `open` flips on close; `onAllClosed` clears the entry. */
+  const [ctxMenu, setCtxMenu] = useState<{ ids: string[]; x: number; y: number; open: boolean } | null>(null)
+  const openContextMenu = useCallback((ids: string[], x: number, y: number) => setCtxMenu({ ids, x, y, open: true }), [])
+  const closeContextMenu = useCallback((v: boolean) => { if (!v) setCtxMenu((cur) => (cur ? { ...cur, open: false } : cur)) }, [])
+  const clearContextMenu = useCallback(() => setCtxMenu(null), [])
   const ui: ListUi = { pickerFor, setPickerFor, assignFor, setAssignFor, prompt, setPrompt, addingUnder, setAddingUnder, setAddingTo, openActions }
-  return { ui, actionsOpen, actionsPicker, onActionsOpen, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, closeContextMenu }
+  return { ui, actionsOpen, actionsHold, actionsPicker, onActionsOpen, releaseActions, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, closeContextMenu, clearContextMenu }
 }
 
 /** With the Completed group on (project-completed-section), sections offer no "n completed" of their own. */
@@ -98,7 +105,7 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
   const readOnlyId = useCallback((id: string) => isReadOnly(taskMap.get(id)), [isReadOnly, taskMap])
   const selection = useSelection(tickRows, readOnlyId)
   const ticked = useMemo(() => tickRows.filter((id) => selection.ticked.has(id)), [tickRows, selection.ticked])
-  const { ui, actionsOpen, actionsPicker, onActionsOpen, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, closeContextMenu } = useListUi()
+  const { ui, actionsOpen, actionsHold, actionsPicker, onActionsOpen, releaseActions, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, closeContextMenu, clearContextMenu } = useListUi()
   // The open task lives in the shell's panel slot (app-shell D1); this view only selects and opens.
   const openId = usePanelTaskId()
   const quickAddRef = useRef<HTMLInputElement>(null)
@@ -283,14 +290,14 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
 
           <SelectionBar ids={ticked} onClear={selection.clear} menuOpen={actionsOpen && ticked.length > 0}
             onMenuOpenChange={onActionsOpen} startPicker={actionsPicker} />
-          {actionsOpen && ticked.length === 0 && selectedId && (
-            // `.` with nothing ticked: the same menu for the cursor task.
-            <BulkActionsMenu ids={[selectedId]} open onOpenChange={onActionsOpen} startPicker={actionsPicker}
+          {(actionsOpen || actionsHold) && ticked.length === 0 && selectedId ? (
+            // `.` with nothing ticked: the same menu for the cursor task; held mounted until its review closes (D1).
+            <BulkActionsMenu ids={[selectedId]} open={actionsOpen} onOpenChange={onActionsOpen} onAllClosed={releaseActions} startPicker={actionsPicker}
               trigger={<span className="sr-only">{t('Actions')}</span>} triggerClassName="sr-only" />
-          )}
+          ) : null}
           {ctxMenu && (
             // Right-click (task-row-context-menu): the same menu, anchored where the pointer was.
-            <BulkActionsMenu ids={ctxMenu.ids} open onOpenChange={closeContextMenu}
+            <BulkActionsMenu ids={ctxMenu.ids} open={ctxMenu.open} onOpenChange={closeContextMenu} onAllClosed={clearContextMenu}
               trigger={<span className="sr-only" />}
               triggerProps={{ style: { position: 'fixed', left: ctxMenu.x, top: ctxMenu.y } }}
               triggerClassName="sr-only" />

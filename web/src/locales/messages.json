@@ -934,6 +934,9 @@
   "Animals|icon category": [
     "web\\src\\ui\\icons\\catalogue.ts"
   ],
+  "Animate menus and dialogs": [
+    "web\\src\\app\\AppearanceSection.tsx"
+  ],
   "Another answer is still being written. Wait for it or stop it first.": [
     "web\\src\\lib\\assistant.ts",
     "web\\src\\lib\\i18n\\errors.ts"
@@ -2606,9 +2609,6 @@
   ],
   "Date changed": [
     "web\\src\\lib\\undoActions.ts"
-  ],
-  "Date for {tasks}": [
-    "web\\src\\app\\bulk\\BulkActions.tsx"
   ],
   "Date format": [
     "web\\src\\app\\settingsIndex.ts",
@@ -4774,6 +4774,9 @@
   "Installed, OpenTaskKit opens in its own window and works offline on your phone, tablet or computer.": [
     "web\\src\\app\\FirstRun.tsx"
   ],
+  "Instant overlays when off": [
+    "web\\src\\app\\settingsIndex.ts"
+  ],
   "Integrations": [
     "web\\src\\app\\settingsSections.ts"
   ],
@@ -5685,6 +5688,10 @@
   "Most tasks take {ratio} their estimate ({n} tasks).": [
     "web\\src\\app\\review\\StatsView.tsx"
   ],
+  "Motion": [
+    "web\\src\\app\\settingsIndex.ts",
+    "web\\src\\lib\\settingsCopy.ts"
+  ],
   "Move": [
     "web\\src\\app\\TriageView.tsx"
   ],
@@ -6430,6 +6437,7 @@
     "web\\src\\app\\RecurrenceField.tsx"
   ],
   "Not a valid date. Try {example}, {iso} or “tomorrow”.": [
+    "web\\src\\app\\bulk\\BulkActions.tsx",
     "web\\src\\app\\datetime\\DateField.tsx",
     "web\\src\\app\\datetime\\DatePicker.tsx"
   ],
@@ -6733,6 +6741,9 @@
     "web\\src\\app\\assistant\\AssistantSettings.tsx"
   ],
   "Off by default; turning it off erases every stored address.": [
+    "web\\src\\lib\\settingsCopy.ts"
+  ],
+  "Off makes menus, dialogs and changes instant.": [
     "web\\src\\lib\\settingsCopy.ts"
   ],
   "Off until you save an issuer and client id.": [
@@ -7453,6 +7464,9 @@
   ],
   "Personal": [
     "web\\src\\lib\\templateLibrary.ts"
+  ],
+  "Pick a date": [
+    "web\\src\\app\\bulk\\BulkActions.tsx"
   ],
   "Pick a date and time.": [
     "web\\src\\app\\RemindersField.tsx"

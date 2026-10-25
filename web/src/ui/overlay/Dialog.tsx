@@ -38,9 +38,11 @@ const WIDTH = { sm: 'sm:max-w-sm', md: 'sm:max-w-md', lg: 'sm:max-w-lg', xl: 'sm
 const HEADER = 'sticky top-0 z-10 flex items-center gap-2 border-b border-default bg-inherit pl-4 pr-1 pt-[env(safe-area-inset-top)] sm:-top-4 sm:rounded-t-card'
 // The sheet sits at the bottom, below the notch: no top inset, its own curved corners.
 const HEADER_SHEET = 'sticky top-0 z-10 flex items-center gap-2 rounded-t-card border-b border-default bg-inherit pl-4 pr-1 sm:-top-4'
+// dialog-card-in ("Entrance motion") is only declared from 640 px up: the phone
+// full-screen dialog appears at once and placement="sheet" keeps its slide.
 const CARD = {
-  center: 'h-fit min-h-full w-full bg-surface outline-none sm:surface-overlay sm:my-auto sm:min-h-0',
-  sheet: 'dialog-sheet mt-auto h-fit max-h-[66dvh] w-full overflow-y-auto overscroll-contain rounded-t-card border-t border-default bg-surface shadow-3 outline-none sm:surface-overlay sm:my-auto sm:max-h-none sm:overflow-visible sm:border-t-0',
+  center: 'dialog-card-in h-fit min-h-full w-full bg-surface outline-none sm:surface-overlay sm:my-auto sm:min-h-0',
+  sheet: 'dialog-sheet dialog-card-in mt-auto h-fit max-h-[66dvh] w-full overflow-y-auto overscroll-contain rounded-t-card border-t border-default bg-surface shadow-3 outline-none sm:surface-overlay sm:my-auto sm:max-h-none sm:overflow-visible sm:border-t-0',
 }
 
 /**

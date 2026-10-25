@@ -134,6 +134,7 @@ export const SETTINGS_COPY = {
       theme: { label: msg('Theme') },
       density: { label: msg('Density'), description: msg('Compact tightens rows, headers and the sidebar; touch targets stay full size.') },
       rows: { label: msg('Rows'), description: msg('Calm leaves out what the view says and keeps counts quiet; Detailed shows every chip.') },
+      motion: { label: msg('Motion'), description: msg('Off makes menus, dialogs and changes instant.') },
     },
   },
   sidebar: {

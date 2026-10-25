@@ -24,21 +24,27 @@ export function useBulkList(tasks: readonly Task[]): BulkList {
   const selection = useSelection(order, () => false)
   const ticked = useMemo(() => order.filter((id) => selection.ticked.has(id)), [order, selection.ticked])
   const [open, setOpen] = useState(false)
+  /** Keeps the cursor menu mounted while a review it opened is on screen (task-menu-refinement D1). */
+  const [hold, setHold] = useState(false)
   const [picker, setPicker] = useState<string | null>(null)
-  /** Right-click (task-row-context-menu): the actions menu at the pointer. */
-  const [ctxMenu, setCtxMenu] = useState<{ ids: string[]; x: number; y: number } | null>(null)
-  const onOpenChange = (v: boolean) => { setOpen(v); if (!v) setPicker(null) }
+  /** Right-click (task-row-context-menu): the actions menu at the pointer. `open` flips on close; `onAllClosed` clears the entry. */
+  const [ctxMenu, setCtxMenu] = useState<{ ids: string[]; x: number; y: number; open: boolean } | null>(null)
+  const onOpenChange = (v: boolean) => { setOpen(v); if (!v) { setPicker(null); setHold(true) } }
+  const release = () => { setOpen(false); setHold(false); setPicker(null) }
   return {
     selection, ticked, order,
     openActions: (p = null) => { setPicker(p); setOpen(true) },
     render: (cursor) => (
       <>
         <SelectionBar ids={ticked} onClear={selection.clear} menuOpen={open && ticked.length > 0} onMenuOpenChange={onOpenChange} startPicker={picker} />
-        {open && ticked.length === 0 && cursor && (
-          <BulkActionsMenu ids={[cursor]} open onOpenChange={onOpenChange} startPicker={picker} trigger={<span className="sr-only">{t('Actions')}</span>} triggerClassName="sr-only" />
+        {(open || hold) && ticked.length === 0 && cursor && (
+          <BulkActionsMenu ids={[cursor]} open={open} onOpenChange={onOpenChange} onAllClosed={release}
+            startPicker={picker} trigger={<span className="sr-only">{t('Actions')}</span>} triggerClassName="sr-only" />
         )}
         {ctxMenu && (
-          <BulkActionsMenu ids={ctxMenu.ids} open onOpenChange={(v) => { if (!v) setCtxMenu(null) }}
+          <BulkActionsMenu ids={ctxMenu.ids} open={ctxMenu.open}
+            onOpenChange={(v) => { if (!v) setCtxMenu((cur) => (cur ? { ...cur, open: false } : cur)) }}
+            onAllClosed={() => setCtxMenu(null)}
             trigger={<span className="sr-only" />}
             triggerProps={{ style: { position: 'fixed', left: ctxMenu.x, top: ctxMenu.y } }}
             triggerClassName="sr-only" />
@@ -50,7 +56,7 @@ export function useBulkList(tasks: readonly Task[]): BulkList {
       onTick: (range) => { if (range) selection.extendTo(id); else selection.toggle(id) },
       onContextMenu: (e) => {
         e.preventDefault()
-        setCtxMenu({ ids: selection.ticked.has(id) ? ticked : [id], x: e.clientX, y: e.clientY })
+        setCtxMenu({ ids: selection.ticked.has(id) ? ticked : [id], x: e.clientX, y: e.clientY, open: true })
       },
     }),
   }

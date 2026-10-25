@@ -6,6 +6,7 @@
 // first paint; the cache is written from the synced value only, never the reverse.
 import { ACCENTS, DARK_BAR, DEFAULT_ACCENT, isAccent, type AccentId } from '../ui/tokens/accents'
 import { mutate } from './ops'
+import { applyMotion, syncRootMotion } from './rootMotion'
 import type { ThemeModePref, UserPrefs } from './types'
 import { USER_PREFS_ID } from './userPrefs'
 import { useUserPrefsRow } from './localData'
@@ -31,11 +32,13 @@ export interface Appearance {
   density?: Density
   /** Row detail; calm when absent. */
   detail?: RowDetail
+  /** Motion preference (task-menu-refinement); on when absent or unknown. */
+  motion?: 'on' | 'off'
   /** Promoted sidebar destinations, in the More group's order; unknown stored entries are dropped on read, kept in the row. */
   sidebar?: Promotable[]
 }
 
-export const DEFAULT_APPEARANCE: Appearance = { mode: 'system', accent: DEFAULT_ACCENT, density: 'comfortable', detail: 'calm', sidebar: [] }
+export const DEFAULT_APPEARANCE: Appearance = { mode: 'system', accent: DEFAULT_ACCENT, density: 'comfortable', detail: 'calm', motion: 'on', sidebar: [] }
 
 /** Reads a stored row: a missing row or an unknown value (from a newer client) is the default. The row is not changed. */
 export function readAppearance(row: Partial<UserPrefs> | null | undefined): Appearance {
@@ -46,14 +49,19 @@ export function readAppearance(row: Partial<UserPrefs> | null | undefined): Appe
     accent: isAccent(row?.theme_accent) ? row!.theme_accent as AccentId : DEFAULT_ACCENT,
     density: row?.density === 'compact' ? 'compact' : 'comfortable',
     detail: row?.row_detail === 'detailed' ? 'detailed' : 'calm',
+    // Anything but `none` (including an unknown value from a newer client) is on,
+    // and the stored value is left alone (task-menu-refinement "Motion preference").
+    motion: row?.motion === 'none' ? 'off' : 'on',
     sidebar: PROMOTABLE.filter((id) => wanted.has(id)),
   }
 }
 
-/** Changes the mode, the accent, the density or the row detail through the op log (offline-safe, synced). */
-export function setAppearance(field: 'theme_mode' | 'theme_accent' | 'density' | 'row_detail', value: string): Promise<void> {
+/** Changes the mode, the accent, the density, the row detail or the motion preference through the op log (offline-safe, synced). */
+export function setAppearance(field: 'theme_mode' | 'theme_accent' | 'density' | 'row_detail' | 'motion', value: string): Promise<void> {
   return mutate('user_prefs', USER_PREFS_ID, { [field]: value })
 }
+
+export { syncRootMotion }
 
 /**
  * The row detail of this user (calm-rows D2): one shared live read of the prefs
@@ -89,6 +97,10 @@ export function applyAppearance(a: Appearance, doc: Document = document): void {
   // touch targets keep their size through the coarse-pointer rules.
   if (a.density === 'compact') root.setAttribute('data-density', 'compact')
   else root.removeAttribute('data-density')
+  // Motion (task-menu-refinement): off applies the root no-motion presentation the
+  // existing CSS makes fully instant; on leaves the system's reduced-motion setting
+  // to act alone.
+  applyMotion(a.motion === 'off', doc)
   setMeta(doc, 'color-scheme', a.mode === 'system' ? 'light dark' : a.mode)
   // The bar: the accent in light mode, the dark canvas in dark mode; under system
   // both, with media queries, so the browser switches on its own (design D8).
