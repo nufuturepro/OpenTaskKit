@@ -19,7 +19,7 @@
 - [x] 3.1 Add `layout?: 'row'` to `ActionGroup` and render row groups as a flex strip in `web/src/app/menus/ActionMenu.tsx`; verify `npm run typecheck` passes
 - [x] 3.2 Add `compact?: boolean` to `MenuItem` in `web/src/ui/Menu.tsx`: no icon column, centred digit, checked = accent fill, `aria-label` carrying the full name over the visible digit; verify `npm test -- ui` and the axe check in `bulk.test.tsx` pass
 - [x] 3.3 Map the Priority group in `bulkMenuGroups` to four compact items with `checked` = the shared priority, drop the badge shortcuts; verify `npm test -- bulk` passes with the new anatomy (one row, four buttons, accessible names "Priority 1"–"4", type-ahead "pri" still lands)
-- [ ] 3.4 Confirm the menu no longer scrolls at 1080p: the browser E2E in task 5 measures the panel height before/after
+- [x] 3.4 Confirm the menu no longer scrolls at 1080p: the browser E2E in task 5 measures the panel height before/after
 
 ## 4. Entrance motion + synced preference
 
@@ -33,7 +33,7 @@
 ## 5. Spec, docs and verification
 
 - [x] 5.1 Write the deltas under `openspec/changes/task-menu-refinement/specs/` (action-menus MODIFIED + 2 ADDED, appearance-preferences ADDED, web-app ADDED) and the note in `openspec/changes/motion-v2/design.md` D5
-- [ ] 5.2 Docs: `docs/settings-you.md` (the Motion switch in Appearance) and one sentence in `docs/work-from-the-list.md` (the calendar beside the menu); verify `make docs-check` passes
-- [ ] 5.3 Add an Unreleased entry to `CHANGELOG.md`; verify `make repo-check` passes
-- [ ] 5.4 Full gate: `npm test` and `npm run build` in `web/`, `go test ./...`, `make check`, `openspec validate --all --strict`
-- [ ] 5.5 Fresh local instance in a real browser: right-click → date panel beside the menu → pick a day → rescheduled + Undo; priority row is one line of digits; menu fits 1080p without scrolling; entrance animation visible; switch off → instant; reduced-motion emulation → instant
+- [x] 5.2 Docs: `docs/settings-you.md` (the Motion switch in Appearance) and one sentence in `docs/work-from-the-list.md` (the calendar beside the menu); verify `make docs-check` passes
+- [x] 5.3 Add an Unreleased entry to `CHANGELOG.md`; verify `make repo-check` passes
+- [x] 5.4 Full gate: `npm test` and `npm run build` in `web/`, `go test ./...`, `make check`, `openspec validate --all --strict`
+- [x] 5.5 Fresh local instance in a real browser: right-click → date panel beside the menu → pick a day → rescheduled + Undo; priority row is one line of digits; menu fits 1080p without scrolling; entrance animation visible; switch off → instant; reduced-motion emulation → instant
