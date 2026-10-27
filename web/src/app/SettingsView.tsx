@@ -38,6 +38,7 @@ import { AttachmentSettingsPanel } from './AttachmentSettingsPanel'
 import { OutgoingEmailPanel } from './OutgoingEmailPanel'
 import { MapsServerPanel, MapsUserSection } from './locations/MapsSettings'
 import { YourDataSection } from './DataSettings'
+import { PluginsSection } from './PluginsSection'
 import { SessionPanel } from './AccountSettings'
 import { useDemo } from '../lib/demo'
 import { useHosted } from '../lib/hosted'
@@ -53,7 +54,7 @@ const AssistantSettingsSection = lazy(() => import('./assistant/AssistantSetting
 /** Each page's Help screen (documentation "Help links name the same screens"); the guide's `screens` resolve them. */
 const PAGE_HELP_SCREENS: Record<SettingsSectionId, string> = {
   account: 'settings/account', appearance: 'settings/appearance', general: 'settings/general', notifications: 'settings/notifications',
-  capture: 'settings/capture', about: 'settings/about', integrations: 'settings/integrations', data: 'settings/data', people: 'settings/people', server: 'settings/server',
+  capture: 'settings/capture', plugins: 'settings/plugins', about: 'settings/about', integrations: 'settings/integrations', data: 'settings/data', people: 'settings/people', server: 'settings/server',
 }
 
 /** From here the section list is the left column and a section is open beside it (settings-navigation "Settings overview"). */
@@ -315,6 +316,8 @@ function SectionContent({ section, user, onLogout }: { section: SettingsSection;
       )
     case 'about':
       return <AboutSection user={user} />
+    case 'plugins':
+      return <PluginsSection />
     case 'integrations':
       // TokensSection loads its list whenever this section mounts, so a token
       // created under AI assistants is listed here without shared state.

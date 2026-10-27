@@ -58,7 +58,7 @@ export type Route =
 /** Settings sections, each at /settings/<id> (settings-navigation); ten, in list order. */
 export const SETTINGS_SECTION_IDS = [
   'account', 'appearance',
-  'general', 'notifications', 'capture', 'about',
+  'general', 'notifications', 'capture', 'plugins', 'about',
   'integrations', 'data',
   'people', 'server',
 ] as const

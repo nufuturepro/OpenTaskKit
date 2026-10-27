@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useFieldDefs } from '../useFields'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLabels, useProjects, useSectionPlace, useUserPrefsRow } from '../../lib/localData'
+import { readDisabledPlugins } from '../../lib/plugins'
 import { isFavourite } from '../../lib/favourites'
 import { pickScores } from '../../lib/pickRank'
 import { canEditProject, membershipMap, roleOf } from '../../lib/sharing'
@@ -72,6 +73,7 @@ export default function CommandPalette({ user, onClose, showShortcuts }: { user:
     const sorted = [...views].sort((a, b) => a.position - b.position)
     return {
       route, user, today, list, task, filterQuery: route.view === 'filter' ? currentFilter() : null, query, vimEnabled, showShortcuts,
+      disabledPlugins: readDisabledPlugins(prefs),
       focusQuickAdd: () => list?.focusQuickAdd(null) ?? false,
       project: project && canEditProject(role) ? {
         row: project, role, shared: !!memberships?.get(project.id), targets: moveTargets(project, projects),

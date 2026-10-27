@@ -498,6 +498,12 @@ export interface UserPrefs {
   focus_break_after_minutes: number
   /** Maps on this user's devices (task-locations D6): 'off' turns them off; '' and anything else read as on. */
   maps?: string
+  /**
+   * Built-in plugins this user turned off (OpenSpec change plugin-section,
+   * design D3): comma-separated plugin ids; an unknown id is ignored on read
+   * and kept in the stored value. Empty (the default) means every plugin is on.
+   */
+  disabled_plugins?: string
   _clock: Clock
 }
 
