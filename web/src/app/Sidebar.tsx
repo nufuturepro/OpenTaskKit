@@ -44,13 +44,6 @@ import { act } from './actionError'
 import { countInbox } from '../lib/inbox'
 
 
-/**
- * From 768 px with a fine pointer, More is a menu after the primary destinations instead
- * of a group in the scroller (sidebar-compact-desktop): the projects keep their room.
- * Touch keeps the inline group, which scrolls with the rest (sidebar-drawer-scroll).
- */
-export const MORE_MENU_QUERY = '(min-width: 768px) and (pointer: fine)'
-
 /** Indentation per level in the sidebar (16 px, ux-feedback-2 D6); capped so a deep tree still fits a 360 px screen. */
 const INDENT_REM = 1
 /** The Inbox destination takes dropped tasks (ux-feedback-2 D4): a task dropped on it leaves its project. */
@@ -128,7 +121,10 @@ export function Sidebar({ route, user, onSearch, onShortcuts, onAssistant, onSig
 }) {
   const hints = useShortcutHints()
   const assistant = useAssistantStatus()
-  const moreAsMenu = useMediaQuery(MORE_MENU_QUERY)
+  // More is a popup only in the collapsed icon rail, where there is no room for labels;
+  // expanded, its destinations are an inline collapsible group that scrolls with the rest
+  // of the sidebar (it extends the list in place instead of popping a menu over it).
+  const moreAsMenu = collapsed
   const projectCountMode = useMediaQuery('(pointer: coarse)') ? 'always' : 'hover'
   const scroller = useRef<HTMLDivElement>(null)
   useScrollEdges(scroller)

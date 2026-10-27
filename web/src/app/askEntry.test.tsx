@@ -97,12 +97,12 @@ describe('Ask screen (3.4)', () => {
     navigate({ view: 'inbox' })
     const r = await render(<Shell user={user} onLogout={() => {}} />)
     await flush(30)
-    // The sidebar's More menu lists Ask while the assistant is available (ux-overhaul, sidebar-compact-desktop).
-    await click(document.querySelector('[data-sidebar-more-menu] button[aria-haspopup="menu"]')!)
+    // The sidebar's More group lists Ask while the assistant is available.
+    const moreGroup = document.querySelector('[data-testid="sidebar-more"]')!
+    expect(moreGroup).not.toBeNull()
+    await click(moreGroup.querySelector('button[aria-expanded]')!)
     await flush(10)
-    expect(document.querySelector('[role="menu"] [data-menu-label="Ask"]')).not.toBeNull()
-    await key(document.body, 'Escape')
-    await flush(10)
+    expect(moreGroup.querySelector('[data-destination="ask"]')).not.toBeNull()
     await key(document.body, 'g')
     await key(document.body, 'k')
     await flush(30)

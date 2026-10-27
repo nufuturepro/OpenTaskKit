@@ -74,9 +74,9 @@ describe('one scroller', () => {
     expect(labels).toBeTruthy()
     expect(scroller.contains(labels)).toBe(true)
     expect(side.querySelector('nav[aria-label="Projects"]')!.contains(labels)).toBe(false)
-    // On a desktop More is a menu among the primary destinations (sidebar-compact-desktop).
-    expect(scroller.contains(side.querySelector('[data-sidebar-more-menu]'))).toBe(false)
-    expect(side.querySelector('nav[data-sidebar-primary] [data-sidebar-more-menu]')).not.toBeNull()
+    // More is an inline group in the scroller; only the collapsed rail shows it as a popup menu.
+    expect(scroller.contains(side.querySelector('[data-testid="sidebar-more"]'))).toBe(true)
+    expect(side.querySelector('[data-sidebar-more-menu]')).toBeNull()
     // Pinned ends: Inbox and the account row are outside the scroller.
     const inbox = [...side.querySelectorAll('button')].find((b) => b.textContent?.trim().startsWith('Inbox'))!
     const account = side.querySelector('[data-account-menu]')!
@@ -94,7 +94,8 @@ const moreItems = (root: ParentNode) => [...moreOf(root).querySelectorAll('[data
 const moreToggle = (root: ParentNode) => moreOf(root).querySelector<HTMLButtonElement>('button[aria-expanded]')!
 
 describe('primary destinations and More (ux-overhaul 4.1)', () => {
-  // The inline More group is the touch layout (sidebar-compact-desktop); the desktop menu is tested below.
+  // The inline More group is the layout whenever the sidebar is expanded (touch as before, and now desktop too);
+  // only the collapsed rail keeps the popup menu. touchScreen() still drives the touch-size counts below.
   beforeEach(touchScreen)
 
   it('on a touch screen the More group scrolls with the groups, so opening it on a short phone screen cannot squeeze the scroller away (sidebar-drawer-scroll)', async () => {
@@ -186,31 +187,25 @@ describe('primary destinations and More (ux-overhaul 4.1)', () => {
 })
 
 describe('the desktop sidebar (sidebar-compact-desktop)', () => {
-  const menuItems = () => [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((b) => b.getAttribute('data-menu-label'))
-  const moreButton = (root: ParentNode) => root.querySelector<HTMLButtonElement>('[data-sidebar-more-menu] button[aria-haspopup="menu"]')!
-
-  it('opens More as a menu after the primary destinations; a chosen item navigates; the review due marker is on the row', async () => {
+  it('shows More as an inline group after the primary destinations; a chosen destination navigates; the review due marker is on its header', async () => {
     const r = await render(<Sidebar route={{ view: 'inbox' }} user={user} />)
     await flush(50)
-    expect(r.container.querySelector('[data-testid="sidebar-more"]')).toBeNull()
-    const trigger = moreButton(r.container)
-    expect(trigger.getAttribute('aria-label')).toBeNull()
-    // The marker is a dot whose words are part of the row's name (quiet-sidebar D4).
-    expect(trigger.textContent).toBe('More, Review due · no weekly review yet')
-    expect(trigger.querySelector('[data-dot]')).not.toBeNull()
-    expect(trigger.getAttribute('aria-expanded')).toBe('false')
-    // Never reviewed: the review is due, and the closed More row says so.
-    expect(trigger.querySelector('[data-review-due-more]')).not.toBeNull()
-    await click(trigger)
-    await waitFor(() => menuItems().length > 0)
-    expect(menuItems()).toEqual(['Loop home', 'Next', 'Waiting', 'Anytime', 'Someday', 'Completed', 'Review', 'Statistics', 'Locations', 'Trash', 'Filter'])
-    expect(document.querySelector('[data-menu-label="Review"]')?.textContent).toContain('Review due')
-    await click(document.querySelector<HTMLElement>('[data-menu-label="Someday"]')!)
+    // On desktop More is an inline collapsible group in the scroller, not a popup menu.
+    expect(r.container.querySelector('[data-sidebar-more-menu]')).toBeNull()
+    const group = r.container.querySelector('[data-testid="sidebar-more"]')!
+    expect(group).not.toBeNull()
+    const toggle = moreToggle(r.container)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    // Never reviewed: the review-due dot rides on the closed group's header, its words in the name.
+    expect(toggle.querySelector('[data-review-due-more]')).not.toBeNull()
+    expect(toggle.querySelector('[data-dot]')).not.toBeNull()
+    expect(spokenText(toggle)).toBe('More, Review due · no weekly review yet')
+    await click(toggle)
+    await waitFor(() => moreItems(r.container).length > 0)
+    expect(moreItems(r.container)).toEqual(['loop', 'next', 'waiting', 'anytime', 'someday', 'completed', 'review', 'stats', 'places', 'trash', 'filter'])
+    // Choosing one navigates.
+    await click(r.container.querySelector<HTMLElement>('[data-sidebar-item][data-destination="someday"]')!)
     await waitFor(() => window.location.pathname === '/someday')
-    expect(document.querySelector('[role="menu"]')).toBeNull()
-    // While a More destination is open, the More row is marked as the current place.
-    await r.rerender(<Sidebar route={{ view: 'someday' }} user={user} />)
-    expect(moreButton(r.container).className).toContain('bg-accent-soft')
     await r.unmount()
   })
 
@@ -252,7 +247,7 @@ describe('the desktop sidebar (sidebar-compact-desktop)', () => {
     const r = await render(<Sidebar route={{ view: 'inbox' }} user={user} />)
     await flush(50)
     const groups = () => [...r.container.querySelectorAll('[data-sidebar-group]')].map((g) => g.getAttribute('data-sidebar-group'))
-    expect(groups()).toEqual(['Projects'])
+    expect(groups()).toEqual(['More', 'Projects'])
     expect(r.container.textContent).not.toContain('Save a filter')
     expect(r.container.textContent).not.toContain('No labels yet')
     await createView({ name: 'Errands', query: 'today', pinned: false })
@@ -260,7 +255,7 @@ describe('the desktop sidebar (sidebar-compact-desktop)', () => {
     await createLabel({ name: 'errand' })
     await waitFor(() => groups().includes('Labels'))
     // The order is Projects, Labels, Filters (sidebar-favourites D5); an unpinned filter adds no Favourites group.
-    expect(groups()).toEqual(['Projects', 'Labels', 'Filters'])
+    expect(groups()).toEqual(['More', 'Projects', 'Labels', 'Filters'])
     await r.unmount()
   })
 
@@ -655,7 +650,7 @@ describe('favourites (sidebar-favourites 2.2, 2.3, 3.2)', () => {
     await waitFor(() => favRows(r.container).length === 3)
     // The Website launch count is its whole subtree's (5), whatever the tree's fold state.
     await waitFor(() => favRows(r.container).join('|') === 'Website launch 5|Deep work 4|errand 3')
-    expect(groups(r.container)).toEqual(['Favourites', 'Projects', 'Labels', 'Filters'])
+    expect(groups(r.container)).toEqual(['More', 'Favourites', 'Projects', 'Labels', 'Filters'])
     // Move "Deep work" to the top from its menu in the Favourites group.
     const deepRow = r.container.querySelector(`[data-favourite-row="view:${deep}"]`)!
     await click(deepRow.querySelector('button[aria-label="Menu for view Deep work"]')!)
@@ -882,7 +877,8 @@ describe('quiet sidebar (quiet-sidebar 1.2-1.4, 2.1)', () => {
   })
 
   describe('rhythm markers as one dot', () => {
-    const moreButton = (root: ParentNode) => root.querySelector<HTMLButtonElement>('[data-sidebar-more-menu] button[aria-haspopup="menu"]')!
+    // More is an inline group now: its closed header button carries the marker.
+    const moreButton = (root: ParentNode) => moreToggle(root)
 
     it('Review due on More: a dot after the label, no text badge, the words in its name and the menu description', async () => {
       await db.review.put({ ...REVIEW_DEFAULTS, id: 'me', completed_at: Date.now() - 9 * DAY, _clock: {} })
@@ -892,11 +888,11 @@ describe('quiet sidebar (quiet-sidebar 1.2-1.4, 2.1)', () => {
       expect(visibleText(trigger)).toBe('More')
       expect(trigger.querySelectorAll('[data-dot]')).toHaveLength(1)
       expect(spokenText(trigger)).toBe('More, Review due · last weekly review 9 days ago')
-      expect(trigger.innerHTML).not.toContain('data-hue')
-      await click(trigger)
-      await waitFor(() => !!document.querySelector('[data-menu-label="Review"]'))
-      expect(document.querySelector('[data-menu-label="Review"]')!.textContent).toContain('Review due · last weekly review 9 days ago')
-      await r.unmount()
+    expect(trigger.innerHTML).not.toContain('data-hue')
+    await click(trigger)
+    await waitFor(() => !!r.container.querySelector('[data-destination="review"]'))
+    expect(spokenText(r.container.querySelector('[data-destination="review"]')!)).toContain('Review due · last weekly review 9 days ago')
+    await r.unmount()
     })
 
     it('Due in Companion: the dot names the Monthly look too, and a finish on another device removes it', async () => {
@@ -912,11 +908,11 @@ describe('quiet sidebar (quiet-sidebar 1.2-1.4, 2.1)', () => {
     it('Lists only: no marker; the Review item in the More menu reads "Last review yesterday"', async () => {
       await db.review.put({ ...REVIEW_DEFAULTS, id: 'me', completed_at: Date.now() - DAY, _clock: {} })
       const r = await render(<Sidebar route={{ view: 'inbox' }} user={user} />)
-      await waitFor(() => !r.container.querySelector('[data-review-due-more]'))
-      await click(moreButton(r.container))
-      await waitFor(() => !!document.querySelector('[data-menu-label="Review"]'))
-      expect(document.querySelector('[data-menu-label="Review"]')!.textContent).toContain('Last review yesterday')
-      await r.unmount()
+    await waitFor(() => !r.container.querySelector('[data-review-due-more]'))
+    await click(moreButton(r.container))
+    await waitFor(() => !!r.container.querySelector('[data-destination="review"]'))
+    expect(r.container.querySelector('[data-destination="review"]')!.getAttribute('aria-description')).toContain('Last review yesterday')
+    await r.unmount()
     })
 
     it('Open Loops first in the morning: the primary Review entry carries one dot naming the Daily check', async () => {
