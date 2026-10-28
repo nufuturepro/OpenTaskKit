@@ -58,7 +58,7 @@ const keysOf = (el: Element) => [el.getAttribute('data-drop-target'), el.hasAttr
 
 function markActive(key: string | null): void {
   for (const el of document.querySelectorAll(`[${ACTIVE}]`)) {
-    if (!keysOf(el).includes(key)) el.removeAttribute(ACTIVE)
+    if (key === null || !keysOf(el).includes(key)) el.removeAttribute(ACTIVE)
   }
   if (key === null) return
   for (const el of document.querySelectorAll('[data-drop-target], [data-task-drop]')) {

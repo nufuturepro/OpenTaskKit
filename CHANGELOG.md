@@ -41,6 +41,7 @@ All notable changes to OpenTodo are documented here. The format follows [Keep a 
 
 ### Fixed
 
+- **OpenTaskKit: the drop ring clears when a drag ends.** Dropping a task on a project, a section or another drop target left the target's highlight on after the pointer was gone (the end-of-drag cleanup skipped any element that also had no task-drop key); the ring is removed again, as upstream does.
 - **A click selects a task in the Plan.** Clicking a task in the Plan selected it and cleared the selection in the same moment, so the arrow keys moved nothing; the arrows now move the clicked task.
 - **Task rows line up on phones.** On touch screens the circle sat about half a line above the title; it is centred on the title's first line again, keeping the 44 px tap areas. The layout check now fails when they drift apart.
 - **"Inbox" means the Inbox.** A dated task without a project no longer carries an "Inbox" chip on its row; the task panel says "No project".
