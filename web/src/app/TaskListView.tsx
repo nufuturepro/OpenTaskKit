@@ -47,7 +47,7 @@ import { TimelineView } from './TimelineView'
 import { completeWithUndo } from './undoable'
 import { CompleteParentPrompt, EmptyState, FilteredEmpty, LayoutSwitch, ListPageActions, MissingTarget, placeholderFor, PlannedWithoutProject, ReadOnlyQuickAdd, usePlannedWithoutProject, RowPickerDialogs } from './task-list/ListChrome'
 import { GroupedList, LogbookMore, rowRenderer } from './task-list/ListGroups'
-import { useListBindings } from './task-list/useListBindings'
+import { rowMenuIds, useListBindings } from './task-list/useListBindings'
 import { useListDrag } from './task-list/useListDrag'
 import { useListModel, type ListRoute } from './task-list/useListModel'
 import { useListShortcuts, type ListUi } from './task-list/useListShortcuts'
@@ -60,7 +60,7 @@ const HELP_SCREENS: Partial<Record<Route['view'], string>> = {
 }
 
 /** Transient UI of the list: pickers, prompts, quick adds and the actions menu. */
-function useListUi() {
+function useListUi(ticked: ReadonlySet<string>) {
   const [actionsOpen, setActionsOpen] = useState(false)
   const [actionsPicker, setActionsPicker] = useState<string | null>(null)
   const [selectMode, setSelectMode] = useState(false)
@@ -84,10 +84,12 @@ function useListUi() {
   /** Right-click (task-row-context-menu): the actions menu at the pointer. `open` flips on close; `onAllClosed` clears the entry. */
   const [ctxMenu, setCtxMenu] = useState<{ ids: string[]; x: number; y: number; open: boolean } | null>(null)
   const openContextMenu = useCallback((ids: string[], x: number, y: number) => setCtxMenu({ ids, x, y, open: true }), [])
+  /** Every trigger's rule (task-row-context-menu): right-click, the keyboard's `.`, a touch hold's release. */
+  const openRowMenu = useCallback((task: Task, x: number, y: number) => openContextMenu(rowMenuIds(task, ticked), x, y), [openContextMenu, ticked])
   const closeContextMenu = useCallback((v: boolean) => { if (!v) setCtxMenu((cur) => (cur ? { ...cur, open: false } : cur)) }, [])
   const clearContextMenu = useCallback(() => setCtxMenu(null), [])
   const ui: ListUi = { pickerFor, setPickerFor, assignFor, setAssignFor, prompt, setPrompt, addingUnder, setAddingUnder, setAddingTo, openActions }
-  return { ui, actionsOpen, actionsHold, actionsPicker, onActionsOpen, releaseActions, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, closeContextMenu, clearContextMenu }
+  return { ui, actionsOpen, actionsHold, actionsPicker, onActionsOpen, releaseActions, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, openRowMenu, closeContextMenu, clearContextMenu }
 }
 
 /** With the Completed group on (project-completed-section), sections offer no "n completed" of their own. */
@@ -105,7 +107,7 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
   const readOnlyId = useCallback((id: string) => isReadOnly(taskMap.get(id)), [isReadOnly, taskMap])
   const selection = useSelection(tickRows, readOnlyId)
   const ticked = useMemo(() => tickRows.filter((id) => selection.ticked.has(id)), [tickRows, selection.ticked])
-  const { ui, actionsOpen, actionsHold, actionsPicker, onActionsOpen, releaseActions, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, closeContextMenu, clearContextMenu } = useListUi()
+  const { ui, actionsOpen, actionsHold, actionsPicker, onActionsOpen, releaseActions, selectMode, setSelectMode, addingTo, ctxMenu, openContextMenu, openRowMenu, closeContextMenu, clearContextMenu } = useListUi(selection.ticked)
   // The open task lives in the shell's panel slot (app-shell D1); this view only selects and opens.
   const openId = usePanelTaskId()
   const quickAddRef = useRef<HTMLInputElement>(null)
@@ -166,7 +168,7 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
   // and above) and the Inbox. Date and filter views keep their own sort.
   const manual = (route.view === 'project' && m.projectEditable) || route.view === 'inbox'
   const sectionOfRow = useMemo(() => sectionOfRows(board, columns, groups), [board, columns, groups])
-  const drag = useListDrag({ manual, source: { rows, sectionOfRow, tree: m.tree, board, sectionMap, ticked: selection.ticked }, moveToSection, onDropped: setSelectedId })
+  const drag = useListDrag({ manual, source: { rows, sectionOfRow, tree: m.tree, board, sectionMap, ticked: selection.ticked, openRowMenu }, moveToSection, onDropped: setSelectedId, onDragStart: clearContextMenu })
   const { latestSectionMap } = drag
 
   // The view supplies defaults; attributes typed in the quick-add line override them.
@@ -231,7 +233,7 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
     today, userId, acceptPrompt, moveToSection, toggleViewMode,
     editInline: (id) => { setSelectedId(id); setInline({ id }) },
   })
-  const rowActions = useListBindings({ ...shared, setSelectMode, startDrag: drag.startDrag, insertAfter, listRoot, projectReadOnly: m.projectReadOnly, startInline, openContextMenu, draggingId: drag.draggingId })
+  const rowActions = useListBindings({ ...shared, setSelectMode, startDrag: drag.startDrag, insertAfter, listRoot, projectReadOnly: m.projectReadOnly, startInline, openContextMenu, openRowMenu, draggingId: drag.draggingId })
 
   const renderRow = rowRenderer({
     view: route.view, labelId: route.view === 'label' ? route.id : undefined, userId, projectMap: m.projectMap, labelMap: m.labelMap, memberMap: m.memberMap, selectedId, progress: m.progress, blocked: m.blocked,

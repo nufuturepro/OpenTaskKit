@@ -22,7 +22,7 @@ Fill in details as you type:
 Order new taps friday #Home @errand p2 +20m
 ```
 
-This creates "Order new taps", due Friday, in the project Home, with the label errand, priority 2 and an estimate of 20 minutes. Chips under the box show what was understood. The [quick add reference](quick-add.md) has every word and symbol it knows.
+This creates "Order new taps", due Friday, in the project Home, with the label errand, priority 2 and an estimate of 20 minutes. Chips show what was understood. The [quick add reference](quick-add.md) has every word and symbol it knows.
 
 New tasks without a project land in the **Inbox**. Tasks added inside a project go into that project, and tasks added in **Today** are due today.
 
@@ -56,7 +56,7 @@ You don't have to open a task to change it. Select it and press:
 | <kbd>s</kbd> | Schedule it on the Day calendar |
 | <kbd>Delete</kbd> | Move it to the Trash |
 
-Right-click opens a menu at the pointer; tick several to act at once. **Pick a date…** opens the calendar beside the menu, not over it.
+Right-click or hold a row: its menu opens at the pointer; tick several at once. **Pick a date…** opens the calendar beside the menu, not over it.
 
 ## Put things in order
 
