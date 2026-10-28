@@ -90,8 +90,14 @@ both ways:
 scripts/upstream-pr.sh fix-short-description <commit>...
 ```
 
-The script branches off `upstream/main`, cherry-picks the commits, pushes to the
-`fork` remote and opens the PR against `pixari/OpenTodo`. Follow upstream's
+The script branches off `upstream/main`, cherry-picks the commits, **strips the
+brand**, pushes to the `fork` remote and opens the PR against `pixari/OpenTodo`.
+The brand pass runs on the whole proposed diff: `CHANGELOG.md` goes back to
+upstream's (its release notes are written there), every other changed file gets
+`OpenTaskKit` rewritten to `OpenTodo`, and the script refuses to push if any
+`OpenTaskKit` string survives — so a PR never needs manual reformatting. Run it
+with a clean tree; on a cherry-pick conflict it stops and prints the manual steps,
+after which the same strip must be applied by hand. Follow upstream's
 CONTRIBUTING: bug fixes need no OpenSpec change; `make check` must be green there;
 UI changes need before/after screenshots from `make screens`.
 
