@@ -2,7 +2,7 @@
 // `// @vitest-environment happy-dom`): render into a real DOM, fire keys.
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { vi } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -12,6 +12,9 @@ export interface Rendered {
   unmount: () => Promise<void>
 }
 
+/** Every root this module still holds, released by its own unmount or the hook below. */
+const mounted: { root: Root; container: HTMLElement }[] = []
+
 export async function render(ui: ReactNode): Promise<Rendered> {
   const container = document.createElement('div')
   document.body.append(container)
@@ -20,15 +23,48 @@ export async function render(ui: ReactNode): Promise<Rendered> {
     root = createRoot(container)
     root.render(ui)
   })
+  const entry = { root: root!, container }
+  mounted.push(entry)
+  const release = () => {
+    const i = mounted.indexOf(entry)
+    if (i >= 0) mounted.splice(i, 1)
+  }
   return {
     container,
     rerender: (next) => act(async () => root!.render(next)),
     unmount: async () => {
+      release()
       await act(async () => root!.unmount())
       container.remove()
     },
   }
 }
+
+/**
+ * Unmount whatever this file's tests rendered (OpenSpec web-lint-and-test-hygiene):
+ * a root left mounted keeps its useLiveQuery subscriptions alive, and Dexie's
+ * liveQuery re-query timer (setTimeout(doQuery, 0)) can then fire after the DOM
+ * environment is torn down, where the emission's React dispatch reads a window
+ * that no longer exists - the unhandled "ReferenceError: window is not defined"
+ * that fails CI from statsTime.test.tsx. A test's own unmount() releases its
+ * entry first, so nothing unmounts twice.
+ */
+afterEach(async () => {
+  for (const { root, container } of mounted.splice(0)) {
+    // Best effort: a test's own afterEach may have run first and cleared
+    // document.body.innerHTML (127 files do), which leaves React removing a
+    // portal node that is already gone ("Failed to execute 'removeChild'").
+    // The unmount still closes the liveQuery subscriptions on the way - effect
+    // destroys run in React's deletion walk - so the teardown race stays closed;
+    // the throw is only about a node this file's cleanup already deleted.
+    try {
+      await act(async () => root.unmount())
+    } catch {
+      /* the body was cleared before we got here; the root is gone regardless */
+    }
+    container.remove()
+  }
+})
 
 export async function key(target: Element | Document, k: string, init: KeyboardEventInit = {}) {
   await act(async () => {
