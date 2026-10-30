@@ -23,4 +23,4 @@
 
 - [x] 4.1 This change's delta (`bulk-actions`) written against the current spec; strict OpenSpec validation passes
 - [x] 4.2 Docs: one sentence each in `docs/work-from-the-list.md` and `docs/keyboard.md`; CHANGELOG entry; `make docs-check` passes
-- [ ] 4.3 Full gates: typecheck, lint, tests (TZ=UTC), openspec validate, i18n check
+- [x] 4.3 Full gates: typecheck, lint, tests (TZ=UTC), openspec validate, i18n check — and CI green on `c6891b3f` (web tests, all three visual shards with the regenerated baselines, layout, server, a11y, checks)
