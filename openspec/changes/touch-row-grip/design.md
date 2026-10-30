@@ -11,7 +11,7 @@ Every press on a row resolves to exactly one thing, decided by where it starts:
 | Row body | any | hold, then move | the drag (or a scroll before the hold) |
 | Grip (coarse only) | coarse | tap | tick / untick + haptic |
 | Grip (coarse only) | coarse | hold, still | the same tick, idempotent |
-| Grip (coarse only) | coarse | move | the drag lifts at once, carrying the ticked selection |
+| Grip (coarse only) | coarse | move | the drag lifts at once, giving back the tick this hold created — a row ticked before the press keeps its selection |
 
 The grip is rendered only where `pointer: coarse` is the primary pointer, so a laptop with a touchscreen keeps the current row; the phone's row never offers both gestures in the same place.
 
@@ -23,7 +23,7 @@ The row body keeps `user-select: none` on touch screens too (coarse pointer only
 
 ## Drag ownership
 
-`beginDrag` in `lib/dnd.ts` gains a `grip` mode: movement lifts immediately (no hold wait), a held release never opens the menu, and `onHold` (the tick-while-held feedback) is wired to the grip only. The row body keeps the existing two-phase hold — arm during the hold interval with held feedback, lift only on movement after it, release into the actions menu — which is what this distribution has shipped since `task-row-context-menu`; only the grip adds a meaning of its own.
+`beginDrag` in `lib/dnd.ts` gains a `grip` mode: movement lifts immediately (no hold wait), a held release never opens the menu, and `onHold` (the tick-while-held feedback) is wired to the grip only. A grip press whose hold ticked gives that tick back the moment the press lifts (and when Escape or a pointercancel abandons it): `beginDrag` remembers that the hold fired and calls `onHoldUndo` once, only for a grip, and only for a row that was unticked when the press started — a release that never moved keeps the tick. The row body keeps the existing two-phase hold — arm during the hold interval with held feedback, lift only on movement after it, release into the actions menu — which is what this distribution has shipped since `task-row-context-menu`; only the grip adds a meaning of its own.
 
 `startDrag(e, task, grip)` resolves its feedback onto the row's `<li>` (`closest('li')`) so the tint belongs to the row, not the grip button.
 

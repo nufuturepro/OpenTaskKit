@@ -18,6 +18,7 @@
 - [x] 3.2 `web/src/app/taskRow.test.tsx`: the grip renders only where a coarse pointer is primary
 - [x] 3.3 `web/src/app/bulk/bulk.test.tsx`: a grip tap and a grip hold tick and show the bar with one haptic; the row body's hold opens the menu and never ticks
 - [x] 3.4 `npm run typecheck`, `eslint` and `TZ=UTC npx vitest run` pass
+- [x] 3.5 `web/src/lib/dnd.test.ts` + `web/src/app/bulk/bulk.test.tsx`: a hold that becomes a drag gives its tick back once at the lift (grip only, the row body untouched); a still release keeps it; Escape after a hold gives it back — and the component stays inside `max-lines-per-function` through the module-scope `undoGripHold`
 
 ## 4. Spec, docs and delivery
 

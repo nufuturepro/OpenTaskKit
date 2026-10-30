@@ -264,4 +264,28 @@ describe('the touch grip (bulk-actions on touch)', () => {
       vi.useRealTimers()
     }
   })
+
+  it('a hold that becomes a drag gives its tick back and leaves no bar', async () => {
+    const { ids } = await inbox('Drag me', 'Stay put')
+    const grip = document.querySelector<HTMLElement>(`[data-task-id="${ids[0]}"] [data-row-grip] button`)!
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    try {
+      await act(async () => { grip.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 8, pointerType: 'touch', clientX: 20, clientY: 20 })) })
+      await act(async () => { vi.advanceTimersByTime(400) })
+      // The hold selected: the row is ticked and the bar says so.
+      expect(tickedTitles()).toEqual(['Drag me'])
+      expect(bar()).toBe('1 selected')
+      // The press becomes a drag: the tick its own hold created is given back at once.
+      await act(async () => { window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 8, pointerType: 'touch', clientX: 20, clientY: 200 })) })
+      expect(tickedTitles()).toEqual([])
+      expect(bar()).toBeNull()
+      await act(async () => { window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 8, pointerType: 'touch', clientX: 20, clientY: 200 })) })
+      await act(async () => { vi.advanceTimersByTime(10) })
+      expect(tickedTitles()).toEqual([])
+      expect(bar()).toBeNull()
+      expect(rowMenuOpen()).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

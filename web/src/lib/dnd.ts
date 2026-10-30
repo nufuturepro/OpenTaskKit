@@ -6,7 +6,8 @@ import { t } from './i18n'
 // still opens the row's actions menu (task-row-context-menu "Touch: hold and
 // release"). A press on the row's grip skips the wait, because a grip never
 // scrolls: movement lifts the drag at once and the hold itself selects
-// (bulk-actions on touch — the grip owns selection on a touch screen).
+// (bulk-actions on touch — the grip owns selection on a touch screen) — and a hold
+// that becomes a drag gives that tick back, so a move never leaves selection behind.
 // A ghost label follows the pointer, the element
 // under it carrying `data-drop-target` is the target and gets `data-drop-active`
 // for styling. The primitive knows nothing about tasks: callers decide what a drop
@@ -38,6 +39,12 @@ export interface DragOptions {
    * moves, and a release without moving swallows the click.
    */
   onHold?: () => void
+  /**
+   * The hold ticked a row that was not ticked before, and the press has since become
+   * a drag: give that tick back at once (bulk-actions on touch — a hold selects, a
+   * hold that drags moves; only a release that never moved keeps the tick).
+   */
+  onHoldUndo?: () => void
   /**
    * The press began on the row's grip, not its body. A grip never scrolls (its own
    * `touch-action: none`), so any movement past the threshold lifts the drag without
@@ -118,10 +125,20 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
   let ghost: HTMLElement | null = null
   let target: string | null = null
   let timer: ReturnType<typeof setTimeout> | undefined
+  let holdFired = false
+  let holdUndone = false
+  // The grip's hold selected a row; the moment the press becomes a drag (or is
+  // abandoned) that tick is given back, so a drag never leaves selection behind.
+  const undoHold = () => {
+    if (!opts.grip || !holdFired || holdUndone || !opts.onHoldUndo) return
+    holdUndone = true
+    opts.onHoldUndo()
+  }
 
   const lift = () => {
     if (lifted) return
     lifted = true
+    undoHold()
     // The held tint hands over to the drag's own feedback.
     if (held) {
       held = false
@@ -197,6 +214,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
   }
   const cancel = () => {
     const wasLifted = lifted
+    undoHold()
     cleanup()
     if (wasLifted) opts.onEnd?.()
   }
@@ -219,6 +237,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
     // The hold arms the drag instead of lifting it: moving afterwards drags,
     // releasing still opens the row's menu, so neither gesture steals the other.
     timer = setTimeout(() => {
+      holdFired = true
       held = true
       opts.onHoldChange?.(true)
       // The hold itself means select — only ever wired from the row's grip.

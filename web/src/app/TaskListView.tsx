@@ -41,7 +41,7 @@ import { requestQuickAddSheet } from './QuickAddSheet'
 import { navigate, type Route } from './router'
 import { AddSection } from './Sections'
 import { selectTask } from './signals'
-import { holdSelect, useSelection } from './selection'
+import { holdSelect, useSelection, type SelectionApi } from './selection'
 import { SubProjects } from './SubProjects'
 import { TimelineView } from './TimelineView'
 import { completeWithUndo } from './undoable'
@@ -57,6 +57,21 @@ export { BLOCKED_OPEN_KEY } from '../lib/listGroups'
 /** The guide section of each list page (user-documentation "Contextual help"); projects use their header's. */
 const HELP_SCREENS: Partial<Record<Route['view'], string>> = {
   inbox: 'inbox', today: 'today', upcoming: 'upcoming', anytime: 'anytime', someday: 'someday', completed: 'completed', assigned: 'assigned', label: 'label',
+}
+
+/**
+ * The grip's hold ticked a row and the press then became a drag (bulk-actions on
+ * touch, touch-row-grip): give that tick back, and with nothing else ticked leave
+ * selection mode as the press found it. Called through the drag state, so it reads
+ * the latest render — the one that already carries the hold's tick.
+ */
+function undoGripHold(selection: SelectionApi, setSelectMode: (on: boolean) => void): (task: Task) => void {
+  return (task) => {
+    if (!selection.ticked.has(task.id)) return
+    const alone = selection.ticked.size === 1
+    selection.toggle(task.id)
+    if (alone) setSelectMode(false)
+  }
 }
 
 /** Transient UI of the list: pickers, prompts, quick adds and the actions menu. */
@@ -168,7 +183,7 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
   // and above) and the Inbox. Date and filter views keep their own sort.
   const manual = (route.view === 'project' && m.projectEditable) || route.view === 'inbox'
   const sectionOfRow = useMemo(() => sectionOfRows(board, columns, groups), [board, columns, groups])
-  const drag = useListDrag({ manual, source: { rows, sectionOfRow, tree: m.tree, board, sectionMap, ticked: selection.ticked, onHold: (task) => holdSelect(task.id, selection, setSelectMode), openRowMenu }, moveToSection, onDropped: setSelectedId, onDragStart: clearContextMenu })
+  const drag = useListDrag({ manual, source: { rows, sectionOfRow, tree: m.tree, board, sectionMap, ticked: selection.ticked, onHold: (task) => holdSelect(task.id, selection, setSelectMode), onHoldUndo: undoGripHold(selection, setSelectMode), openRowMenu }, moveToSection, onDropped: setSelectedId, onDragStart: clearContextMenu })
   const { latestSectionMap } = drag
 
   // The view supplies defaults; attributes typed in the quick-add line override them.
