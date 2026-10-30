@@ -24,6 +24,36 @@ export function rowMenuIds(task: Task, ticked: ReadonlySet<string>): string[] {
   return ticked.has(task.id) ? [...ticked] : [task.id]
 }
 
+/**
+ * The browser's own menu still wins here (task-row-context-menu): a link (open in a
+ * new tab, copy address), a field or editable text (paste, spelling suggestions) or
+ * a selection of the row's text to copy. Nothing is prevented, so the native menu
+ * appears as it would anywhere else.
+ */
+export function nativeMenuWins(e: React.MouseEvent): boolean {
+  const target = e.target
+  if (target instanceof Element && target.closest('a[href], input, textarea, [contenteditable]:not([contenteditable="false"])')) return true
+  const selection = document.getSelection()
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return false
+  const row = e.currentTarget instanceof Element ? e.currentTarget : null
+  const node = selection.getRangeAt(0).commonAncestorContainer
+  const inRow = node instanceof Element ? node : node.parentElement
+  return !!row && !!inRow && row.contains(inRow)
+}
+
+/**
+ * A `contextmenu` raised by touch — Chrome on Android fires one on a long press. It
+ * is suppressed (the browser's menu never covers the row) but never opens ours: the
+ * hold owns touch, so one gesture cannot both tick the row and open its menu, and
+ * iOS, which never fires one, behaves the same way.
+ */
+export function fromTouch(e: React.MouseEvent): boolean {
+  // React's synthetic event wraps the native one, which carries the pointer type; a
+  // handler invoked without an event's wrapper (a unit test) is the native event itself.
+  const native = (e.nativeEvent ?? (e as unknown as Event)) as PointerEvent
+  return native.pointerType === 'touch'
+}
+
 export interface BindingContext {
   route: ListRoute
   rows: ListRow[]
@@ -176,10 +206,13 @@ export function useListBindings(c: BindingContext): RowActions {
       navigator.vibrate?.(10)
     },
     context: (e, task) => {
-      // Right-click: the same actions menu the keyboard opens, at the pointer — the
-      // shared rule picks the ticked selection when the row is one of them, else
-      // just the row (task-row-context-menu).
+      // Right-click: the row's actions menu at the pointer. A link, a field or the
+      // row's selected text keeps the browser's menu; a touch long press is the hold's
+      // gesture, not a right-click, so it is only suppressed (task-row-context-menu).
+      if (nativeMenuWins(e)) return
       e.preventDefault()
+      if (fromTouch(e)) return
+      // A lifted drag wins: the drop completes on release.
       if (live.current.draggingId) return
       live.current.openRowMenu(task, e.clientX, e.clientY)
     },

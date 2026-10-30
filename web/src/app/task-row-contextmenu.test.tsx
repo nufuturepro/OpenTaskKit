@@ -34,6 +34,14 @@ function rightClick(el: Element, x: number, y: number): MouseEvent {
   return e
 }
 
+/** A `contextmenu` raised by touch (Chrome fires one on a long press): the same event with its pointer type set. */
+function touchContextMenu(el: Element, x: number, y: number): MouseEvent {
+  const e = new MouseEvent('contextmenu', { clientX: x, clientY: y, bubbles: true, cancelable: true })
+  Object.defineProperty(e, 'pointerType', { value: 'touch' })
+  act(() => { el.dispatchEvent(e) })
+  return e
+}
+
 function escape() {
   act(() => { document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })) })
 }
@@ -73,6 +81,82 @@ describe('the row event', () => {
     expect(e.type).toBe('contextmenu')
     // The suppression of the browser menu lives in the list handlers below
     // (useListBindings / useBulkList), not in the row, which only forwards.
+    await r.unmount()
+  })
+})
+
+describe('the browser keeps its own menu', () => {
+  const tasks = [task({ id: 'a', title: 'Alpha' }), task({ id: 'b', title: 'Beta' })]
+  let bulk: ReturnType<typeof useBulkList> | null = null
+  /** Renders rows through `useBulkList` — the handlers every list shares (the inline title editor where asked for). */
+  async function wired(inlineFor: string | null = null) {
+    function Harness() {
+      bulk = useBulkList(tasks)
+      return (
+        <ul>
+          {tasks.map((t) => (
+            <TaskRow key={t.id} task={t} selected={false} showProject={false} onToggle={() => {}} onOpen={() => {}}
+              inline={inlineFor === t.id ? <input aria-label="Title" /> : undefined} {...bulk!.rowProps(t.id)} />
+          ))}
+          {bulk!.render(null)}
+        </ul>
+      )
+    }
+    return render(<Harness />)
+  }
+
+  it('a link in the row: no app menu, and the browser menu is not suppressed', async () => {
+    const r = await wired()
+    const li = r.container.querySelector('li[data-task-id="a"]')!
+    const link = document.createElement('a')
+    link.href = 'https://example.com/origin'
+    li.appendChild(link)
+    const e = rightClick(link, 12, 20)
+    expect(e.defaultPrevented).toBe(false)
+    expect(menuButton(r.container)).toBeNull()
+    await r.unmount()
+  })
+
+  it('the inline title editor: no app menu, so paste and spelling suggestions still work', async () => {
+    const r = await wired('a')
+    const field = r.container.querySelector('li[data-task-id="a"] input')!
+    const e = rightClick(field, 30, 40)
+    expect(e.defaultPrevented).toBe(false)
+    expect(menuButton(r.container)).toBeNull()
+    await r.unmount()
+  })
+
+  it('a selection of the row\u2019s text: no app menu, so Copy stays available', async () => {
+    const r = await wired()
+    const title = r.container.querySelector('li[data-task-id="a"] [data-row-open]')!
+    const range = document.createRange()
+    range.selectNodeContents(title)
+    const selection = document.getSelection()!
+    selection.removeAllRanges()
+    selection.addRange(range)
+    const e = rightClick(title, 30, 40)
+    expect(e.defaultPrevented).toBe(false)
+    expect(menuButton(r.container)).toBeNull()
+    selection.removeAllRanges()
+    await r.unmount()
+  })
+
+  it('a touch long press: the browser menu is suppressed and no app menu opens', async () => {
+    const r = await wired()
+    const li = r.container.querySelector('li[data-task-id="a"]')!
+    const e = touchContextMenu(li, 60, 80)
+    expect(e.defaultPrevented).toBe(true)
+    expect(menuButton(r.container)).toBeNull()
+    // The same row still answers an ordinary right-click: one gesture, one meaning.
+    rightClick(li, 60, 80)
+    await waitFor(() => !!menuButton(r.container))
+    await r.unmount()
+  })
+
+  it('with nothing in the way the browser menu is still taken over', async () => {
+    const r = await wired()
+    await rightClickUntilMenu(() => r.container.querySelector('li[data-task-id="a"]'), r.container, 10, 20)
+    expect(menuButton(r.container)!.getAttribute('aria-label')).toBe('Actions for 1 task')
     await r.unmount()
   })
 })

@@ -6,7 +6,7 @@ The actions menu (complete, track, priority, labels, due, move to project or sec
 
 ## What Changes
 
-- **Right-click opens the task's actions menu at the pointer.** On a task row — list, board card, timeline, and the filter, saved-view and method lists — a right-click suppresses the browser menu and opens the same `Actions` menu the keyboard opens, anchored where the pointer was (a bottom sheet on phones, like every other menu).
+- **Right-click opens the task's actions menu at the pointer.** On a task row — list, board card, timeline, and the filter, saved-view and method lists — a right-click suppresses the browser menu — except over a link, a field or a selection of the row's text, which keep their native menus — and opens the same `Actions` menu the keyboard opens, anchored where the pointer was (a bottom sheet on phones, like every other menu).
 - **The target follows the selection.** Right-clicking a ticked row opens the menu for the whole ticked selection (exactly what the Selection bar would act on, with the same review and Undo); right-clicking an unticked row targets just that task. The selection itself is not changed by the right-click.
 - **A lifted drag wins.** While a row is being dragged (the long-press lift on touch especially), the context menu does not open; releasing over a target performs the drop as before.
 - No new menu items, no new strings, no new shortcuts: the menu, its pickers, its review step and its Undo are the existing bulk-actions machinery acting on one or many ids.

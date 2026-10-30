@@ -4,6 +4,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Task } from '../../lib/types'
 import { useSelection, type SelectionApi } from '../selection'
+import { fromTouch, nativeMenuWins } from '../task-list/useListBindings'
 import { BulkActionsMenu, SelectionBar } from './BulkActions'
 import { t } from '../../lib/i18n'
 
@@ -55,7 +56,13 @@ export function useBulkList(tasks: readonly Task[]): BulkList {
       ticked: selection.ticked.has(id), showCheckbox: selection.ticked.size > 0,
       onTick: (range) => { if (range) selection.extendTo(id); else selection.toggle(id) },
       onContextMenu: (e) => {
+        // The same rule as the task lists: a link, a field or the row's selected text
+        // keeps the browser's own menu; a touch long press is only suppressed — the
+        // hold owns touch, so one gesture never both ticks and opens
+        // (task-row-context-menu).
+        if (nativeMenuWins(e)) return
         e.preventDefault()
+        if (fromTouch(e)) return
         setCtxMenu({ ids: selection.ticked.has(id) ? ticked : [id], x: e.clientX, y: e.clientY, open: true })
       },
     }),
