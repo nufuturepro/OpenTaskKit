@@ -112,7 +112,8 @@ On a Mac, use <kbd>⌘</kbd> where this page says <kbd>Ctrl</kbd>, and <kbd>Opti
 | <kbd>Alt+↓</kbd> | Move it one place down |
 | <kbd>Alt+Shift+↑</kbd> | Move it to the top of its list |
 | <kbd>Alt+Shift+↓</kbd> | Move it to the bottom of its list |
-| <kbd>Drag</kbd> (touch: press and hold) | Reorder tasks in project lists, boards and the Inbox, and projects in the sidebar; drop on the middle of a row to nest it; Esc cancels |
+| <kbd>Drag</kbd> (touch: drag the row's grip, or press and hold) | Reorder tasks in project lists, boards and the Inbox, and projects in the sidebar; drop on the middle of a row to nest it; Esc cancels |
+| <kbd>Press</kbd> then <kbd>and</kbd> then <kbd>hold</kbd> then <kbd>the</kbd> then <kbd>grip</kbd> | Touch: tick the task and show every checkbox (a tap on the grip at the row's edge does the same); Select in the list header shows them without ticking, Done hides them |
 | Today, Upcoming, Assigned, Completed, labels, filters | Sorted by date (or their own rule): no drag or Alt moves there |
 | <kbd>←</kbd> | Collapse the subtasks of the selected task (or go to its parent), or the sub-projects of the focused sidebar project |
 | <kbd>→</kbd> | Expand the subtasks of the selected task, or the sub-projects of the focused sidebar project |
@@ -330,7 +331,7 @@ On a Mac, use <kbd>⌘</kbd> where this page says <kbd>Ctrl</kbd>, and <kbd>Opti
 
 ## With the pointer
 
-Right-click or press and hold a task row to open its menu at the pointer; tick a few rows to act at once.
+Right-click or press and hold a row to open its menu at the pointer; tap its grip or <kbd>x</kbd> to tick a few rows.
 
 ## Vim keybindings
 

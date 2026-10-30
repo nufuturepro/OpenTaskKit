@@ -2,7 +2,9 @@
 // The long-press gestures (OpenSpec change task-row-context-menu, "Touch: hold and
 // release"): a hold without movement arms the drag — a release then opens the row's
 // menu at the finger, a move then lifts the drag; a move before the hold is a scroll,
-// never a drag. A drag also swallows the click it would otherwise leave behind.
+// never a drag — except on the row's grip, which never scrolls: it drags on movement
+// alone and its hold selects instead (bulk-actions on touch, touch-row-grip). A drag
+// also swallows the click it would otherwise leave behind.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { beginDrag, TOUCH_HOLD_MS } from './dnd'
 
@@ -13,7 +15,7 @@ const press = { pointerId: 9, pointerType: 'touch', button: 0, clientX: 50, clie
 const move = (x: number, y = 50) => window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 9, pointerType: 'touch', clientX: x, clientY: y }))
 const up = (x: number, y = 50) => window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 9, pointerType: 'touch', clientX: x, clientY: y }))
 function spies() {
-  return { onStart: vi.fn(), onDrop: vi.fn(), onEnd: vi.fn() }
+  return { onStart: vi.fn(), onDrop: vi.fn(), onEnd: vi.fn(), onHold: vi.fn() }
 }
 
 describe('touch: hold and drag', () => {
@@ -51,6 +53,46 @@ describe('touch: hold and drag', () => {
     up(130)
     expect(s.onStart).not.toHaveBeenCalled()
     expect(document.querySelector('[data-drag-ghost]')).toBeNull()
+  })
+})
+
+describe('the grip (bulk-actions on touch, touch-row-grip)', () => {
+  it('movement alone drags: a grip never waits for the hold and never scrolls', () => {
+    const s = spies()
+    beginDrag(press, { label: 'Task', grip: true, ...s })
+    move(60) // well before TOUCH_HOLD_MS
+    expect(s.onStart).toHaveBeenCalledTimes(1)
+    expect(s.onHold).not.toHaveBeenCalled()
+    expect(document.querySelector('[data-drag-ghost]')).toBeTruthy()
+    up(60)
+    expect(s.onEnd).toHaveBeenCalledTimes(1)
+  })
+
+  it('a grip hold selects, its release swallows the click and never opens the menu', () => {
+    const s = spies()
+    const release = vi.fn()
+    beginDrag(press, { label: 'Task', grip: true, onHoldRelease: release, ...s })
+    vi.advanceTimersByTime(TOUCH_HOLD_MS + 10)
+    expect(s.onHold).toHaveBeenCalledTimes(1)
+    expect(s.onStart).not.toHaveBeenCalled()
+    up(50, 50)
+    expect(release).not.toHaveBeenCalled()
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    window.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(true)
+  })
+
+  it("a plain tap on the grip lifts nothing, so the button's own click ticks", () => {
+    const s = spies()
+    const release = vi.fn()
+    beginDrag(press, { label: 'Task', grip: true, onHoldRelease: release, ...s })
+    up(50, 50)
+    expect(s.onStart).not.toHaveBeenCalled()
+    expect(s.onHold).not.toHaveBeenCalled()
+    expect(release).not.toHaveBeenCalled()
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+    window.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(false)
   })
 })
 

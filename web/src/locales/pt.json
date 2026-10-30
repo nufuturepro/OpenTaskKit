@@ -4498,5 +4498,6 @@
   "Off makes menus, dialogs and changes instant.": "Desligado torna instantâneos os menus, as caixas de diálogo e as alterações.",
   "Instant overlays when off": "Sem animação, tudo é instantâneo",
   "Pick a date": "Escolher uma data",
-  "Animate menus and dialogs": "Animar menus e caixas de diálogo"
+  "Animate menus and dialogs": "Animar menus e caixas de diálogo",
+  "Tick the task and show every checkbox (a tap on the grip at the row's edge does the same); Select in the list header shows them without ticking, Done hides them": "Marque a tarefa e mostre todas as caixas de seleção (tocar no puxador na borda da linha faz o mesmo); Selecionar no cabeçalho da lista mostra-as sem marcar, Pronto esconde-as"
 }

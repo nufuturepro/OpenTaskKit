@@ -4498,5 +4498,6 @@
   "Off makes menus, dialogs and changes instant.": "Aus macht Menüs, Dialoge und Änderungen sofort.",
   "Instant overlays when off": "Ohne Animation alles sofort",
   "Pick a date": "Datum wählen",
-  "Animate menus and dialogs": "Menüs und Dialoge animieren"
+  "Animate menus and dialogs": "Menüs und Dialoge animieren",
+  "Tick the task and show every checkbox (a tap on the grip at the row's edge does the same); Select in the list header shows them without ticking, Done hides them": "Aufgabe anhaken und alle Kontrollkästchen anzeigen (ein Tippen auf den Griff am Zeilenrand tut dasselbe); Auswählen in der Listenkopfzeile zeigt sie ohne Häkchen, Fertig verbirgt sie wieder"
 }

@@ -1511,10 +1511,10 @@
     "web\\src\\app\\PreferencesPanels.tsx"
   ],
   "Built-in plugins and the commands they add": [
-    "web/src/app/settingsSections.ts"
+    "web\\src\\app\\settingsSections.ts"
   ],
   "Built-in plugins, each adding commands you can turn off here.": [
-    "web/src/lib/settingsCopy.ts"
+    "web\\src\\lib\\settingsCopy.ts"
   ],
   "Bullet list": [
     "web\\src\\lib\\richtextEditor.ts"
@@ -2359,10 +2359,10 @@
     "web\\src\\app\\TokensSection.tsx"
   ],
   "Copy today's open tasks as a Markdown checklist.": [
-    "web/src/plugins/daily-digest/index.ts"
+    "web\\src\\plugins\\daily-digest\\index.ts"
   ],
   "Copy today's tasks as Markdown": [
-    "web/src/plugins/daily-digest/index.ts"
+    "web\\src\\plugins\\daily-digest\\index.ts"
   ],
   "Copy {label}": [
     "web\\src\\app\\CaldavPanel.tsx"
@@ -2586,7 +2586,7 @@
     "web\\src\\lib\\shortcuts.ts"
   ],
   "Daily digest": [
-    "web/src/plugins/daily-digest/index.ts"
+    "web\\src\\plugins\\daily-digest\\index.ts"
   ],
   "Danger zone": [
     "web\\src\\app\\LabelsView.tsx"
@@ -6613,7 +6613,7 @@
     "web\\src\\app\\review\\ReviewView.tsx"
   ],
   "Nothing is due today.": [
-    "web/src/plugins/daily-digest/index.ts"
+    "web\\src\\plugins\\daily-digest\\index.ts"
   ],
   "Nothing is due today. Pick your focus from Next.": [
     "web\\src\\app\\review\\DailyCheck.tsx"
@@ -7576,11 +7576,11 @@
     "web\\src\\app\\AuthScreen.tsx"
   ],
   "Plugins": [
-    "web/src/app/settingsSections.ts",
-    "web/src/lib/settingsCopy.ts"
+    "web\\src\\app\\settingsSections.ts",
+    "web\\src\\lib\\settingsCopy.ts"
   ],
   "Plugins are part of the app itself; nothing is downloaded.": [
-    "web/src/lib/settingsCopy.ts"
+    "web\\src\\lib\\settingsCopy.ts"
   ],
   "Policy for this server": [
     "web\\src\\lib\\settingsCopy.ts"
@@ -11293,6 +11293,9 @@
   "Tick the selected task for a bulk action (Space with Vim keybindings on)": [
     "web\\src\\lib\\shortcuts.ts"
   ],
+  "Tick the task and show every checkbox (a tap on the grip at the row's edge does the same); Select in the list header shows them without ticking, Done hides them": [
+    "web\\src\\lib\\shortcuts.ts"
+  ],
   "Tick {title}": [
     "web\\src\\app\\PublicListScreen.tsx"
   ],
@@ -12062,7 +12065,7 @@
     "web\\src\\app\\locations\\LocationEditor.tsx"
   ],
   "Use {plugin}": [
-    "web/src/app/PluginsSection.tsx"
+    "web\\src\\app\\PluginsSection.tsx"
   ],
   "Used to sign in on new devices.": [
     "web\\src\\lib\\settingsCopy.ts"

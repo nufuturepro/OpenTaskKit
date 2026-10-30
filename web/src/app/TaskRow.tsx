@@ -170,6 +170,10 @@ export interface TaskRowProps {
   onPointerDown?: (e: React.PointerEvent<HTMLLIElement>) => void
   /** A right-click: opens the row's actions menu at the pointer (task-row-context-menu). */
   onContextMenu?: (e: React.MouseEvent<HTMLLIElement>) => void
+  /** Starts a drag from the row's touch grip (right edge): hold selects, hold then move drags. */
+  onGripDown?: (e: React.PointerEvent<HTMLElement>) => void
+  /** A tap on the grip: tick the row and enter Select mode (bulk-actions on touch). */
+  onGripClick?: () => void
   /** Drop target key for lib/dnd (manual-ordering): the row accepts drops before, after or inside it. */
   dropKey?: string
   /** Where the dragged task would land relative to this row (manual-ordering). */
@@ -252,7 +256,7 @@ function holdForRow(e: React.PointerEvent<HTMLLIElement>, drag: TaskRowProps['on
  * props changes, so callers pass stable handlers and per-row values (`selected` is a
  * boolean, not the list's selected id).
  */
-export const TaskRow = memo(function TaskRow({ task, project, labels = [], assignee, assignedToMe = false, selected, showProject, depth = 0, progress, blockedBy = 0, habit = null, breadcrumb, hasChildren = false, collapsed = false, readOnly = false, onToggle, onOpen, onToggleCollapse, card = false, onPointerDown, onContextMenu, dropKey, dropIndicator = null, dragging = false, ticked = false, showCheckbox = false, onTick, hideFieldBadges = false, posInSet, setSize, detail: detailProp, implied, omitLabel, tracked: trackedProp, inline }: TaskRowProps) {
+export const TaskRow = memo(function TaskRow({ task, project, labels = [], assignee, assignedToMe = false, selected, showProject, depth = 0, progress, blockedBy = 0, habit = null, breadcrumb, hasChildren = false, collapsed = false, readOnly = false, onToggle, onOpen, onToggleCollapse, card = false, onPointerDown, onContextMenu, onGripDown, onGripClick, dropKey, dropIndicator = null, dragging = false, ticked = false, showCheckbox = false, onTick, hideFieldBadges = false, posInSet, setSize, detail: detailProp, implied, omitLabel, tracked: trackedProp, inline }: TaskRowProps) {
   // One shared, ticking map for every row (time-tracking D4); stories and tests may pass the figure.
   const trackedLive = useTaskTracked(task.id)
   const tracked = trackedProp ?? trackedLive
@@ -431,7 +435,9 @@ export const TaskRow = memo(function TaskRow({ task, project, labels = [], assig
         </button>
         {onTick && !readOnly && (
           <label className={`absolute inset-0 cursor-pointer items-center justify-center ${showCheckbox || ticked ? 'inline-flex' : 'hidden'}`}>
-            <input type="checkbox" className="h-4 w-4 accent-(--ot-accent)" checked={ticked} aria-label={t('Select {title}', { title: name })} data-tick
+            {/* A styled box, not the platform's: it fills the same 20 px slot as the
+                completion circle it stands in for, identically on every device. */}
+            <input type="checkbox" className="row-tick size-5 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus" checked={ticked} aria-label={t('Select {title}', { title: name })} data-tick
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onTick(e.shiftKey) }} onChange={() => {}} />
           </label>
         )}
@@ -456,9 +462,34 @@ export const TaskRow = memo(function TaskRow({ task, project, labels = [], assig
       {originChip
         ? <span className="ml-auto flex shrink-0 items-start gap-2" data-row-trailing>{originChip}{!card && quiet}</span>
         : !card && quiet}
+      {onGripDown && onGripClick && onTick && !readOnly && !inline && <RowGrip name={name} ticked={ticked} onDown={onGripDown} onClick={onGripClick} />}
     </li>
   )
 })
+
+/**
+ * The touch grip at a row's right edge (bulk-actions on touch): a tap ticks the row
+ * and enters Select mode, a hold selects it, a hold then a move drags — so the row
+ * body's own press stays tap-to-open and hold-for-menu, and never selects words under
+ * the finger. Coarse pointers only (hidden before it renders): a fine pointer drags
+ * the row anywhere and ticks through the same box as before.
+ */
+function RowGrip({ name, ticked, onDown, onClick }: { name: string; ticked: boolean; onDown: (e: React.PointerEvent<HTMLElement>) => void; onClick: () => void }) {
+  return (
+    <span data-row-grip="" className="mt-0.5 hidden h-5 w-5 shrink-0 items-center justify-center self-start pointer-coarse:flex">
+      <button
+        type="button"
+        aria-label={t('Select {title}', { title: name })}
+        aria-pressed={ticked}
+        onPointerDown={(e) => { e.stopPropagation(); onDown(e) }}
+        onClick={onClick}
+        className="touch-target pointer-coarse:-m-3 flex select-none items-center justify-center rounded-chip text-faint touch-action-none hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      >
+        <Icon name="grip-vertical" size="sm" />
+      </button>
+    </span>
+  )
+}
 
 /** The board card: the same row data as a card (sections-and-boards "Card content"). */
 export function TaskCard(props: Omit<TaskRowProps, 'card'>) {

@@ -14,11 +14,15 @@ export interface RowActions {
   open: (id: string, e?: React.MouseEvent) => void
   tick: (id: string, range: boolean) => void
   drag: (e: React.PointerEvent, task: Task) => void
+  /** A press on the row's touch grip: hold selects, hold then move drags (bulk-actions on touch). */
+  grip: (e: React.PointerEvent, task: Task) => void
+  /** A tap on the grip: tick the row and enter Select mode. */
+  gripTap: (task: Task) => void
   /** A right-click on this row: the actions menu at the pointer (task-row-context-menu). */
   context: (e: React.MouseEvent, task: Task) => void
 }
 
-type ListRowProps = Omit<TaskRowProps, 'labels' | 'onToggle' | 'onOpen' | 'onTick' | 'onToggleCollapse' | 'onPointerDown' | 'dropKey'> & {
+type ListRowProps = Omit<TaskRowProps, 'labels' | 'onToggle' | 'onOpen' | 'onTick' | 'onToggleCollapse' | 'onPointerDown' | 'onGripDown' | 'onGripClick' | 'dropKey'> & {
   labelMap: Map<string, Label>
   /** The row can be picked up (to a sidebar project or label, ux-feedback-2 D4). */
   draggable: boolean
@@ -42,6 +46,8 @@ export const ListRow = memo(function ListRow({ task, labelMap, draggable, reorde
       task={task}
       labels={labels}
       onPointerDown={draggable ? (e) => actions.drag(e, task) : undefined}
+      onGripDown={draggable ? (e) => actions.grip(e, task) : undefined}
+      onGripClick={draggable ? () => actions.gripTap(task) : undefined}
       onContextMenu={(e) => actions.context(e, task)}
       dropKey={reorderable ? `task:${task.id}` : undefined}
       onToggle={() => actions.toggle(task)}

@@ -64,6 +64,17 @@ export interface SelectionApi {
   clear(): void
 }
 
+/**
+ * A long press on a row's grip selects (bulk-actions on touch): the row is ticked
+ * unless it already is (idempotent), every checkbox and the selection bar show, and
+ * the device ticks once where it can vibrate.
+ */
+export function holdSelect(id: string, selection: { ticked: ReadonlySet<string>; toggle: (id: string) => void }, setSelectMode: (on: boolean) => void): void {
+  if (!selection.ticked.has(id)) selection.toggle(id)
+  setSelectMode(true)
+  navigator.vibrate?.(10)
+}
+
 /** The selection of one list: `rows` are task ids in visible order. */
 export function useSelection(rows: readonly string[], readOnly: IsReadOnly): SelectionApi {
   const [sel, setSel] = useState<Selection>(EMPTY)

@@ -21,6 +21,8 @@ export interface DragSource {
   sectionMap: Map<string, Section>
   /** The bulk selection: a dragged row that is part of it carries every selected task to a sidebar target. */
   ticked?: ReadonlySet<string>
+  /** Touch: a hold on the row's grip selects it (bulk-actions on touch); the row body's hold opens the menu instead. */
+  onHold?: (task: Task) => void
   /** Opens the row's actions menu for a task at a point (task-row-context-menu): a touch hold's release. */
   openRowMenu: (task: Task, x: number, y: number) => void
 }
@@ -48,10 +50,12 @@ export function useListDrag({ manual, source, moveToSection, onDropped, onDragSt
   const dragState = useRef(source)
   dragState.current = source
 
-  const startDrag = useCallback((e: React.PointerEvent, task: Task) => {
+  const startDrag = useCallback((e: React.PointerEvent, task: Task, grip = false) => {
     const st = dragState.current
     // The pressed row: the touch hold tints it while armed (feedback without a render).
-    const row = e.currentTarget instanceof HTMLElement ? e.currentTarget : null
+    // A grip press starts on its button, but the tint belongs to the row it sits in.
+    const host = e.currentTarget instanceof HTMLElement ? (e.currentTarget.closest('li') ?? e.currentTarget) : null
+    const row = host
     const node = st.tree?.nodes.get(task.id)
     const own = new Set(node ? flattenTree([node]).map((n) => n.id) : [task.id])
     let current: DropAt | null = null
@@ -60,16 +64,20 @@ export function useListDrag({ manual, source, moveToSection, onDropped, onDragSt
       current = d
       setDropAt(d)
     }
+    const hold = st.onHold
     beginDrag(e, {
+      grip,
       label: task.title,
       taskDrops: true,
+      // Only the grip's hold selects (bulk-actions on touch); the row body's hold is the menu's.
+      onHold: grip && hold ? () => hold(task) : undefined,
       onStart: () => {
         setDraggingId(task.id)
         // A hold may have opened the menu (a native touch context menu); the drag wins.
         onDragStart?.()
       },
       onHoldChange: (held) => row?.toggleAttribute('data-touch-hold', held),
-      onHoldRelease: (x, y) => dragState.current.openRowMenu(task, x, y),
+      onHoldRelease: grip ? undefined : (x, y) => dragState.current.openRowMenu(task, x, y),
       onMove: (target, _x, y) => {
         // Over a sidebar target the list shows no drop line (the target shows its ring).
         const id = manual && target?.startsWith('task:') ? target.slice('task:'.length) : null

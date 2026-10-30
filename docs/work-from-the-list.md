@@ -36,7 +36,7 @@ Completing, deleting, moving, rescheduling or parking a task shows a toast with 
 
 ## What a row shows
 
-With **Calm** rows (the default) a row leaves out what the view already says: no "Today" in Today (the time stays), no date under an Upcoming day, no project inside that project, no chip for the open label. Dates are grey unless overdue (red) or timed for today; only P1 and P2 colour the circle. Labels are dots with the first name and "+2"; hover or focus them to see all. Subtask progress, comments and attachments sit at the end of the row, faint until you hover it. **Detailed** rows in Settings → Appearance show every chip.
+With **Calm** rows (the default) a row leaves out what the view already says: no "Today" in Today (the time stays), no date under an Upcoming day, no project inside that project, no chip for the open label. Dates are grey unless overdue (red) or timed for today; only P1 and P2 colour the circle. Labels are dots with the first name and "+2"; hover or focus to see all. Progress, comments and attachments sit at the row's end, faint until hovered. **Detailed** rows in Settings → Appearance show every chip.
 
 ## Quick changes from the list
 
@@ -56,10 +56,10 @@ You don't have to open a task to change it. Select it and press:
 | <kbd>s</kbd> | Schedule it on the Day calendar |
 | <kbd>Delete</kbd> | Move it to the Trash |
 
-Right-click or hold a row: its menu opens at the pointer; tick several at once. **Pick a date…** opens the calendar beside the menu, not over it.
+Right-click or hold a row: its menu opens at the pointer; tap its grip to tick several at once. **Pick a date…** opens the calendar beside the menu, not over it.
 
 ## Put things in order
 
-In the Inbox and in projects, you decide the order. Drag a task to a new place (on a touch screen, press and hold first), or select it and press <kbd>Alt</kbd>+<kbd>↑</kbd> / <kbd>Alt</kbd>+<kbd>↓</kbd>. <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>↑</kbd> sends it to the top. Dropping a task on the middle of another one makes it a subtask. Projects in the sidebar reorder the same way.
+In the Inbox and in projects, you decide the order. Drag a task to a new place (on a touch screen, drag it by its grip), or select it and press <kbd>Alt</kbd>+<kbd>↑</kbd> / <kbd>Alt</kbd>+<kbd>↓</kbd>. <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>↑</kbd> sends it to the top. Dropping a task on the middle of another one makes it a subtask. Projects in the sidebar reorder the same way.
 
 Today, Upcoming, labels and filters sort themselves by date and priority; there a drag only goes to the sidebar (see [Drop on the sidebar](bulk-actions.md#drop-on-the-sidebar)).

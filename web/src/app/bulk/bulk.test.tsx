@@ -204,3 +204,64 @@ describe('actions (2.5, 3.3, 4.2)', () => {
     expect((await db.tasks.get(ids[0]))!.priority).toBe(4)
   })
 })
+
+// The touch grip: choosing rows from the marker at the row's right edge, while the
+// row body's own hold stays the actions menu's gesture (OpenSpec change touch-row-grip).
+describe('the touch grip (bulk-actions on touch)', () => {
+  // The row menu's own trigger is fixed-positioned at the gesture; the Selection bar
+  // has its own unpositioned "Actions for…" button, which this must not confuse.
+  const rowMenuOpen = () => [...document.querySelectorAll<HTMLButtonElement>('button[aria-label^="Actions for"]')].some((b) => b.style.position === 'fixed')
+
+  it('a tap on the grip ticks the row, shows every checkbox and the bar, with one haptic', async () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    const { ids } = await inbox('Tap me')
+    const grip = document.querySelector<HTMLElement>(`[data-task-id="${ids[0]}"] [data-row-grip] button`)!
+    expect(grip).toBeTruthy()
+    await act(async () => { grip.click() })
+    await waitFor(() => bar() === '1 selected')
+    expect(tickedTitles()).toEqual(['Tap me'])
+    expect(vibrate).toHaveBeenCalledWith(10)
+    expect(rowMenuOpen()).toBe(false)
+  })
+
+  it("a hold on the grip ticks the row (idempotent) and opens no menu", async () => {
+    const vibrate = vi.fn()
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    const { ids } = await inbox('Hold me')
+    const grip = document.querySelector<HTMLElement>(`[data-task-id="${ids[0]}"] [data-row-grip] button`)!
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    try {
+      await act(async () => { grip.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 6, pointerType: 'touch', clientX: 20, clientY: 20 })) })
+      await act(async () => { vi.advanceTimersByTime(400) })
+      await act(async () => { window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 6, pointerType: 'touch', clientX: 20, clientY: 20 })) })
+      // The swallowed click's guard ends on a timer; let it run before real timers return.
+      await act(async () => { vi.advanceTimersByTime(10) })
+      expect(tickedTitles()).toEqual(['Hold me'])
+      expect(bar()).toBe('1 selected')
+      expect(vibrate).toHaveBeenCalledWith(10)
+      expect(rowMenuOpen()).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("a hold on the row's body arms and opens its menu — it never ticks", async () => {
+    const { ids } = await inbox('Body hold')
+    const li = document.querySelector<HTMLElement>(`[data-task-id="${ids[0]}"]`)!
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    try {
+      await act(async () => { li.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerId: 7, pointerType: 'touch', clientX: 30, clientY: 60 })) })
+      await act(async () => { vi.advanceTimersByTime(400) })
+      // The hold arms (its tint); selection is the grip's, so nothing ticks.
+      expect(li.hasAttribute('data-touch-hold')).toBe(true)
+      await act(async () => { window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7, pointerType: 'touch', clientX: 30, clientY: 60 })) })
+      await act(async () => { vi.advanceTimersByTime(10) })
+      expect(li.hasAttribute('data-ticked')).toBeFalsy()
+      expect(bar()).toBeNull()
+      expect(rowMenuOpen()).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})

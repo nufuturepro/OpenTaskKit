@@ -4498,5 +4498,6 @@
   "Off makes menus, dialogs and changes instant.": "Apagado hace que menús, diálogos y cambios sean instantáneos.",
   "Instant overlays when off": "Sin animación, todo al instante",
   "Pick a date": "Elegir una fecha",
-  "Animate menus and dialogs": "Animar menús y diálogos"
+  "Animate menus and dialogs": "Animar menús y diálogos",
+  "Tick the task and show every checkbox (a tap on the grip at the row's edge does the same); Select in the list header shows them without ticking, Done hides them": "Marca la tarea y muestra todas las casillas (tocar el tirador en el borde de la fila hace lo mismo); Seleccionar en la cabecera de la lista las muestra sin marcar, Hecho las oculta"
 }

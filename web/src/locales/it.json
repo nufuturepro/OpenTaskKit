@@ -4498,5 +4498,6 @@
   "Off makes menus, dialogs and changes instant.": "Disattivato rende menu, finestre di dialogo e modifiche istantanee.",
   "Instant overlays when off": "Senza animazione, tutto è immediato",
   "Pick a date": "Scegliere una data",
-  "Animate menus and dialogs": "Animare menu e finestre di dialogo"
+  "Animate menus and dialogs": "Animare menu e finestre di dialogo",
+  "Tick the task and show every checkbox (a tap on the grip at the row's edge does the same); Select in the list header shows them without ticking, Done hides them": "Spunta il compito e mostra tutte le caselle di controllo (toccare la maniglia sul bordo della riga fa lo stesso); Seleziona nell'intestazione dell'elenco le mostra senza spuntare, Fatto le nasconde"
 }

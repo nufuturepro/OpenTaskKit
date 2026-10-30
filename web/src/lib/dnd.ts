@@ -4,7 +4,10 @@ import { t } from './i18n'
 // after a few pixels of movement; touch arms after a short long-press so a plain
 // swipe still scrolls the board — moving after the hold lifts the drag, releasing
 // still opens the row's actions menu (task-row-context-menu "Touch: hold and
-// release"). A ghost label follows the pointer, the element
+// release"). A press on the row's grip skips the wait, because a grip never
+// scrolls: movement lifts the drag at once and the hold itself selects
+// (bulk-actions on touch — the grip owns selection on a touch screen).
+// A ghost label follows the pointer, the element
 // under it carrying `data-drop-target` is the target and gets `data-drop-active`
 // for styling. The primitive knows nothing about tasks: callers decide what a drop
 // means (board-view moves a task to a section; `manual-ordering` will add
@@ -26,8 +29,22 @@ export interface DragOptions {
    * becoming a drag (false, from cleanup) — the pressed element's held feedback.
    */
   onHoldChange?: (held: boolean) => void
-  /** Touch only: a hold completed and the finger lifted without moving: open the row's menu here (task-row-context-menu). */
+  /** Touch only: a hold completed and the finger lifted without moving: open the row's menu here (task-row-context-menu). Never for a grip press: the grip's hold selects, and its release falls through to its own click. */
   onHoldRelease?: (x: number, y: number) => void
+  /**
+   * Touch: the hold itself means something (bulk-actions on touch — a long press on
+   * the row's grip selects it, the grip owning selection on a touch screen). Called
+   * when the hold elapses instead of lifting; the drag lifts only if the finger then
+   * moves, and a release without moving swallows the click.
+   */
+  onHold?: () => void
+  /**
+   * The press began on the row's grip, not its body. A grip never scrolls (its own
+   * `touch-action: none`), so any movement past the threshold lifts the drag without
+   * waiting for the hold; the hold still means select, and a release without either
+   * falls through to the grip's own click (a tap ticks the row).
+   */
+  grip?: boolean
   /**
    * Also resolve `data-task-drop` targets (OpenSpec change ux-feedback-2, D4: a
    * task dropped on a sidebar project, the Inbox or a label), reported as
@@ -142,7 +159,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
     if (ev.pointerId !== e.pointerId) return
     if (!lifted) {
       const far = Math.hypot(ev.clientX - startX, ev.clientY - startY) > DRAG_THRESHOLD
-      if (e.pointerType === 'touch') {
+      if (e.pointerType === 'touch' && !opts.grip) {
         // Moving before the hold elapses is a scroll, not a drag; after it, the drag.
         if (!far) return
         if (!held) {
@@ -150,6 +167,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
           return
         }
       } else if (!far) return
+      // A grip lifts on the first far move: it never scrolls and never waits (bulk-actions on touch).
       lift()
     }
     ev.preventDefault()
@@ -167,7 +185,9 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
       // and nothing was dropped.
       if (heldStill && e.pointerType === 'touch') {
         swallowNextClick()
-        opts.onHoldRelease?.(ev.clientX, ev.clientY)
+        // A grip press is never the menu's: its hold selected, and this release is
+        // swallowed so the grip's own click cannot untick what the hold ticked.
+        if (!opts.grip) opts.onHoldRelease?.(ev.clientX, ev.clientY)
       }
       return
     }
@@ -201,6 +221,8 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
     timer = setTimeout(() => {
       held = true
       opts.onHoldChange?.(true)
+      // The hold itself means select — only ever wired from the row's grip.
+      opts.onHold?.()
     }, TOUCH_HOLD_MS)
   }
   return cancel

@@ -41,7 +41,7 @@ import { requestQuickAddSheet } from './QuickAddSheet'
 import { navigate, type Route } from './router'
 import { AddSection } from './Sections'
 import { selectTask } from './signals'
-import { useSelection } from './selection'
+import { holdSelect, useSelection } from './selection'
 import { SubProjects } from './SubProjects'
 import { TimelineView } from './TimelineView'
 import { completeWithUndo } from './undoable'
@@ -168,7 +168,7 @@ export function TaskListView({ route, userId, userRole }: { route: ListRoute; us
   // and above) and the Inbox. Date and filter views keep their own sort.
   const manual = (route.view === 'project' && m.projectEditable) || route.view === 'inbox'
   const sectionOfRow = useMemo(() => sectionOfRows(board, columns, groups), [board, columns, groups])
-  const drag = useListDrag({ manual, source: { rows, sectionOfRow, tree: m.tree, board, sectionMap, ticked: selection.ticked, openRowMenu }, moveToSection, onDropped: setSelectedId, onDragStart: clearContextMenu })
+  const drag = useListDrag({ manual, source: { rows, sectionOfRow, tree: m.tree, board, sectionMap, ticked: selection.ticked, onHold: (task) => holdSelect(task.id, selection, setSelectMode), openRowMenu }, moveToSection, onDropped: setSelectedId, onDragStart: clearContextMenu })
   const { latestSectionMap } = drag
 
   // The view supplies defaults; attributes typed in the quick-add line override them.
