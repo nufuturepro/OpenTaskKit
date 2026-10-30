@@ -111,7 +111,7 @@ describe('drop a task on a project', () => {
     const mine = await createProject({ name: 'Mine' })
     const id = await createTask({ title: 'Keep me' })
     const r = await shell({ view: 'inbox' })
-    await waitFor(() => !!document.querySelector(`[data-project-row="${shared}"]`) && !!target(`project:${mine}`))
+    await waitFor(() => !!row(id) && !!document.querySelector(`[data-project-row="${shared}"]`) && !!target(`project:${mine}`))
     const viewerRow = document.querySelector(`[data-project-row="${shared}"]`)!
     expect(viewerRow.hasAttribute('data-task-drop')).toBe(false)
     const { active } = await drag(row(id), viewerRow)
