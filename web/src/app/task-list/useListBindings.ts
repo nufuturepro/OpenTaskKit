@@ -6,7 +6,6 @@ import { type RefObject, useEffect, useMemo, useRef } from 'react'
 import type { ListColumn, ListRow } from '../../lib/listGroups'
 import type { Task } from '../../lib/types'
 import { act } from '../actionError'
-import { gripTrace } from '../../lib/gripTrace'
 import { registerListState } from '../listActions'
 import { registerPanelHandlers, setPanelTaskId as setOpenId } from '../panel'
 import type { useSelection } from '../selection'
@@ -201,7 +200,6 @@ export function useListBindings(c: BindingContext): RowActions {
     grip: (e, task) => live.current.startDrag(e, task, true),
     gripTap: (task) => {
       // A tap on the grip is a plain tick with the long press's feedback (bulk-actions on touch).
-      gripTrace('gripTap', 'toggle')
       live.current.selection.toggle(task.id)
       setSelectedId(task.id)
       live.current.setSelectMode(true)
@@ -211,21 +209,11 @@ export function useListBindings(c: BindingContext): RowActions {
       // Right-click: the row's actions menu at the pointer. A link, a field or the
       // row's selected text keeps the browser's menu; a touch long press is the hold's
       // gesture, not a right-click, so it is only suppressed (task-row-context-menu).
-      if (nativeMenuWins(e)) {
-        gripTrace('context', 'native-menu-wins')
-        return
-      }
+      if (nativeMenuWins(e)) return
       e.preventDefault()
-      if (fromTouch(e)) {
-        gripTrace('context', 'touch-suppressed')
-        return
-      }
+      if (fromTouch(e)) return
       // A lifted drag wins: the drop completes on release.
-      if (live.current.draggingId) {
-        gripTrace('context', 'drag-wins')
-        return
-      }
-      gripTrace('context', 'menu-open')
+      if (live.current.draggingId) return
       live.current.openRowMenu(task, e.clientX, e.clientY)
     },
   }), [setSelectedId])

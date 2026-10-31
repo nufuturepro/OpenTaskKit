@@ -4,7 +4,6 @@
 // list; placing it among other rows needs a manually ordered list.
 import { useCallback, useRef, useState } from 'react'
 import { beginDrag } from '../../lib/dnd'
-import { gripTrace } from '../../lib/gripTrace'
 import type { ListRow } from '../../lib/listGroups'
 import { moveTask } from '../../lib/move'
 import type { Section, Task } from '../../lib/types'
@@ -71,7 +70,6 @@ export function useListDrag({ manual, source, moveToSection, onDropped, onDragSt
     // What the press found: a row ticked before it presses keeps its selection through
     // a drag; a tick this press's own hold creates is given back if the press drags.
     const wasTicked = st.ticked?.has(task.id) ?? false
-    gripTrace('press', `grip=${grip ? 1 : 0} wasTicked=${wasTicked ? 1 : 0} undoWired=${grip && !wasTicked ? 1 : 0}`)
     beginDrag(e, {
       grip,
       label: task.title,
@@ -81,7 +79,7 @@ export function useListDrag({ manual, source, moveToSection, onDropped, onDragSt
       // A hold that then drags gives its tick back — only for a row this press ticked.
       // Read at call time: the provider's selection closure only carries the hold's
       // tick once that state has rendered, never at press time.
-      onHoldUndo: grip && !wasTicked ? () => { gripTrace('holdUndo', 'to-provider'); dragState.current.onHoldUndo?.(task) } : undefined,
+      onHoldUndo: grip && !wasTicked ? () => dragState.current.onHoldUndo?.(task) : undefined,
       onStart: () => {
         setDraggingId(task.id)
         // A hold may have opened the menu (a native touch context menu); the drag wins.
