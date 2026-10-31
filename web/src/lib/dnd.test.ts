@@ -133,6 +133,18 @@ describe('the grip (bulk-actions on touch, touch-row-grip)', () => {
     up(120)
     expect(s4.onEnd).toHaveBeenCalledTimes(1)
   })
+
+  it('a grip that drags before the hold elapses never selects: the hold dies with the lift', () => {
+    const s = spies()
+    const undo = vi.fn()
+    beginDrag(press, { label: 'Task', grip: true, onHoldUndo: undo, ...s })
+    move(60) // lifts at once, well before TOUCH_HOLD_MS (the Android repro)
+    vi.advanceTimersByTime(TOUCH_HOLD_MS * 2) // the old hold timer would have fired here
+    expect(s.onHold).not.toHaveBeenCalled()
+    up(60)
+    expect(s.onHold).not.toHaveBeenCalled()
+    expect(undo).not.toHaveBeenCalled() // nothing was ticked, so nothing to give back
+  })
 })
 
 describe('the click after a drag', () => {

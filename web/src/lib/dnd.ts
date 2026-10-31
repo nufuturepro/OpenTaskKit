@@ -1,3 +1,4 @@
+import { gripTrace } from './gripTrace'
 import { t } from './i18n'
 // Pointer-based drag and drop (OpenSpec `board-view`, design D6): native pointer
 // events, no library, works with mouse, pen and touch. A mouse or pen drag starts
@@ -118,6 +119,7 @@ export function swallowNextClick(): void {
  */
 export function beginDrag(e: { pointerId: number; pointerType: string; button: number; clientX: number; clientY: number }, opts: DragOptions): () => void {
   if (e.pointerType === 'mouse' && e.button !== 0) return () => undefined
+  gripTrace('down', `${e.pointerType}${opts.grip ? ' grip' : ''}`)
   const startX = e.clientX
   const startY = e.clientY
   let lifted = false
@@ -130,14 +132,22 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
   // The grip's hold selected a row; the moment the press becomes a drag (or is
   // abandoned) that tick is given back, so a drag never leaves selection behind.
   const undoHold = () => {
-    if (!opts.grip || !holdFired || holdUndone || !opts.onHoldUndo) return
+    // One decision, so the trace can say which reason stopped it.
+    const undo = opts.grip && holdFired && !holdUndone ? opts.onHoldUndo : undefined
+    gripTrace('undoHold', undo ? 'give-tick-back' : `skip:${!opts.grip ? 'not-grip' : !holdFired ? 'hold-never-fired' : holdUndone ? 'already' : 'no-handler'}`)
+    if (!undo) return
     holdUndone = true
-    opts.onHoldUndo()
+    undo()
   }
 
   const lift = () => {
     if (lifted) return
     lifted = true
+    // The press is a drag now, so the pending hold dies with the wait: a finger that
+    // moved before the hold elapsed must never tick the row (the Android trace had the
+    // hold firing after the lift and leaving "1 selected" behind).
+    clearTimeout(timer)
+    gripTrace('lift', `holdFired=${holdFired ? 1 : 0}`)
     undoHold()
     // The held tint hands over to the drag's own feedback.
     if (held) {
@@ -194,6 +204,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
     if (ev.pointerId !== e.pointerId) return
     const wasLifted = lifted
     const heldStill = held
+    gripTrace('up', `lifted=${wasLifted ? 1 : 0} held=${heldStill ? 1 : 0}`)
     const at = wasLifted ? dropTargetAt(ev.clientX, ev.clientY, document, opts.taskDrops) ?? target : null
     cleanup()
     if (!wasLifted) {
@@ -214,6 +225,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
   }
   const cancel = () => {
     const wasLifted = lifted
+    gripTrace('cancel', `lifted=${wasLifted ? 1 : 0}`)
     undoHold()
     cleanup()
     if (wasLifted) opts.onEnd?.()
@@ -238,6 +250,7 @@ export function beginDrag(e: { pointerId: number; pointerType: string; button: n
     // releasing still opens the row's menu, so neither gesture steals the other.
     timer = setTimeout(() => {
       holdFired = true
+      gripTrace('hold', 'fired')
       held = true
       opts.onHoldChange?.(true)
       // The hold itself means select — only ever wired from the row's grip.

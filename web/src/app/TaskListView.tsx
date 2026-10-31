@@ -42,6 +42,7 @@ import { navigate, type Route } from './router'
 import { AddSection } from './Sections'
 import { selectTask } from './signals'
 import { holdSelect, useSelection, type SelectionApi } from './selection'
+import { gripTrace } from '../lib/gripTrace'
 import { SubProjects } from './SubProjects'
 import { TimelineView } from './TimelineView'
 import { completeWithUndo } from './undoable'
@@ -67,9 +68,13 @@ const HELP_SCREENS: Partial<Record<Route['view'], string>> = {
  */
 function undoGripHold(selection: SelectionApi, setSelectMode: (on: boolean) => void): (task: Task) => void {
   return (task) => {
-    if (!selection.ticked.has(task.id)) return
+    if (!selection.ticked.has(task.id)) {
+      gripTrace('provider', `skip:not-ticked size=${selection.ticked.size}`)
+      return
+    }
     const alone = selection.ticked.size === 1
     selection.toggle(task.id)
+    gripTrace('provider', `cleared alone=${alone ? 1 : 0}`)
     if (alone) setSelectMode(false)
   }
 }
